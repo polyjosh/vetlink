@@ -41,6 +41,7 @@ curl http://localhost:4000/ready
 | psql shell | `docker compose exec db psql -U $DB_USER -d $DB_NAME` |
 | Lint / typecheck / tests | `pnpm lint` / `pnpm typecheck` / `pnpm test` |
 | Full pre-commit check | `pnpm check` |
+| Web end-to-end (Playwright) | `pnpm test:e2e` |
 
 > [!WARNING]
 > **`docker compose down -v` deletes the database, Redis, and storage volumes. All local data is lost.**
@@ -51,8 +52,8 @@ curl http://localhost:4000/ready
 | What | Where |
 |---|---|
 | API | `http://localhost:4000` (health at `/health`, readiness at `/ready`, Swagger UI at `/docs`, OpenAPI JSON at `/docs/json`; not served in production) |
-| Web app (farmer, vet) | `http://localhost:3000` (from M11) |
-| Admin console | `http://localhost:3000/admin` (from M11) |
+| Web app (farmer, vet) | `http://localhost:3000` (`pnpm --filter web dev`) |
+| Admin console | `http://localhost:3000/admin` (2FA required; seeded admin `0700000009`, TOTP secret printed by `db:seed`) |
 | Mobile app | Expo dev server: scan the QR code (Expo Go or a dev build) or use an Android emulator (from M12) |
 | Database (from host tools) | `localhost:5432` |
 | Redis | `localhost:6379` |
@@ -61,6 +62,19 @@ curl http://localhost:4000/ready
 | USSD / SMS / M-Pesa callbacks | Public tunnel URL → `/webhooks/*` |
 
 Inside the Docker network the database host is `db`, Redis is `redis`, and storage is `s3:8333`.
+
+## Web app
+
+`apps/web` is one Next.js app for farmers, vets and admins (route groups `/farmer`, `/vet`, `/admin`). Run the backend with Docker, then `pnpm --filter web dev` and open `http://localhost:3000`. With `OTP_FIXED_CODE` set in `.env`, every login code is that value; otherwise the code is in `docker compose logs -f api` (`SMS_MODE=log`).
+
+- **Same origin.** The browser only talks to the Next.js server. `/v1/*` is forwarded to `API_URL` (default `http://localhost:4000`), so there is no CORS and the API host is never exposed. `API_URL` is read when the app is **built** (rewrites are compiled in).
+- **Session.** `/api/session/login|refresh|logout` keep the refresh token in an httpOnly, `SameSite=Strict` cookie scoped to `/api/session`; the access token lives only in memory. Refresh is single-flight per tab and across tabs (Web Locks), because the API revokes a session when a rotated refresh token is reused.
+- **Guards are UX only.** `src/proxy.ts` and the client role guard send people to the right screen; the API authorizes every request.
+- **Text and styling.** All text comes from `@vetlink/i18n` (`web` namespace, sw and en). Colours and sizes come from `@vetlink/ui-tokens` as CSS variables used by Tailwind.
+- **Builds use webpack** (`next dev --webpack`, `next build --webpack`): the workspace packages are TypeScript source with NodeNext `./x.js` imports, which Turbopack cannot resolve.
+- **Vet documents** are uploaded from the browser straight to storage with a presigned PUT. The production bucket needs a CORS rule allowing `PUT` from the web origin (local SeaweedFS allows it).
+
+`pnpm test:e2e` builds the web app and runs Playwright against a throwaway database (from `TEST_DATABASE_URL`), the API and worker on port 4100 (fixed OTP, mock M-Pesa, logged SMS and push) and Redis index 14 (cleared at the start of each run), then removes the database. It covers the M11 happy path (farmer books and pays, vet accepts, travels, completes, farmer rates) and first-run onboarding. Chromium needs system libraries: `pnpm --filter web exec playwright install --with-deps chromium` (needs sudo), as CI does.
 
 ## API and typed client
 
