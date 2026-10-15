@@ -78,6 +78,10 @@ const { data, error } = await api.POST('/v1/bookings', {
 
 After changing a route or schema, run `pnpm api:generate` and commit `packages/api-client/openapi.json` and `src/schema.ts`. A test and a CI step fail if they are stale.
 
+## USSD
+
+`pnpm ussd:sim` walks the farmer USSD menu against the running API, as the seeded demo farmer (`-- --phone 07…` for another number). Menus and rules: `docs/ussd-flows.md`.
+
 ## Database
 
 - Schema: `apps/api/src/db/schema/`. Migrations (committed SQL): `apps/api/src/db/migrations/`. Change the schema, run `db:generate`, review the SQL, commit it, then run `migrate`. Migrations are forward-only: never edit one that has been applied.
