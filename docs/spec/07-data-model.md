@@ -244,13 +244,22 @@ CREATE TABLE payments (
   id SERIAL PRIMARY KEY,
   booking_id INT NOT NULL REFERENCES bookings(id),
   type TEXT NOT NULL CHECK (type IN ('deposit','balance','refund')),
-  amount INT NOT NULL,
-  checkout_request_id TEXT UNIQUE,
+  amount INT NOT NULL CHECK (amount > 0),     -- KES; direction comes from type
+  checkout_request_id TEXT UNIQUE,            -- Daraja STK push id
+  merchant_request_id TEXT,
   mpesa_receipt TEXT UNIQUE,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending','success','failed','cancelled','refunded')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  phone TEXT,                                 -- payer (deposit) / payee (refund)
+  result_code INT,                            -- Daraja ResultCode
+  result_desc TEXT,
+  refund_of INT UNIQUE REFERENCES payments(id), -- set iff type = 'refund'
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- At most one STK push in flight per booking, and never two paid deposits:
+CREATE UNIQUE INDEX ON payments (booking_id) WHERE type = 'deposit' AND status = 'pending';
+CREATE UNIQUE INDEX ON payments (booking_id) WHERE type = 'deposit' AND status IN ('success','refunded');
 
 CREATE TABLE treatments (
   id SERIAL PRIMARY KEY,
