@@ -35,6 +35,10 @@ export const ERROR_STATUS = {
   already_rated: 409,
   consent_required: 409,
   payment_unavailable: 503,
+  application_incomplete: 422,
+  application_locked: 409,
+  application_claimed: 409,
+  upload_invalid: 422,
 } as const;
 export type ErrorCode = keyof typeof ERROR_STATUS;
 

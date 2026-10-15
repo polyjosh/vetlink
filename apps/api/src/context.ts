@@ -2,6 +2,7 @@ import type { Db } from './db/client.js';
 import type { Counters } from './lib/counters.js';
 import { fieldCrypto, secretHasher, type FieldCrypto } from './lib/crypto.js';
 import type { Jobs } from './jobs/types.js';
+import type { ObjectStorage } from './lib/storage.js';
 import type { SmsSender } from './lib/sms.js';
 import type { PushSender } from './modules/notifications/push.js';
 import type { PaymentsGateway } from './modules/payments/gateway.js';
@@ -18,6 +19,8 @@ export interface AppContext {
   payments: PaymentsGateway;
   /** Background jobs (BullMQ in the app; inline in tests). */
   jobs: Jobs;
+  /** Private files (vet documents). */
+  storage: ObjectStorage;
   crypto: FieldCrypto;
   tokens: AccessTokens;
   hashOtp: (code: string) => string;
@@ -35,6 +38,7 @@ export interface ContextOptions {
   push: PushSender;
   payments: PaymentsGateway;
   jobs: Jobs;
+  storage: ObjectStorage;
   dataEncryptionKey: string;
   jwtSecret: string;
   otpFixedCode?: string | undefined;
@@ -49,6 +53,7 @@ export function createContext(o: ContextOptions): AppContext {
     push: o.push,
     payments: o.payments,
     jobs: o.jobs,
+    storage: o.storage,
     crypto: fieldCrypto(o.dataEncryptionKey),
     tokens: accessTokens(o.jwtSecret),
     hashOtp: secretHasher(o.dataEncryptionKey, 'otp'),

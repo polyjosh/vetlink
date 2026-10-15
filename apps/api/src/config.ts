@@ -62,6 +62,13 @@ const envSchema = z.object({
   AT_USERNAME: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   AT_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   AT_SENDER_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().max(11).optional()),
+  // Private object storage (S3-compatible; SeaweedFS locally). S3_PUBLIC_ENDPOINT is what phones
+  // and browsers use for presigned URLs (inside Docker the API reaches storage as http://s3:8333).
+  S3_ENDPOINT: z.url(),
+  S3_PUBLIC_ENDPOINT: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+  S3_BUCKET: z.string().min(3),
+  S3_ACCESS_KEY: z.string().min(1),
+  S3_SECRET_KEY: z.string().min(1),
   // App push: `log` prints (dev only; refused in production), `expo` sends via Expo.
   PUSH_MODE: z.enum(['log', 'expo']).default('log'),
   EXPO_ACCESS_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),

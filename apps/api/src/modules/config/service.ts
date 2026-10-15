@@ -33,6 +33,12 @@ export const CONFIG_SCHEMAS = {
   'matching.maxActiveJobs': z.number().int().min(1).max(10),
   /** After the last wave finds nobody, how long to keep searching before cancelling. */
   'matching.giveUpAfterMinutes': z.number().int().min(1).max(240),
+  /** Allowed base call-out fee (KES) a vet may set (§8.3 step 5). */
+  'vets.feeBands': z
+    .object({ min: z.number().int().min(0), max: z.number().int().max(100_000) })
+    .refine((b) => b.min <= b.max, { message: 'min must not exceed max' }),
+  /** Largest service radius a vet may set, km. */
+  'vets.maxServiceRadiusKm': z.number().int().min(1).max(200),
 } as const;
 
 export type ConfigKey = keyof typeof CONFIG_SCHEMAS;
@@ -51,6 +57,8 @@ export const CONFIG_DEFAULTS: { [K in ConfigKey]: ConfigValue<K> } = {
   'matching.wideWaveRadiusFactor': 1.5,
   'matching.maxActiveJobs': 1,
   'matching.giveUpAfterMinutes': 10,
+  'vets.feeBands': { min: 200, max: 5000 },
+  'vets.maxServiceRadiusKm': 50,
 };
 
 export const CONFIG_KEYS = Object.keys(CONFIG_SCHEMAS) as ConfigKey[];

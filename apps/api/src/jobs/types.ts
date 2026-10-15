@@ -30,6 +30,8 @@ export interface JobPayloads {
   'notifications.deliver': { notificationId: number };
   /** The app did not confirm a critical push in time: send the SMS. */
   'notifications.sms-fallback': { notificationId: number };
+  /** Daily: licence expiry warnings and auto-suspension. */
+  'vets.licence-check': Record<string, never>;
 }
 
 export type JobName = keyof JobPayloads;

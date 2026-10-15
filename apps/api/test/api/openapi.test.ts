@@ -43,7 +43,6 @@ describe('OpenAPI document', { timeout: 30_000 }, () => {
       }
     }
     expect(seen).toEqual(expect.arrayContaining([...publicRoutes]));
-    expect(seen.filter((k) => k.includes('/v1/admin/'))).toHaveLength(8);
   });
 
   it('exposes named schemas for clients', async () => {

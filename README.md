@@ -86,6 +86,10 @@ After changing a route or schema, run `pnpm api:generate` and commit `packages/a
 
 Once a deposit is paid, the worker sends job offers in waves (closest, best-scored vets first; see §8.5). A vet receives offers only when approved and online (`PATCH /v1/vets/me/availability`). Offers and updates go out as app push when the user has the app (`PUSH_MODE=log` prints pushes locally), with an SMS fallback after 15 s, or by SMS when they have no app. With `SMS_MODE=log`, look for `VETLINK JOB` in `docker compose logs worker`. Super admins tune matching under `/v1/admin/config`.
 
+## Vet applications and verification
+
+A vet signs up, chooses Vet/Paravet, and fills the 7-step application (`/v1/vets/me/application/*`, autosaved per step). Documents go straight to private storage: `POST /v1/uploads/presign`, PUT the file to the returned URL, then confirm. Verifiers work the queue under `/v1/admin/vet-applications` (claim, then approve, request changes or reject; every step is audited, and the admin who assisted an applicant can never approve them). A vet gets no jobs until approved, and approval never puts them online. Presigned URLs use `S3_PUBLIC_ENDPOINT` (default `http://localhost:8333`; use the machine's LAN IP for a phone).
+
 ## SMS commands
 
 Vets can run a job entirely by SMS (`Y4`, `OTW 4`, `ARR 4`, `DONE 4 ECF; oxytet 20ml; f/u 7d`, `ON`/`OFF`); farmers rate with `R4 5`. `pnpm --filter api sms:sim -- --phone 0700000002 "Y4"` sends one SMS to the running API and prints the reply. Commands and parsing rules: `docs/sms-commands.md`.

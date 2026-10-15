@@ -38,6 +38,12 @@ export async function scheduleRepeatingJobs(queue: Queue): Promise<void> {
     { every: 60_000 },
     { name: 'payments.reconcile', data: {} },
   );
+  // 06:00 Nairobi (03:00 UTC), before vets start their day.
+  await queue.upsertJobScheduler(
+    'vets.licence-check',
+    { pattern: '0 3 * * *', tz: 'UTC' },
+    { name: 'vets.licence-check', data: {} },
+  );
 }
 
 export function startWorker(

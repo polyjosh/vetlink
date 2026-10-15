@@ -4,6 +4,7 @@ import { runBookingEffects } from '../modules/bookings/effects.js';
 import { dispatchWave, giveUp, waveTimedOut } from '../modules/matching/dispatch.js';
 import { deliver, notify, smsFallback } from '../modules/notifications/service.js';
 import { handleStkResult, reconcilePayments } from '../modules/payments/service.js';
+import { checkLicences } from '../modules/vets/licence.js';
 import type { JobName, JobPayloads } from './types.js';
 
 type Handler<N extends JobName> = (
@@ -23,6 +24,7 @@ export const jobHandlers: { [N in JobName]: Handler<N> } = {
   'notifications.send': (ctx, data, log) => notify(ctx, data, log),
   'notifications.deliver': (ctx, data, log) => deliver(ctx, data.notificationId, log),
   'notifications.sms-fallback': (ctx, data, log) => smsFallback(ctx, data.notificationId, log),
+  'vets.licence-check': (ctx, _data, log) => checkLicences(ctx, log),
 };
 
 export async function runJob<N extends JobName>(

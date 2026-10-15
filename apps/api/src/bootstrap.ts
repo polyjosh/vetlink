@@ -6,6 +6,7 @@ import { createDb } from './db/client.js';
 import { bullJobs } from './jobs/queue.js';
 import { redisCounters } from './lib/counters.js';
 import { createSmsSender } from './lib/sms.js';
+import { s3Storage } from './lib/storage.js';
 import { darajaGateway } from './modules/payments/daraja.js';
 import type { PaymentsGateway } from './modules/payments/gateway.js';
 import { mockGateway } from './modules/payments/mock.js';
@@ -46,6 +47,20 @@ export function buildRuntime(config: Config, log: Logger): Runtime {
     });
   }
 
+  const storage = s3Storage({
+    endpoint: config.S3_ENDPOINT,
+    publicEndpoint: config.S3_PUBLIC_ENDPOINT,
+    bucket: config.S3_BUCKET,
+    accessKeyId: config.S3_ACCESS_KEY,
+    secretAccessKey: config.S3_SECRET_KEY,
+  });
+  if (config.APP_ENV !== 'production') {
+    // Dev convenience: create the local bucket on first run. Production buckets are provisioned.
+    void storage
+      .ensureBucket()
+      .catch((err: unknown) => log.warn({ err }, 'could not create bucket'));
+  }
+
   const ctx = createContext({
     db: db.db,
     counters: redisCounters(redis),
@@ -63,6 +78,7 @@ export function buildRuntime(config: Config, log: Logger): Runtime {
         : logPushSender(log),
     payments,
     jobs,
+    storage,
     dataEncryptionKey: config.DATA_ENCRYPTION_KEY,
     jwtSecret: config.JWT_SECRET,
     otpFixedCode: config.OTP_FIXED_CODE,
