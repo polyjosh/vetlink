@@ -114,6 +114,31 @@ describe.skipIf(!testServerUrl)('bookings (database)', { timeout: 30_000 }, () =
       expect(errorCode(await book(noProfile))).toBe('farmer_profile_required');
     });
 
+    it('quotes the same fee before booking as the booking then stores (§8.6)', async () => {
+      const farmer = await h.farmer(wardId);
+      const quote = (q: string, token = farmer.accessToken) =>
+        h.get(`/v1/bookings/quote?${q}`, token);
+
+      const before = await quote('species=cattle');
+      expect(before.statusCode).toBe(200);
+      expect(before.json()).toEqual({ feeQuoted: DEFAULT_CALL_OUT_FEE_KES, depositKes: 200 });
+
+      await h.vet(wardId);
+      const quoted = (await quote(`species=cattle&wardId=${wardId}`)).json<{ feeQuoted: number }>();
+      expect(quoted.feeQuoted).toBe(600);
+      const booked = (await book(farmer)).json<FarmerBookingView>();
+      expect(booked.feeQuoted).toBe(quoted.feeQuoted);
+
+      expect((await quote('species=unicorn')).statusCode).toBe(400);
+      const vet = await h.vet(wardId);
+      expect((await quote('species=cattle', vet.accessToken)).statusCode).toBe(403);
+      const noProfile = await h.login();
+      await h.setRoles(noProfile.userId, ['farmer']);
+      expect(errorCode(await quote('species=cattle', noProfile.accessToken))).toBe(
+        'farmer_profile_required',
+      );
+    });
+
     it('a retry with the same key returns the same booking; a different body is refused', async () => {
       const farmer = await h.farmer(wardId);
       const key = newKey();
