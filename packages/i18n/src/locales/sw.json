@@ -24,6 +24,13 @@
     "two_factor_already_enabled": "Programu yako ya uthibitishaji tayari imesanidiwa.",
     "two_factor_enrolment_closed": "Usanidi wa programu ya uthibitishaji umefungwa kwa akaunti yako. Muombe msimamizi mkuu aufungue tena.",
     "step_up_required": "Thibitisha kwa nambari mpya ya uthibitishaji ili kufanya hivi.",
-    "sms_unavailable": "Hatukuweza kutuma SMS. Tafadhali jaribu tena baadaye kidogo."
+    "sms_unavailable": "Hatukuweza kutuma SMS. Tafadhali jaribu tena baadaye kidogo.",
+    "invalid_transition": "Hilo haliwezekani katika hatua hii ya ombi.",
+    "offer_taken": "Samahani, daktari mwingine tayari amechukua kazi hii.",
+    "idempotency_key_required": "Tafadhali jaribu tena.",
+    "idempotency_key_reused": "Ombi hili halilingani na la awali. Tafadhali anza upya.",
+    "vet_not_approved": "Akaunti yako ya VetLink bado haijathibitishwa. Tutakujulisha itakapoidhinishwa.",
+    "farmer_profile_required": "Tafadhali kamilisha wasifu wako wa mfugaji kwanza.",
+    "already_rated": "Tayari umetoa tathmini ya ziara hii."
   }
 }

@@ -1,0 +1,231 @@
+import { asc, eq, inArray } from 'drizzle-orm';
+import {
+  CONTACT_VISIBLE_STATUSES,
+  DEPOSIT_KES,
+  OFFER_TIMEOUT_S,
+  availableEvents,
+  type FarmerBookingView,
+  type OfferView,
+  type TimelineEntry,
+  type VetJobView,
+  type WardView,
+} from '@vetlink/shared';
+import type { Db } from '../../db/client.js';
+import {
+  bookingEvents,
+  bookingOffers,
+  bookings,
+  farmers,
+  locations,
+  ratings,
+  treatments,
+  users,
+  vets,
+} from '../../db/schema/index.js';
+import type { BookingRow } from './transitions.js';
+
+const iso = (d: Date | null) => (d ? d.toISOString() : null);
+
+async function wardsById(
+  db: Db,
+  ids: number[],
+): Promise<Map<number, WardView & { lat: number | null; lng: number | null }>> {
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select()
+    .from(locations)
+    .where(inArray(locations.id, [...new Set(ids)]));
+  return new Map(
+    rows.map((r) => [
+      r.id,
+      { id: r.id, ward: r.ward, subCounty: r.subCounty, county: r.county, lat: r.lat, lng: r.lng },
+    ]),
+  );
+}
+
+function wardView(w: WardView | undefined, id: number): WardView {
+  return w
+    ? { id: w.id, ward: w.ward, subCounty: w.subCounty, county: w.county }
+    : { id, ward: '', subCounty: '', county: '' };
+}
+
+async function timelines(db: Db, bookingIds: number[]): Promise<Map<number, TimelineEntry[]>> {
+  const out = new Map<number, TimelineEntry[]>();
+  if (bookingIds.length === 0) return out;
+  const rows = await db
+    .select()
+    .from(bookingEvents)
+    .where(inArray(bookingEvents.bookingId, bookingIds))
+    .orderBy(asc(bookingEvents.id));
+  for (const r of rows) {
+    const list = out.get(r.bookingId) ?? [];
+    list.push({ event: r.event, status: r.toStatus, at: r.createdAt.toISOString() });
+    out.set(r.bookingId, list);
+  }
+  return out;
+}
+
+/** Farmer-facing views of their own bookings (batch, for lists). */
+export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBookingView[]> {
+  const ids = rows.map((b) => b.id);
+  const vetIds = [...new Set(rows.map((b) => b.vetId).filter((v): v is string => v !== null))];
+  const [wards, times, vetRows, treatmentRows, ratingRows] = await Promise.all([
+    wardsById(
+      db,
+      rows.map((b) => b.wardId),
+    ),
+    timelines(db, ids),
+    vetIds.length
+      ? db
+          .select({
+            userId: vets.userId,
+            type: vets.type,
+            rating: vets.rating,
+            name: users.name,
+            phone: users.phone,
+          })
+          .from(vets)
+          .innerJoin(users, eq(users.id, vets.userId))
+          .where(inArray(vets.userId, vetIds))
+      : Promise.resolve([]),
+    ids.length
+      ? db.select().from(treatments).where(inArray(treatments.bookingId, ids))
+      : Promise.resolve([]),
+    ids.length
+      ? db.select().from(ratings).where(inArray(ratings.bookingId, ids))
+      : Promise.resolve([]),
+  ]);
+  const vetById = new Map(vetRows.map((v) => [v.userId, v]));
+  const treatmentByBooking = new Map(treatmentRows.map((t) => [t.bookingId, t]));
+  const ratingByBooking = new Map(ratingRows.map((r) => [r.bookingId, r]));
+
+  return rows.map((b) => {
+    const vet = b.vetId ? vetById.get(b.vetId) : undefined;
+    const treatment = treatmentByBooking.get(b.id);
+    const rating = ratingByBooking.get(b.id);
+    const contactVisible = CONTACT_VISIBLE_STATUSES.includes(b.status);
+    return {
+      id: b.id,
+      status: b.status,
+      species: b.species,
+      problemType: b.problemType,
+      note: b.note,
+      isEmergency: b.isEmergency,
+      sourceChannel: b.sourceChannel,
+      ward: wardView(wards.get(b.wardId), b.wardId),
+      feeQuoted: b.feeQuoted,
+      depositKes: DEPOSIT_KES,
+      createdAt: b.createdAt.toISOString(),
+      acceptedAt: iso(b.acceptedAt),
+      completedAt: iso(b.completedAt),
+      timeline: times.get(b.id) ?? [],
+      vet: vet
+        ? {
+            name: vet.name,
+            type: vet.type,
+            rating: vet.rating === null ? null : Number(vet.rating),
+            phone: contactVisible ? vet.phone : null,
+          }
+        : null,
+      treatment: treatment
+        ? {
+            diagnosis: treatment.diagnosis,
+            drugsUsed: treatment.drugsUsed,
+            followUpDate: treatment.followUpDate,
+          }
+        : null,
+      rating: rating ? { stars: rating.stars, comment: rating.comment } : null,
+      actions: availableEvents(b.status, 'farmer'),
+    };
+  });
+}
+
+/** Views of jobs assigned to a vet (batch). */
+export async function vetJobViews(db: Db, rows: BookingRow[]): Promise<VetJobView[]> {
+  const ids = rows.map((b) => b.id);
+  const farmerIds = [...new Set(rows.map((b) => b.farmerId))];
+  const [wards, times, farmerRows] = await Promise.all([
+    wardsById(
+      db,
+      rows.map((b) => b.wardId),
+    ),
+    timelines(db, ids),
+    farmerIds.length
+      ? db
+          .select({
+            userId: farmers.userId,
+            farmNotes: farmers.farmNotes,
+            name: users.name,
+            phone: users.phone,
+          })
+          .from(farmers)
+          .innerJoin(users, eq(users.id, farmers.userId))
+          .where(inArray(farmers.userId, farmerIds))
+      : Promise.resolve([]),
+  ]);
+  const farmerById = new Map(farmerRows.map((f) => [f.userId, f]));
+  return rows.map((b) => {
+    const ward = wards.get(b.wardId);
+    const farmer = farmerById.get(b.farmerId);
+    const contactVisible = CONTACT_VISIBLE_STATUSES.includes(b.status);
+    let location: VetJobView['location'] = null;
+    if (b.lat !== null && b.lng !== null) location = { lat: b.lat, lng: b.lng, precise: true };
+    else if (ward?.lat != null && ward.lng != null) {
+      location = { lat: ward.lat, lng: ward.lng, precise: false };
+    }
+    return {
+      id: b.id,
+      status: b.status,
+      species: b.species,
+      problemType: b.problemType,
+      note: b.note,
+      isEmergency: b.isEmergency,
+      ward: wardView(ward, b.wardId),
+      location,
+      feeQuoted: b.feeQuoted,
+      acceptedAt: iso(b.acceptedAt),
+      completedAt: iso(b.completedAt),
+      timeline: times.get(b.id) ?? [],
+      farmer: {
+        name: farmer?.name ?? null,
+        phone: contactVisible ? (farmer?.phone ?? null) : null,
+        farmNotes: contactVisible ? (farmer?.farmNotes ?? null) : null,
+      },
+      actions: availableEvents(b.status, 'vet'),
+    };
+  });
+}
+
+/** Open offers for a vet: still unanswered (or timed out) on bookings that are still pending. */
+export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferView[]> {
+  const rows = await db
+    .select({ offer: bookingOffers, booking: bookings })
+    .from(bookingOffers)
+    .innerJoin(bookings, eq(bookings.id, bookingOffers.bookingId))
+    .where(eq(bookingOffers.vetId, vetUserId))
+    .orderBy(asc(bookingOffers.sentAt));
+  const open = rows.filter(
+    (r) =>
+      r.booking.status === 'pending' &&
+      (r.offer.response === null || r.offer.response === 'timeout'),
+  );
+  const wards = await wardsById(
+    db,
+    open.map((r) => r.booking.wardId),
+  );
+  return open.map(({ offer, booking }) => {
+    const timeoutS = booking.isEmergency ? OFFER_TIMEOUT_S.emergency : OFFER_TIMEOUT_S.normal;
+    return {
+      offerId: offer.id,
+      bookingId: booking.id,
+      species: booking.species,
+      problemType: booking.problemType,
+      isEmergency: booking.isEmergency,
+      ward: wardView(wards.get(booking.wardId), booking.wardId),
+      feeQuoted: booking.feeQuoted,
+      wave: offer.wave,
+      sentAt: offer.sentAt.toISOString(),
+      expiresAt: new Date(offer.sentAt.getTime() + timeoutS * 1000).toISOString(),
+    };
+  });
+}

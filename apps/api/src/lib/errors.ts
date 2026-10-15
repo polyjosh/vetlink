@@ -22,6 +22,13 @@ export const ERROR_STATUS = {
   two_factor_enrolment_closed: 403,
   step_up_required: 401,
   sms_unavailable: 503,
+  invalid_transition: 409,
+  offer_taken: 409,
+  idempotency_key_required: 400,
+  idempotency_key_reused: 422,
+  vet_not_approved: 403,
+  farmer_profile_required: 409,
+  already_rated: 409,
 } as const;
 export type ErrorCode = keyof typeof ERROR_STATUS;
 

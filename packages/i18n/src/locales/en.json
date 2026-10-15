@@ -24,6 +24,13 @@
     "two_factor_already_enabled": "Your authenticator app is already set up.",
     "two_factor_enrolment_closed": "Authenticator setup is closed for your account. Ask a super admin to reopen it.",
     "step_up_required": "Confirm with a fresh authenticator code to do this.",
-    "sms_unavailable": "We could not send the SMS. Please try again shortly."
+    "sms_unavailable": "We could not send the SMS. Please try again shortly.",
+    "invalid_transition": "That can't be done at this stage of the booking.",
+    "offer_taken": "Sorry, another vet already took this job.",
+    "idempotency_key_required": "Please try again.",
+    "idempotency_key_reused": "This request does not match the earlier one. Please start again.",
+    "vet_not_approved": "Your VetLink account is not yet verified. We will let you know when it is approved.",
+    "farmer_profile_required": "Please finish setting up your farmer profile first.",
+    "already_rated": "You have already rated this visit."
   }
 }

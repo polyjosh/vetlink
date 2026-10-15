@@ -18,3 +18,6 @@ export function createDb(url: string, options: { max?: number } = {}): DbHandle 
   });
   return { db: drizzle(sql, { schema }), sql, close: () => sql.end({ timeout: 5 }) };
 }
+
+/** A transaction handle, for services that must run inside the caller's transaction. */
+export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
