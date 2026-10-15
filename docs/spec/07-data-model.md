@@ -164,6 +164,8 @@ CREATE TABLE admin_profiles (
   totp_secret_enc TEXT,                  -- encrypted at rest
   totp_enabled BOOLEAN NOT NULL DEFAULT false,
   recovery_codes_hash TEXT[],
+  totp_enrol_expires_at TIMESTAMPTZ,     -- TOTP enrolment allowed only before this; set on grant
+                                         -- or super-admin 2FA reset (72 h), cleared on enrolment
   granted_by UUID REFERENCES users(id),
   granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   revoked_at TIMESTAMPTZ

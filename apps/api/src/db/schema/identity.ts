@@ -143,6 +143,10 @@ export const adminProfiles = pgTable(
     totpSecretEnc: text('totp_secret_enc'), // AES-256-GCM, see lib/crypto.ts
     totpEnabled: boolean('totp_enabled').notNull().default(false),
     recoveryCodesHash: text('recovery_codes_hash').array(),
+    // TOTP can be enrolled only before this time. Set when admin is granted (M10) or when a
+    // super admin resets 2FA; NULL means no enrolment is open. Limits the window in which
+    // control of the phone (OTP) alone is enough to enrol an authenticator.
+    totpEnrolExpiresAt: timestamptz('totp_enrol_expires_at'),
     grantedBy: uuid('granted_by').references(() => users.id),
     grantedAt: timestamptz('granted_at').notNull().defaultNow(),
     revokedAt: timestamptz('revoked_at'),
