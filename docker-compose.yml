@@ -1,0 +1,116 @@
+name: vetlink
+
+x-api-env: &api-env
+  DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+  REDIS_URL: redis://redis:6379
+  S3_ENDPOINT: http://s3:8333
+
+services:
+  db:
+    image: postgres:16.15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: UTC
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4.11-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  s3: # local S3-compatible storage (SeaweedFS) for photos and vet documents
+    image: chrislusf/seaweedfs:4.48
+    restart: unless-stopped
+    command: ['server', '-dir=/data', '-s3', '-s3.port=8333', '-master.volumeSizeLimitMB=1024']
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+    ports:
+      - '127.0.0.1:8333:8333' # S3 API
+      - '127.0.0.1:8888:8888' # filer UI (browse stored files)
+    volumes:
+      - s3data:/data
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8333/healthz']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: &api-build
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: dev
+    env_file: .env
+    environment: *api-env
+    ports:
+      - '4000:4000' # all interfaces so a phone on the LAN (Expo) can reach it
+    depends_on: &api-depends
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    volumes: &api-volumes
+      - ./apps/api/src:/app/apps/api/src # hot reload
+      - ./packages/shared/src:/app/packages/shared/src
+      - ./packages/i18n/src:/app/packages/i18n/src
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:4000/health']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # tsx directly (not pnpm) so SIGTERM reaches Node and graceful shutdown runs.
+    init: true
+    working_dir: /app/apps/api
+    command: ['./node_modules/.bin/tsx', 'watch', '--conditions=@vetlink/source', 'src/server.ts']
+
+  worker: # same image as api; runs queue workers and schedulers
+    build: *api-build
+    env_file: .env
+    environment: *api-env
+    depends_on: *api-depends
+    volumes: *api-volumes
+    # tsx directly (not pnpm) so SIGTERM reaches Node and graceful shutdown runs.
+    init: true
+    working_dir: /app/apps/api
+    command: ['./node_modules/.bin/tsx', 'watch', '--conditions=@vetlink/source', 'src/worker.ts']
+
+  migrate: # one-off: docker compose run --rm migrate
+    profiles: ['tools']
+    build: *api-build
+    env_file: .env
+    environment: *api-env
+    depends_on:
+      db: { condition: service_healthy }
+    command: ['pnpm', '--filter', 'api', 'db:migrate']
+
+  adminer: # DB viewer: http://localhost:8080
+    profiles: ['tools']
+    image: adminer:5.5.1
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+  redisdata:
+  s3data:

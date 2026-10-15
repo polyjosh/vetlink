@@ -125,7 +125,7 @@ Create `.claude/settings.json` (shared permissions: allow safe dev commands, den
 Tick items as they are completed and verified. Each milestone has a **Done when** condition and a **Read** list. Read those spec files before planning (not from memory). Do not start a milestone until the previous one's **Done when** is true, unless the owner says otherwise. Owner prompts for starting sessions are in `docs/kickoff-prompts.md`.
 
 - [x] **M0: Repo and Claude Code setup.** *(2026-10-15, `main`)* `git init`, `.gitignore`, `.claude/settings.json`, slash commands, README stub. *Done when:* repo committed on `main`, config files exist, `/task` appears as a command. **Read:** `00-claude-code-setup.md`.
-- [ ] **M1: Scaffold and Docker.** pnpm + Turborepo monorepo, `apps/api` skeleton with `/health` and `/ready`, `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, root scripts from 0.4, CI that builds the image, README with the local access map. *Done when:* `docker compose up -d` starts everything healthy, `curl localhost:4000/health` returns OK, `pnpm check` is green. **Read:** `02-docker-and-environments.md`.
+- [x] **M1: Scaffold and Docker.** *(2026-10-15, `chore/scaffold-docker`)* pnpm + Turborepo monorepo, `apps/api` skeleton with `/health` and `/ready`, `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, root scripts from 0.4, CI that builds the image, README with the local access map. *Done when:* `docker compose up -d` starts everything healthy, `curl localhost:4000/health` returns OK, `pnpm check` is green. **Read:** `02-docker-and-environments.md`.
 - [ ] **M2: Database.** Drizzle schema for the data model, first migration, `db:seed` with demo users and one county's wards. *Done when:* `docker compose run --rm migrate` creates all tables from a clean volume and the seed runs twice without errors. **Read:** `07-data-model.md`, `12-security-privacy.md`.
 - [ ] **M3: Auth and roles.** OTP request/verify (`SMS_MODE=log`), JWT + refresh rotation, devices, role claims and guards, admin TOTP 2FA and step-up. *Done when:* the auth and authorization tests pass. **Read:** `03-auth-and-roles.md`, `08-api.md`, `12-security-privacy.md`, `11-testing.md`.
 - [ ] **M4: Booking service.** Channel-agnostic service and the single transition function; `bookings` and `booking_offers` flows. *Done when:* state machine tests pass, including invalid transitions. **Read:** `07-data-model.md`, `06-matching-payments-notifications.md`, `08-api.md`.
@@ -153,6 +153,11 @@ Record decisions here so future sessions inherit them. Format: `YYYY-MM-DD: deci
 - 2026-10-15: Vets receive no requests until an admin approves their application; enforced server-side in matching, availability, accept, and SMS.
 - 2026-10-15: Default branch is `main` (renamed from `master`); M0 committed directly on `main` as the one bootstrap exception to 0.5. Required by the M0 done-when.
 - 2026-10-15: `.claude/settings.json` denies reading `.env`, `.env.local`, `.env.*.local`, `.env.production`, `.env.staging` instead of `.env.*`. The broad pattern also blocked `.env.example`.
+- 2026-10-15: Node 24 LTS (`node:24.22.0-alpine`) instead of Node 20. Node 20 reached end of life in April 2026.
+- 2026-10-15: TypeScript pinned to 6.0.x, not 7. typescript-eslint 8.71 supports TypeScript <6.1 only.
+- 2026-10-15: Local object storage is SeaweedFS (`chrislusf/seaweedfs:4.48`, compose service `s3`, S3 API on 8333) instead of MinIO; supersedes MinIO in the earlier entry and in 6.1. The `minio/minio` image is no longer published on Docker Hub.
+- 2026-10-15: Workspace packages export TS source under the `@vetlink/source` condition (dev, tests, typecheck) and `dist` otherwise (prod builds). No build step needed in dev; prod uses compiled JS.
+- 2026-10-15: Dev containers run `tsx` directly with `init: true`, not `pnpm --filter api dev`. pnpm as PID 1 kills children with SIGKILL, so graceful shutdown never ran.
 
 ### 0.11 Quality bar
 
@@ -233,7 +238,7 @@ If you want to swap anything, propose it and explain the tradeoff first.
 ```
 vetlink/
 ├── CLAUDE.md
-├── docker-compose.yml            # local dev: api, worker, db, redis, minio (+ tools profile)
+├── docker-compose.yml            # local dev: api, worker, db, redis, s3 (SeaweedFS) (+ tools profile)
 ├── docker-compose.prod.yml       # production: api, worker, reverse proxy (DB is managed, not here)
 ├── .dockerignore
 ├── .env.example

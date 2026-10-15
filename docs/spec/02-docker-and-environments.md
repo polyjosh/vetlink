@@ -8,6 +8,8 @@ The repo tree and monorepo notes are in `/CLAUDE.md` section 6. This file holds 
 
 ### 6.1 Docker setup and local development
 
+> **Superseded detail (2026-10-15):** local object storage is **SeaweedFS** (compose service `s3`, S3 API `localhost:8333`, file browser `localhost:8888`), not MinIO, because the `minio/minio` image is no longer published. The dev `api`/`worker` services run `tsx` directly with `init: true` (see the decision log in `/CLAUDE.md`). The committed `docker-compose.yml` is authoritative.
+
 **Decision: the backend runs in Docker, in development and in production.** One `docker compose up` gives every developer (and Claude Code) the same API, worker, database, Redis, and object storage.
 
 **What runs where**
