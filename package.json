@@ -14,11 +14,13 @@
     "build": "turbo run build",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "api:generate": "pnpm --filter api api:generate",
-    "ussd:sim": "pnpm --filter api ussd:sim"
+    "ussd:sim": "pnpm --filter api ussd:sim",
+    "test:e2e": "pnpm --filter api exec tsx --conditions=@vetlink/source scripts/e2e-stack.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "eslint": "10.11.0",
+    "eslint-plugin-react-hooks": "7.1.1",
     "prettier": "3.9.9",
     "turbo": "2.11.6",
     "typescript": "6.0.3",

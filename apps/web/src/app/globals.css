@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+/* Colours and sizes come from @vetlink/ui-tokens (injected as --vl-* variables by the layout). */
+@theme inline {
+  --color-brand: var(--vl-color-brand);
+  --color-brand-dark: var(--vl-color-brand-dark);
+  --color-brand-light: var(--vl-color-brand-light);
+  --color-emergency: var(--vl-color-emergency);
+  --color-emergency-light: var(--vl-color-emergency-light);
+  --color-warning: var(--vl-color-warning);
+  --color-warning-light: var(--vl-color-warning-light);
+  --color-info: var(--vl-color-info);
+  --color-info-light: var(--vl-color-info-light);
+  --color-ink: var(--vl-color-ink);
+  --color-muted: var(--vl-color-muted);
+  --color-line: var(--vl-color-line);
+  --color-surface: var(--vl-color-surface);
+  --color-canvas: var(--vl-color-canvas);
+  --radius-card: var(--vl-radius-lg);
+  --radius-control: var(--vl-radius-md);
+  --spacing-touch: var(--vl-touch);
+}
+
+html {
+  font-size: var(--vl-font-md);
+}
+
+body {
+  background: var(--vl-color-canvas);
+  color: var(--vl-color-ink);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+:focus-visible {
+  outline: 3px solid var(--vl-color-info);
+  outline-offset: 2px;
+}
