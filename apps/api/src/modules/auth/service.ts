@@ -4,7 +4,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import { DEFAULT_LOCALE, interpolate, messages } from '@vetlink/i18n';
 import { normalizePhone, type DevicePlatform, type SessionRole } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
-import type { Db } from '../../db/client.js';
+import type { Db, Tx } from '../../db/client.js';
 import {
   adminProfiles,
   authSessions,
@@ -284,8 +284,6 @@ async function signAccess(
     refreshToken,
   };
 }
-
-type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
 /**
  * End a session: revoke it and its refresh tokens, and detach its device's push token so a

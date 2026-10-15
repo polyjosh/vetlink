@@ -215,6 +215,20 @@ CREATE TABLE bookings (
   completed_at TIMESTAMPTZ
 );
 
+-- Every status change, written by bookings/transitions.ts in the same transaction (append-only).
+CREATE TABLE booking_events (
+  id SERIAL PRIMARY KEY,
+  booking_id INT NOT NULL REFERENCES bookings(id),
+  event TEXT NOT NULL,                   -- BOOKING_EVENTS in packages/shared
+  from_status TEXT NOT NULL,
+  to_status TEXT NOT NULL,
+  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('farmer','vet','admin','system')),
+  actor_user_id UUID REFERENCES users(id),
+  channel TEXT,                          -- ussd | sms | app | web | admin
+  reason TEXT,                           -- cancellation reason (fixed list), never PII
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE booking_offers (
   id SERIAL PRIMARY KEY,
   booking_id INT NOT NULL REFERENCES bookings(id),
@@ -314,3 +328,5 @@ pending_payment ─(deposit ok)→ pending ─(vet accepts)→ matched → en_ro
   expired                     cancelled + refund
 ```
 Enforce transitions in one function (`bookings/transitions.ts`). No direct status updates elsewhere, from any channel.
+
+The full event table (who may trigger what, from which statuses) is `BOOKING_TRANSITIONS` in `packages/shared/src/bookings.ts`. Beyond the diagram: `farmer_cancelled` from `pending_payment`/`pending`/`matched`/`en_route` (deposit forfeited after `en_route`, §8.6); `vet_released` (`matched` → `pending`, the assigned vet hands the job back); `vet_completed` also from `matched`/`en_route` (SMS vets often skip `ARR`); `admin_cancelled` from any non-terminal status. A test fails if any other source file updates `bookings`.

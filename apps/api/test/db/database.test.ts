@@ -23,6 +23,7 @@ const EXPECTED_TABLES = [
   'animals',
   'audit_log',
   'auth_sessions',
+  'booking_events',
   'booking_offers',
   'bookings',
   'devices',
@@ -264,11 +265,23 @@ describe.skipIf(!serverUrl)('database (migrations, seed, constraints)', () => {
       const insertBooking = (key: string, status = 'pending_payment', fee = 500) => h.sql`
         insert into bookings (farmer_id, species, problem_type, source_channel, ward_id,
           fee_quoted, idempotency_key, status)
-        values (${SEED_USERS.farmer.id}, 'cattle', 'not_eating', 'ussd', ${ward?.id as number},
+        values (${SEED_USERS.farmer.id}, 'cattle', 'sick', 'ussd', ${ward?.id as number},
           ${fee}, ${key}, ${status})
         returning id`;
 
       await rejectsWith('bookings_status_check', () => insertBooking('k-bad-status', 'accepted'));
+      await rejectsWith(
+        'bookings_problem_type_check',
+        () => h.sql`
+        insert into bookings (farmer_id, species, problem_type, source_channel, ward_id, fee_quoted)
+        values (${SEED_USERS.farmer.id}, 'cattle', 'not_eating', 'ussd', ${ward?.id as number}, 500)`,
+      );
+      await rejectsWith(
+        'bookings_species_check',
+        () => h.sql`
+        insert into bookings (farmer_id, species, problem_type, source_channel, ward_id, fee_quoted)
+        values (${SEED_USERS.farmer.id}, 'dairy cow', 'sick', 'ussd', ${ward?.id as number}, 500)`,
+      );
       await rejectsWith('bookings_fee_quoted_check', () =>
         insertBooking('k-neg', 'pending_payment', -1),
       );

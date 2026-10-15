@@ -29,6 +29,13 @@
       "when": 1792083612999,
       "tag": "0003_admin_totp_enrolment",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792086899516,
+      "tag": "0004_booking_events",
+      "breakpoints": true
     }
   ]
 }

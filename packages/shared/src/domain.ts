@@ -74,6 +74,25 @@ export const CHANNELS = ['ussd', 'sms', 'app', 'web', 'admin'] as const;
 export type Channel = (typeof CHANNELS)[number];
 
 /** Change only through `bookings/transitions.ts` (invariant 3). */
+/** Species a booking is for; also the vocabulary of `vets.specialties` (matching joins on it). */
+export const SPECIES = ['cattle', 'goat', 'sheep', 'pig', 'poultry', 'dog', 'other'] as const;
+export type Species = (typeof SPECIES)[number];
+
+/** What the farmer reports. Emergency is a separate flag, not a problem type. */
+export const PROBLEM_TYPES = ['sick', 'injury', 'breeding', 'vaccination', 'other'] as const;
+export type ProblemType = (typeof PROBLEM_TYPES)[number];
+
+/** Services a vet offers (`vets.services`). */
+export const VET_SERVICES = [
+  'treatment',
+  'vaccination',
+  'artificial_insemination',
+  'deworming',
+  'pregnancy_diagnosis',
+  'minor_surgery',
+] as const;
+export type VetService = (typeof VET_SERVICES)[number];
+
 export const BOOKING_STATUSES = [
   'pending_payment',
   'pending',
@@ -85,6 +104,34 @@ export const BOOKING_STATUSES = [
   'expired',
 ] as const;
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+
+/** Every booking status change is one of these events (see `bookings.ts` for the rules). */
+export const BOOKING_EVENTS = [
+  'deposit_confirmed',
+  'payment_failed',
+  'vet_accepted',
+  'vet_released',
+  'vet_en_route',
+  'vet_arrived',
+  'vet_completed',
+  'farmer_cancelled',
+  'no_vet_found',
+  'admin_cancelled',
+] as const;
+export type BookingEvent = (typeof BOOKING_EVENTS)[number];
+
+/** Why a farmer cancelled (a fixed list: free text could carry personal data into logs). */
+export const CANCEL_REASONS = [
+  'changed_mind',
+  'vet_too_far',
+  'found_other_help',
+  'animal_recovered',
+  'other',
+] as const;
+export type CancelReason = (typeof CANCEL_REASONS)[number];
+
+export const BOOKING_ACTOR_KINDS = ['farmer', 'vet', 'admin', 'system'] as const;
+export type BookingActorKind = (typeof BOOKING_ACTOR_KINDS)[number];
 
 export const OFFER_CHANNELS = ['push', 'sms', 'both'] as const;
 export type OfferChannel = (typeof OFFER_CHANNELS)[number];

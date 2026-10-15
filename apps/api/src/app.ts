@@ -7,6 +7,7 @@ import { loggerOptions } from './lib/logger.js';
 import { registerAccessControl } from './modules/auth/access.js';
 import { adminRoutes } from './modules/admin/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
+import { bookingRoutes } from './modules/bookings/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { healthRoutes } from './routes/health.js';
 
@@ -47,6 +48,7 @@ export function buildApp({
   if (ctx) {
     authRoutes(app, ctx);
     userRoutes(app, ctx);
+    bookingRoutes(app, ctx);
     adminRoutes(app, ctx);
   }
   extraRoutes?.(app);
