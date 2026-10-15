@@ -21,6 +21,7 @@ import {
   OFFER_CHANNELS,
   OFFER_RESPONSES,
   PAYMENT_STATUSES,
+  ANIMAL_SEXES,
   PAYMENT_TYPES,
   PROBLEM_TYPES,
   REMINDER_TYPES,
@@ -38,13 +39,17 @@ export const animals = pgTable(
     farmerId: uuid('farmer_id')
       .notNull()
       .references(() => farmers.userId),
-    species: text('species').notNull(),
+    species: text('species', { enum: SPECIES }).notNull(),
     nameOrTag: text('name_or_tag'),
     breed: text('breed'),
     dob: date('dob'),
-    sex: text('sex'),
+    sex: text('sex', { enum: ANIMAL_SEXES }),
   },
-  (t) => [index('animals_farmer_id_idx').on(t.farmerId)],
+  (t) => [
+    check('animals_species_check', oneOf(t.species, SPECIES)),
+    check('animals_sex_check', oneOf(t.sex, ANIMAL_SEXES)),
+    index('animals_farmer_id_idx').on(t.farmerId),
+  ],
 );
 
 export const bookings = pgTable(

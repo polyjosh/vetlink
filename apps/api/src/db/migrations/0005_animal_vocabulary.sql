@@ -1,0 +1,2 @@
+ALTER TABLE "animals" ADD CONSTRAINT "animals_species_check" CHECK ("animals"."species" in ('cattle', 'goat', 'sheep', 'pig', 'poultry', 'dog', 'other'));--> statement-breakpoint
+ALTER TABLE "animals" ADD CONSTRAINT "animals_sex_check" CHECK ("animals"."sex" in ('female', 'male'));
