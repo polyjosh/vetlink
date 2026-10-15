@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { APP_ENVS, PAYMENTS_MODES, SMS_MODES } from '@vetlink/shared';
+import { parseMasterKey } from './lib/crypto.js';
 
 const envSchema = z.object({
   APP_ENV: z.enum(APP_ENVS),
@@ -10,6 +11,18 @@ const envSchema = z.object({
   REDIS_URL: z.url(),
   SMS_MODE: z.enum(SMS_MODES),
   PAYMENTS_MODE: z.enum(PAYMENTS_MODES),
+  // Master key for field encryption (national IDs, TOTP secrets): `openssl rand -base64 32`.
+  DATA_ENCRYPTION_KEY: z.string().refine(
+    (v) => {
+      try {
+        parseMasterKey(v);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: 'must be 32 bytes, base64-encoded' },
+  ),
 });
 
 export type Config = z.infer<typeof envSchema>;
@@ -20,7 +33,8 @@ export class ConfigError extends Error {
 
 /**
  * Dev-only shortcuts that must never be on in production (CLAUDE.md invariant 9).
- * Later milestones add the seeded admin (M2) and fixed OTP (M3) here.
+ * The seeded dev admin is checked against the database at startup (db/dev-seed-guard.ts).
+ * M3 adds the fixed OTP here.
  */
 function devShortcutsEnabled(config: Config): string[] {
   const enabled: string[] = [];
