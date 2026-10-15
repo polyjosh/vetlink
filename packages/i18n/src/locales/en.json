@@ -32,7 +32,8 @@
     "vet_not_approved": "Your VetLink account is not yet verified. We will let you know when it is approved.",
     "farmer_profile_required": "Please finish setting up your farmer profile first.",
     "already_rated": "You have already rated this visit.",
-    "consent_required": "Please accept the data protection terms first."
+    "consent_required": "Please accept the data protection terms first.",
+    "payment_unavailable": "M-Pesa is not available right now. Please try again in a few minutes."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -92,6 +93,7 @@
       "deworm": "Deworming",
       "calving": "Calving",
       "follow_up": "Follow-up"
-    }
+    },
+    "requestedNoStk": "Request {ref} saved, but M-Pesa is not available now. Dial again to pay the KES {deposit} deposit, or use the VetLink app."
   }
 }

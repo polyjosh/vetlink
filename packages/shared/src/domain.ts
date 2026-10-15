@@ -148,5 +148,16 @@ export type PaymentType = (typeof PAYMENT_TYPES)[number];
 export const PAYMENT_STATUSES = ['pending', 'success', 'failed', 'cancelled', 'refunded'] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
+/** The deposit as the farmer sees it (derived from `payments`; clients never set it). */
+export const DEPOSIT_STATES = [
+  'none',
+  'pending',
+  'paid',
+  'failed',
+  'refund_pending',
+  'refunded',
+] as const;
+export type DepositState = (typeof DEPOSIT_STATES)[number];
+
 export const REMINDER_TYPES = ['vaccine', 'deworm', 'calving', 'follow_up'] as const;
 export type ReminderType = (typeof REMINDER_TYPES)[number];

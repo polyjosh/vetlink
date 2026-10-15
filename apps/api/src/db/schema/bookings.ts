@@ -11,6 +11,7 @@ import {
   text,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import {
   BOOKING_ACTOR_KINDS,
@@ -146,6 +147,10 @@ export const bookingOffers = pgTable(
   ],
 );
 
+/**
+ * M-Pesa money movements (§8.6). Only the server changes `status`: from Daraja callbacks
+ * (confirmed by an STK query), reconciliation, or a finance admin recording a refund.
+ */
 export const payments = pgTable(
   'payments',
   {
@@ -156,15 +161,33 @@ export const payments = pgTable(
     type: text('type', { enum: PAYMENT_TYPES }).notNull(),
     amount: integer('amount').notNull(), // KES, integer
     checkoutRequestId: text('checkout_request_id').unique(),
+    merchantRequestId: text('merchant_request_id'),
     mpesaReceipt: text('mpesa_receipt').unique(),
     status: text('status', { enum: PAYMENT_STATUSES }).notNull().default('pending'),
+    phone: text('phone'), // payer (deposit) or payee (refund), 2547XXXXXXXX
+    resultCode: integer('result_code'), // Daraja ResultCode, when known
+    resultDesc: text('result_desc'),
+    // A refund points at the deposit it returns; one refund per deposit.
+    refundOf: integer('refund_of')
+      .unique()
+      .references((): AnyPgColumn => payments.id),
     createdAt: createdAt(),
+    updatedAt: timestamptz('updated_at').notNull().defaultNow(),
   },
   (t) => [
     check('payments_type_check', oneOf(t.type, PAYMENT_TYPES)),
     check('payments_status_check', oneOf(t.status, PAYMENT_STATUSES)),
     // Direction comes from `type` (refund), so every amount is positive.
     check('payments_amount_check', sql`${t.amount} > 0`),
+    check('payments_refund_of_check', sql`(${t.type} = 'refund') = (${t.refundOf} is not null)`),
+    // At most one STK push in flight per booking, and never two paid deposits.
+    uniqueIndex('payments_one_pending_deposit_key')
+      .on(t.bookingId)
+      .where(sql`${t.type} = 'deposit' and ${t.status} = 'pending'`),
+    uniqueIndex('payments_one_paid_deposit_key')
+      .on(t.bookingId)
+      .where(sql`${t.type} = 'deposit' and ${t.status} in ('success', 'refunded')`),
+    index('payments_status_created_at_idx').on(t.status, t.createdAt),
   ],
 );
 

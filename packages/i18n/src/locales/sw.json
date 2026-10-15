@@ -32,7 +32,8 @@
     "vet_not_approved": "Akaunti yako ya VetLink bado haijathibitishwa. Tutakujulisha itakapoidhinishwa.",
     "farmer_profile_required": "Tafadhali kamilisha wasifu wako wa mfugaji kwanza.",
     "already_rated": "Tayari umetoa tathmini ya ziara hii.",
-    "consent_required": "Tafadhali kubali masharti ya ulinzi wa data kwanza."
+    "consent_required": "Tafadhali kubali masharti ya ulinzi wa data kwanza.",
+    "payment_unavailable": "M-Pesa haipatikani sasa hivi. Tafadhali jaribu tena baada ya dakika chache."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -92,6 +93,7 @@
       "deworm": "Dawa ya minyoo",
       "calving": "Kuzaa",
       "follow_up": "Ufuatiliaji"
-    }
+    },
+    "requestedNoStk": "Ombi {ref} limehifadhiwa, lakini M-Pesa haipatikani sasa. Piga tena kulipa amana ya KES {deposit}, au tumia programu ya VetLink."
   }
 }

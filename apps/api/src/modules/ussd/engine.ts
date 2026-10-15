@@ -16,6 +16,7 @@ import { DomainError } from '../../lib/errors.js';
 import { maskPhone } from '../../lib/phone.js';
 import { quoteCallOutFee } from '../bookings/pricing.js';
 import { createBooking } from '../bookings/service.js';
+import { requestDeposit } from '../payments/service.js';
 import { chooseRole, giveConsent } from '../users/service.js';
 
 /**
@@ -78,7 +79,7 @@ export async function handleUssd(
   log: FastifyBaseLogger,
 ): Promise<UssdResponse> {
   try {
-    await run(ctx, req);
+    await run(ctx, req, log);
     // `run` always ends by throwing a Screen.
     throw new Error('USSD flow ended without a screen');
   } catch (err) {
@@ -151,7 +152,7 @@ async function ensureFarmer(ctx: AppContext, userId: string): Promise<void> {
   await chooseRole(ctx, userId, { role: 'farmer' });
 }
 
-async function run(ctx: AppContext, req: UssdRequest): Promise<never> {
+async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): Promise<never> {
   const inputs = req.text === '' ? [] : req.text.split('*');
   let at = 0;
   const snap = await snapshot(ctx, req);
@@ -252,7 +253,13 @@ async function run(ctx: AppContext, req: UssdRequest): Promise<never> {
         .where(and(eq(farmers.userId, userId), isNull(farmers.wardId)));
     }
     await markSession(ctx, req.sessionId, 'booked', { bookingId: booking.id });
-    // M7 sends the M-Pesa STK push for the deposit here.
+    // The deposit prompt arrives on the phone once this USSD session closes.
+    try {
+      await requestDeposit(ctx, { bookingId: booking.id, farmerId: userId }, log);
+    } catch (err) {
+      if (!(err instanceof DomainError && err.code === 'payment_unavailable')) throw err;
+      return end(interpolate(t().requestedNoStk, { ref: booking.id, deposit: DEPOSIT_KES }));
+    }
     return end(interpolate(t().requested, { ref: booking.id, deposit: DEPOSIT_KES }));
   }
 

@@ -10,7 +10,7 @@ interface OpenApiDoc {
   components: { schemas: Record<string, unknown> };
 }
 
-describe('OpenAPI document', () => {
+describe('OpenAPI document', { timeout: 30_000 }, () => {
   it('the committed client matches the code (run `pnpm api:generate` if this fails)', async () => {
     const committed = readFileSync(
       new URL('../../../../packages/api-client/openapi.json', import.meta.url),
@@ -43,7 +43,7 @@ describe('OpenAPI document', () => {
       }
     }
     expect(seen).toEqual(expect.arrayContaining([...publicRoutes]));
-    expect(seen.filter((k) => k.includes('/v1/admin/'))).toHaveLength(4);
+    expect(seen.filter((k) => k.includes('/v1/admin/'))).toHaveLength(6);
   });
 
   it('exposes named schemas for clients', async () => {

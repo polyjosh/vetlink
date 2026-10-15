@@ -3,3 +3,5 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  # Optional native speed-up for msgpackr (via bullmq); the pure-JS path works. Not built.
+  msgpackr-extract: false

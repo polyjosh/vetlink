@@ -43,6 +43,13 @@
       "when": 1792087827414,
       "tag": "0005_animal_vocabulary",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792089370286,
+      "tag": "0006_payments_reconciliation",
+      "breakpoints": true
     }
   ]
 }
