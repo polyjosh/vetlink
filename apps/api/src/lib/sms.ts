@@ -25,9 +25,67 @@ export function logSmsSender(log: FastifyBaseLogger, appEnv: AppEnv): SmsSender 
   };
 }
 
-export function createSmsSender(mode: SmsMode, log: FastifyBaseLogger, appEnv: AppEnv): SmsSender {
+export interface AfricasTalkingConfig {
+  /** `sandbox` for the sandbox app. */
+  username: string;
+  apiKey: string;
+  /** Registered sender ID (alphanumeric or shortcode); omitted uses the account default. */
+  senderId?: string | undefined;
+  fetch?: typeof fetch;
+}
+
+/**
+ * Africa's Talking SMS (§14). Endpoint and fields as the official SDK sends them:
+ * `POST https://api[.sandbox].africastalking.com/version1/messaging`, form-encoded
+ * `username, to, message, from?`, header `apikey`; HTTP 201 on success.
+ */
+export function africasTalkingSender(config: AfricasTalkingConfig): SmsSender {
+  const sandbox = config.username.toLowerCase() === 'sandbox';
+  const url = `https://api.${sandbox ? 'sandbox.' : ''}africastalking.com/version1/messaging`;
+  const http = config.fetch ?? fetch;
+  return {
+    async send(phone, text) {
+      const body = new URLSearchParams({
+        username: config.username,
+        to: `+${phone}`,
+        message: text,
+        bulkSMSMode: '1',
+      });
+      if (config.senderId) body.set('from', config.senderId);
+      const res = await http(url, {
+        method: 'POST',
+        headers: {
+          apikey: config.apiKey,
+          accept: 'application/json',
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body,
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.status !== 201 && res.status !== 200) {
+        throw new Error(`Africa's Talking SMS failed: HTTP ${res.status}`);
+      }
+      const json = (await res.json()) as {
+        SMSMessageData?: { Recipients?: { status?: string; statusCode?: number }[] };
+      };
+      const recipient = json.SMSMessageData?.Recipients?.[0];
+      // 100 Processed, 101 Sent, 102 Queued: accepted. Anything else is a failure.
+      if (!recipient || ![100, 101, 102].includes(Number(recipient.statusCode))) {
+        throw new Error(
+          `Africa's Talking rejected the SMS (${recipient?.status ?? 'no recipient'})`,
+        );
+      }
+    },
+  };
+}
+
+export function createSmsSender(
+  mode: SmsMode,
+  log: FastifyBaseLogger,
+  appEnv: AppEnv,
+  at?: AfricasTalkingConfig,
+): SmsSender {
   if (mode === 'log') return logSmsSender(log, appEnv);
-  // Africa's Talking sending arrives with the SMS integration (M9). Fail at startup rather
-  // than silently dropping OTPs.
-  throw new Error(`SMS_MODE=${mode} is not implemented yet; use SMS_MODE=log`);
+  if (!at) throw new Error(`SMS_MODE=${mode} needs Africa's Talking settings`);
+  return africasTalkingSender(at);
 }

@@ -15,6 +15,7 @@ import {
   farmers,
   locations,
   ratings,
+  reminders,
   treatments,
   vets,
 } from '../../db/schema/index.js';
@@ -291,6 +292,14 @@ export async function completeByVet(
         clientCreatedAt: input.clientCreatedAt ?? null,
         createdAt: now,
       });
+      // A follow-up date becomes a reminder for the animal, when we know which one (§8.8).
+      if (input.followUpDate && result.booking.animalId) {
+        await tx.insert(reminders).values({
+          animalId: result.booking.animalId,
+          type: 'follow_up',
+          dueDate: input.followUpDate,
+        });
+      }
     }
     return result;
   });

@@ -86,6 +86,12 @@ After changing a route or schema, run `pnpm api:generate` and commit `packages/a
 
 Once a deposit is paid, the worker sends job offers in waves (closest, best-scored vets first; see §8.5). A vet receives offers only when approved and online (`PATCH /v1/vets/me/availability`). Offers and updates go out as app push when the user has the app (`PUSH_MODE=log` prints pushes locally), with an SMS fallback after 15 s, or by SMS when they have no app. With `SMS_MODE=log`, look for `VETLINK JOB` in `docker compose logs worker`. Super admins tune matching under `/v1/admin/config`.
 
+## SMS commands
+
+Vets can run a job entirely by SMS (`Y4`, `OTW 4`, `ARR 4`, `DONE 4 ECF; oxytet 20ml; f/u 7d`, `ON`/`OFF`); farmers rate with `R4 5`. `pnpm --filter api sms:sim -- --phone 0700000002 "Y4"` sends one SMS to the running API and prints the reply. Commands and parsing rules: `docs/sms-commands.md`.
+
+**End-to-end dev demo:** `pnpm ussd:sim` (book as the demo farmer, confirm). The mock pays after about 3 s and the worker offers the job to the demo vet (put them online first with `sms:sim -- --phone 0700000002 ON`). Then `sms:sim -- --phone 0700000002 "Y<ref>"`, `"OTW <ref>"`, `"ARR <ref>"`, `"DONE <ref> ECF; oxytet 20ml"`, and as the farmer `sms:sim -- --phone 0700000001 "R<ref> 5"`.
+
 ## USSD
 
 `pnpm ussd:sim` walks the farmer USSD menu against the running API, as the seeded demo farmer (`-- --phone 07…` for another number). Menus and rules: `docs/ussd-flows.md`.

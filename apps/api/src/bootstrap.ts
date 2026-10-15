@@ -49,7 +49,14 @@ export function buildRuntime(config: Config, log: Logger): Runtime {
   const ctx = createContext({
     db: db.db,
     counters: redisCounters(redis),
-    sms: createSmsSender(config.SMS_MODE, log, config.APP_ENV),
+    sms: createSmsSender(
+      config.SMS_MODE,
+      log,
+      config.APP_ENV,
+      config.AT_USERNAME && config.AT_API_KEY
+        ? { username: config.AT_USERNAME, apiKey: config.AT_API_KEY, senderId: config.AT_SENDER_ID }
+        : undefined,
+    ),
     push:
       config.PUSH_MODE === 'expo'
         ? expoPushSender({ accessToken: config.EXPO_ACCESS_TOKEN })

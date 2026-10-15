@@ -18,6 +18,7 @@ const app = buildApp({
   trustProxy: config.TRUST_PROXY,
   minAppVersion: config.MIN_APP_VERSION,
   webhookSecret: config.WEBHOOK_SECRET,
+  echoSmsReplies: config.SMS_MODE === 'log',
   // Swagger UI for developers; the API surface is not advertised in production.
   docs: config.APP_ENV !== 'production',
   onClose: () => runtime.close(),
