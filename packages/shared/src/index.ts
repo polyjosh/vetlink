@@ -3,3 +3,4 @@ export * from './domain.js';
 export * from './access.js';
 export * from './phone.js';
 export * from './bookings.js';
+export * from './applications.js';

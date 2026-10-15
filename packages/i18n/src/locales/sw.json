@@ -53,7 +53,11 @@
     "farmer_profile_required": "Tafadhali kamilisha wasifu wako wa mfugaji kwanza.",
     "already_rated": "Tayari umetoa tathmini ya ziara hii.",
     "consent_required": "Tafadhali kubali masharti ya ulinzi wa data kwanza.",
-    "payment_unavailable": "M-Pesa haipatikani sasa hivi. Tafadhali jaribu tena baada ya dakika chache."
+    "payment_unavailable": "M-Pesa haipatikani sasa hivi. Tafadhali jaribu tena baada ya dakika chache.",
+    "application_incomplete": "Maombi yako bado hayajakamilika. Jaza vitu vinavyokosekana.",
+    "application_locked": "Sehemu hii ya maombi yako haiwezi kubadilishwa sasa.",
+    "application_claimed": "Mkaguzi mwingine tayari anashughulikia maombi haya.",
+    "upload_invalid": "Faili hiyo haiwezi kutumika. Pakia JPG, PNG au PDF iliyo wazi chini ya MB 5."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -161,6 +165,57 @@
       "title": "Kazi imeghairiwa",
       "body": "Ombi {ref} limeghairiwa. Huhitaji kwenda.",
       "sms": "VetLink: ombi {ref} limeghairiwa. Huhitaji kwenda."
+    },
+    "application_submitted": {
+      "title": "Maombi yamepokelewa",
+      "body": "Tumepokea maombi yako {ref}. Kwa kawaida tunajibu ndani ya saa {hours}.",
+      "sms": "VetLink: tumepokea maombi yako {ref}. Kwa kawaida tunajibu ndani ya saa {hours}."
+    },
+    "application_changes": {
+      "title": "Marekebisho yanahitajika",
+      "body": "Tafadhali rekebisha vitu vichache katika maombi {ref} na uyatume tena.",
+      "sms": "VetLink: tafadhali rekebisha vitu vichache katika maombi yako {ref} kwenye programu na uyatume tena."
+    },
+    "application_approved": {
+      "title": "Umeidhinishwa!",
+      "body": "Karibu VetLink. Ingia mtandaoni uanze kupata kazi.",
+      "sms": "VetLink: umeidhinishwa! Jibu ON au ingia mtandaoni kwenye programu uanze kupata kazi."
+    },
+    "application_rejected": {
+      "title": "Maombi hayakuidhinishwa",
+      "body": "Maombi {ref} hayakuidhinishwa. Angalia programu kwa sababu.",
+      "sms": "VetLink: maombi yako {ref} hayakuidhinishwa. Fungua programu au piga msaada kwa maelezo."
+    },
+    "vet_suspended": {
+      "title": "Akaunti imesimamishwa",
+      "body": "Hutapata kazi ukiwa umesimamishwa. Wasiliana na msaada.",
+      "sms": "VetLink: akaunti yako imesimamishwa na hutapata kazi. Tafadhali wasiliana na msaada."
+    },
+    "vet_reinstated": {
+      "title": "Akaunti iko hai tena",
+      "body": "Kusimamishwa kwako kumeondolewa. Ingia mtandaoni upate kazi.",
+      "sms": "VetLink: akaunti yako iko hai tena. Jibu ON uanze kupata kazi."
+    },
+    "licence_expiring": {
+      "title": "Leseni inaisha",
+      "body": "Leseni yako ya kazi inaisha baada ya siku {days}. Pakia leseni mpya kwenye programu.",
+      "sms": "VetLink: leseni yako ya kazi inaisha baada ya siku {days}. Pakia leseni mpya kwenye programu ili uendelee kupata kazi."
+    }
+  },
+  "application": {
+    "reasons": {
+      "id_unclear": "Picha ya kitambulisho haiko wazi. Ipige upya ikiwa bapa, kwenye mwanga, pembe zote zikionekana.",
+      "id_mismatch": "Jina au namba kwenye kitambulisho hailingani na maombi yako.",
+      "photo_unclear": "Picha yako ya wasifu lazima ionyeshe uso wako wazi.",
+      "certificate_unclear": "Cheti hakiko wazi. Pakia picha iliyo wazi zaidi au PDF.",
+      "licence_unclear": "Leseni ya kazi haiko wazi. Pakia picha iliyo wazi zaidi au PDF.",
+      "licence_expired": "Leseni yako ya kazi imeisha muda. Pakia leseni halali.",
+      "kvb_unverifiable": "Hatukuweza kuthibitisha usajili wako wa KVB. Angalia namba.",
+      "fraudulent_documents": "Nyaraka hizo hazikuweza kukubaliwa.",
+      "outside_service_area": "VetLink bado haipatikani katika eneo lako la huduma.",
+      "fee_out_of_band": "Ada yako ya kufika iko nje ya kiwango kinachoruhusiwa.",
+      "duplicate_account": "Maelezo haya tayari yamesajiliwa kwenye akaunti nyingine.",
+      "other": "Tafadhali soma maelezo ya mkaguzi."
     }
   }
 }
