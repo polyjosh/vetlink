@@ -102,7 +102,7 @@ services:
       db: { condition: service_healthy }
     volumes: *api-volumes # current schema and migrations without rebuilding the image
     working_dir: /app/apps/api
-    command: ['./node_modules/.bin/tsx', '--conditions=@vetlink/source', 'src/db/migrate.ts']
+    command: ['./node_modules/.bin/tsx', '--conditions=@vetlink/source', 'src/db/run-migrations.ts']
 
   adminer: # DB viewer: http://localhost:8080
     profiles: ['tools']

@@ -3,8 +3,8 @@ import { APP_ENVS } from '@vetlink/shared';
 import { fieldCrypto } from '../../lib/crypto.js';
 import { maskPhone } from '../../lib/phone.js';
 import { createDb } from '../client.js';
-import { SEED_ADMIN_TOTP_SECRET, SEED_USERS } from './fixtures.js';
-import { assertSeedAllowed, seed } from './seed.js';
+import { SEED_USERS } from './fixtures.js';
+import { assertSeedAllowed, SEED_ADMIN_TOTP_SECRET, seed } from './seed.js';
 
 // Entry point for `pnpm --filter api db:seed` (runs on the host, reads the repo-root .env).
 const env = z
@@ -20,9 +20,16 @@ if (!env.success) {
   process.exit(1);
 }
 
+// Before any connection is created, so a refused target is never contacted.
+try {
+  assertSeedAllowed(env.data.APP_ENV, env.data.DATABASE_URL);
+} catch (err) {
+  process.stderr.write(`Seed refused: ${err instanceof Error ? err.message : String(err)}\n`);
+  process.exit(1);
+}
+
 const { db, close } = createDb(env.data.DATABASE_URL, { max: 1 });
 try {
-  assertSeedAllowed(env.data.APP_ENV);
   const summary = await seed(db, fieldCrypto(env.data.DATA_ENCRYPTION_KEY));
   const issuer = encodeURIComponent('VetLink (dev)');
   const totpUri = `otpauth://totp/${issuer}:admin?secret=${SEED_ADMIN_TOTP_SECRET}&issuer=${issuer}`;

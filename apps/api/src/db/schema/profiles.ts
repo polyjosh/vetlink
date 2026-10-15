@@ -19,9 +19,9 @@ import {
   APPLICATION_STATUSES,
   PRACTICE_TYPES,
   VERIFICATION_STATUSES,
+  VET_DOCUMENT_KINDS,
   VET_DOCUMENT_STATUSES,
   VET_TYPES,
-  type VetDocumentKind,
 } from '@vetlink/shared';
 import { emptyJson, emptyTextArray, oneOf, timestamptz } from './helpers.js';
 import { users } from './identity.js';
@@ -80,6 +80,15 @@ export const vets = pgTable(
     check('vets_type_check', oneOf(t.type, VET_TYPES)),
     check('vets_practice_type_check', oneOf(t.practiceType, PRACTICE_TYPES)),
     check('vets_verification_status_check', oneOf(t.verificationStatus, VERIFICATION_STATUSES)),
+    // Invariant 2 at the database level: only an approved vet can be online. Suspending or
+    // un-approving a vet must take them offline in the same statement.
+    check(
+      'vets_available_requires_approved',
+      sql`not ${t.isAvailable} or ${t.verificationStatus} = 'approved'`,
+    ),
+    check('vets_base_call_out_fee_check', sql`${t.baseCallOutFee} >= 0`),
+    check('vets_rating_check', sql`${t.rating} between 1 and 5`),
+    index('vets_national_id_hash_idx').on(t.nationalIdHash), // duplicate-ID detection
     index('vets_ward_id_approved_available_idx')
       .on(t.wardId)
       .where(sql`${t.verificationStatus} = 'approved' and ${t.isAvailable}`),
@@ -129,7 +138,7 @@ export const vetDocuments = pgTable(
     vetUserId: uuid('vet_user_id')
       .notNull()
       .references(() => vets.userId),
-    kind: text('kind').$type<VetDocumentKind>().notNull(),
+    kind: text('kind', { enum: VET_DOCUMENT_KINDS }).notNull(),
     storageKey: text('storage_key').notNull(),
     status: text('status', { enum: VET_DOCUMENT_STATUSES }).notNull().default('uploaded'),
     flagReason: text('flag_reason'),
@@ -138,6 +147,7 @@ export const vetDocuments = pgTable(
     reviewedAt: timestamptz('reviewed_at'),
   },
   (t) => [
+    check('vet_documents_kind_check', oneOf(t.kind, VET_DOCUMENT_KINDS)),
     check('vet_documents_status_check', oneOf(t.status, VET_DOCUMENT_STATUSES)),
     index('vet_documents_application_id_idx').on(t.applicationId),
   ],

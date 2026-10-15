@@ -15,12 +15,12 @@ import {
 import {
   BOOKING_STATUSES,
   CHANNELS,
+  MEDIA_KINDS,
   OFFER_CHANNELS,
   OFFER_RESPONSES,
   PAYMENT_STATUSES,
   PAYMENT_TYPES,
   REMINDER_TYPES,
-  type MediaKind,
 } from '@vetlink/shared';
 import { createdAt, oneOf, timestamptz } from './helpers.js';
 import { users } from './identity.js';
@@ -73,6 +73,7 @@ export const bookings = pgTable(
   (t) => [
     check('bookings_source_channel_check', oneOf(t.sourceChannel, CHANNELS)),
     check('bookings_status_check', oneOf(t.status, BOOKING_STATUSES)),
+    check('bookings_fee_quoted_check', sql`${t.feeQuoted} >= 0`),
     index('bookings_status_created_at_idx').on(t.status, t.createdAt),
     index('bookings_farmer_id_idx').on(t.farmerId),
     index('bookings_vet_id_idx').on(t.vetId),
@@ -121,20 +122,26 @@ export const payments = pgTable(
   (t) => [
     check('payments_type_check', oneOf(t.type, PAYMENT_TYPES)),
     check('payments_status_check', oneOf(t.status, PAYMENT_STATUSES)),
+    // Direction comes from `type` (refund), so every amount is positive.
+    check('payments_amount_check', sql`${t.amount} > 0`),
   ],
 );
 
-export const media = pgTable('media', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  ownerUserId: uuid('owner_user_id')
-    .notNull()
-    .references(() => users.id),
-  storageKey: text('storage_key').notNull(),
-  kind: text('kind').$type<MediaKind>().notNull(),
-  animalId: uuid('animal_id').references(() => animals.id),
-  bookingId: integer('booking_id').references(() => bookings.id),
-  createdAt: createdAt(),
-});
+export const media = pgTable(
+  'media',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    ownerUserId: uuid('owner_user_id')
+      .notNull()
+      .references(() => users.id),
+    storageKey: text('storage_key').notNull(),
+    kind: text('kind', { enum: MEDIA_KINDS }).notNull(),
+    animalId: uuid('animal_id').references(() => animals.id),
+    bookingId: integer('booking_id').references(() => bookings.id),
+    createdAt: createdAt(),
+  },
+  (t) => [check('media_kind_check', oneOf(t.kind, MEDIA_KINDS))],
+);
 
 export const treatments = pgTable(
   'treatments',

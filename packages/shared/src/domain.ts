@@ -1,9 +1,16 @@
 // Allowed values for every enumerated column (CLAUDE.md §9). The database CHECK constraints,
 // zod schemas, and clients all derive from these arrays; never repeat the strings elsewhere.
 
-/** Roles on `users.roles`. `admin` is granted only through `admin_profiles`. */
-export const USER_ROLES = ['farmer', 'vet', 'admin'] as const;
+/** Self-service roles stored on `users.roles`. Admin is never stored here. */
+export const USER_ROLES = ['farmer', 'vet'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
+
+/**
+ * Roles a session can act as. `admin` is derived only from an `admin_profiles` row with
+ * `revoked_at IS NULL`, so revoking that row revokes admin access everywhere.
+ */
+export const SESSION_ROLES = [...USER_ROLES, 'admin'] as const;
+export type SessionRole = (typeof SESSION_ROLES)[number];
 
 export const ADMIN_ROLES = ['super_admin', 'verifier', 'support', 'finance', 'analyst'] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];

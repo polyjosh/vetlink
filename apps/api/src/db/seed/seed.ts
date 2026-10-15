@@ -1,6 +1,6 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { AppEnv } from '@vetlink/shared';
-import type { FieldCrypto } from '../../lib/crypto.js';
+import { fieldContext, type FieldCrypto } from '../../lib/crypto.js';
 import type { Db } from '../client.js';
 import {
   adminProfiles,
@@ -12,7 +12,6 @@ import {
   vets,
 } from '../schema/index.js';
 import {
-  SEED_ADMIN_TOTP_SECRET,
   SEED_ANIMAL_ID,
   SEED_APPLICATION_REFS,
   SEED_NATIONAL_IDS,
@@ -20,12 +19,38 @@ import {
 } from './fixtures.js';
 import { COUNTY, KIAMBU_WARDS } from './kiambu-wards.js';
 
+/**
+ * Known base32 TOTP secret for the seeded super admin, printed by the seed so an authenticator
+ * app can be set up. Public by design, so the seed must never reach a shared database.
+ */
+export const SEED_ADMIN_TOTP_SECRET = 'VETLINKDEVSEEDADMINTOTPSECRETAAA';
+
 const SEED_ALLOWED_ENVS: readonly AppEnv[] = ['development', 'test'];
 
-/** The seed creates a super admin with a published TOTP secret: dev and test only. */
-export function assertSeedAllowed(appEnv: AppEnv): void {
+// Local Postgres from the host, or the compose service from inside Docker. Anything else
+// (a tunnel, a managed instance, an IP) could be shared or production.
+const SEED_ALLOWED_DB_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'db'];
+
+/**
+ * The seed creates a super admin with a published TOTP secret. It runs only when BOTH the
+ * environment is dev/test AND the database is local: APP_ENV alone is not enough, because it
+ * comes from the same .env that a developer might point at a remote DATABASE_URL.
+ */
+export function assertSeedAllowed(appEnv: AppEnv, databaseUrl: string): void {
   if (!SEED_ALLOWED_ENVS.includes(appEnv)) {
     throw new Error(`Refusing to seed with APP_ENV=${appEnv}; dev seed data is dev/test only`);
+  }
+  let host: string;
+  try {
+    host = new URL(databaseUrl).hostname;
+  } catch {
+    throw new Error('Refusing to seed: DATABASE_URL is not a valid URL');
+  }
+  if (!SEED_ALLOWED_DB_HOSTS.includes(host)) {
+    // Never echo the URL: it contains credentials.
+    throw new Error(
+      `Refusing to seed a non-local database host; allowed: ${SEED_ALLOWED_DB_HOSTS.join(', ')}`,
+    );
   }
 }
 
@@ -73,7 +98,8 @@ export async function seed(db: Db, crypto: FieldCrypto): Promise<SeedSummary> {
       { ...SEED_USERS.farmer, name: 'Demo Farmer', language: 'sw', roles: ['farmer'] },
       { ...SEED_USERS.approvedVet, name: 'Dr. Demo Vet', language: 'en', roles: ['vet'] },
       { ...SEED_USERS.pendingVet, name: 'Demo Paravet', language: 'sw', roles: ['vet'] },
-      { ...SEED_USERS.admin, name: 'Dev Admin', language: 'en', roles: ['admin'] },
+      // Admin access comes only from admin_profiles, never from users.roles.
+      { ...SEED_USERS.admin, name: 'Dev Admin', language: 'en', roles: [] },
     ];
     await tx
       .insert(users)
@@ -92,7 +118,10 @@ export async function seed(db: Db, crypto: FieldCrypto): Promise<SeedSummary> {
     const admin: typeof adminProfiles.$inferInsert = {
       userId: SEED_USERS.admin.id,
       adminRole: 'super_admin',
-      totpSecretEnc: crypto.encrypt(SEED_ADMIN_TOTP_SECRET),
+      totpSecretEnc: crypto.encrypt(
+        SEED_ADMIN_TOTP_SECRET,
+        fieldContext('admin_profiles.totp_secret', SEED_USERS.admin.id),
+      ),
       totpEnabled: true,
       revokedAt: null,
     };
@@ -127,7 +156,10 @@ export async function seed(db: Db, crypto: FieldCrypto): Promise<SeedSummary> {
       kvbRegNo: 'KVB-DEV-0002',
       kvbCategory: 'veterinary_surgeon',
       licenceExpiry: '2027-12-31',
-      nationalIdEnc: crypto.encrypt(SEED_NATIONAL_IDS.approvedVet),
+      nationalIdEnc: crypto.encrypt(
+        SEED_NATIONAL_IDS.approvedVet,
+        fieldContext('vets.national_id', SEED_USERS.approvedVet.id),
+      ),
       nationalIdHash: crypto.lookupHash(SEED_NATIONAL_IDS.approvedVet),
       qualification: 'BVM',
       qualificationInstitution: 'University of Nairobi',
@@ -148,7 +180,10 @@ export async function seed(db: Db, crypto: FieldCrypto): Promise<SeedSummary> {
     const pendingVet: typeof vets.$inferInsert = {
       userId: SEED_USERS.pendingVet.id,
       type: 'paravet',
-      nationalIdEnc: crypto.encrypt(SEED_NATIONAL_IDS.pendingVet),
+      nationalIdEnc: crypto.encrypt(
+        SEED_NATIONAL_IDS.pendingVet,
+        fieldContext('vets.national_id', SEED_USERS.pendingVet.id),
+      ),
       nationalIdHash: crypto.lookupHash(SEED_NATIONAL_IDS.pendingVet),
       qualification: 'Diploma in Animal Health',
       qualificationInstitution: 'Animal Health and Industry Training Institute',

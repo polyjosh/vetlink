@@ -23,8 +23,10 @@ COPY packages packages
 RUN pnpm --filter "api..." run build \
   && pnpm deploy --filter api --prod /out \
   && test -f /out/dist/server.js \
-  && test -f /out/dist/db/migrate.js \
-  && test -f /out/dist/db/migrations/meta/_journal.json
+  && test -f /out/dist/db/run-migrations.js \
+  && test -f /out/dist/db/migrations/meta/_journal.json \
+  && test ! -e /out/dist/db/seed/run.js \
+  && test ! -e /out/dist/db/seed/seed.js
 
 FROM node:24.22.0-alpine AS prod
 ENV NODE_ENV=production TZ=UTC

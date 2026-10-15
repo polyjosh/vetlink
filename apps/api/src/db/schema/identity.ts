@@ -19,7 +19,8 @@ export const users = pgTable(
   'users',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    phone: text('phone').notNull().unique(), // 2547XXXXXXXX
+    // 2547XXXXXXXX. NULL only after deletion, when the anonymize job clears it (§17).
+    phone: text('phone'),
     name: text('name'),
     language: text('language', { enum: LOCALES }).notNull().default(DEFAULT_LOCALE),
     roles: text('roles', { enum: USER_ROLES }).array().notNull().default(emptyTextArray),
@@ -28,7 +29,17 @@ export const users = pgTable(
     deletedAt: timestamptz('deleted_at'), // soft delete → anonymize job
   },
   (t) => [
-    check('users_phone_check', sql`${t.phone} ~ '^254[17][0-9]{8}$'`),
+    // Active users need a valid phone; deleted users may have it cleared. coalesce() because a
+    // NULL check result would otherwise pass.
+    check(
+      'users_phone_check',
+      sql`(${t.phone} is null and ${t.deletedAt} is not null) or coalesce(${t.phone} ~ '^254[17][0-9]{8}$', false)`,
+    ),
+    // One active account per phone; a deleted account awaiting anonymization does not block
+    // the same number signing up again.
+    uniqueIndex('users_phone_active_key')
+      .on(t.phone)
+      .where(sql`${t.deletedAt} is null`),
     check('users_language_check', oneOf(t.language, LOCALES)),
     check('users_roles_check', subsetOf(t.roles, USER_ROLES)),
   ],

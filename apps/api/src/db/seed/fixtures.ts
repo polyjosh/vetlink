@@ -1,6 +1,8 @@
 // Fixed identities for the dev seed, so re-running the seed updates rows instead of duplicating
-// them. Phone numbers are obviously fake (2547000000xx). Never use these outside dev/test:
-// the API refuses to start in production if any of them exists (db/dev-seed-guard.ts).
+// them. Phone numbers are fake-looking (2547000000xx) but Kenya has no reserved fictitious
+// range, so they could be real numbers: never send them a live SMS. The API and worker refuse
+// to run in production while any of them exists (db/dev-seed-guard.ts). This file ships in the
+// production build for that guard; the seed itself (seed.ts, run.ts) does not.
 
 export const SEED_USERS = {
   farmer: { id: '00000000-0000-4000-8000-000000000001', phone: '254700000001' },
@@ -17,12 +19,6 @@ export const SEED_APPLICATION_REFS = {
   approvedVet: 'VL-2026-0001',
   pendingVet: 'VL-2026-0002',
 } as const;
-
-/**
- * Known base32 TOTP secret for the seeded super admin, printed by the seed so an authenticator
- * app can be set up. Public by design: it only ever exists in dev/test databases.
- */
-export const SEED_ADMIN_TOTP_SECRET = 'VETLINKDEVSEEDADMINTOTPSECRETAAA';
 
 /** Obviously fake national ID numbers for the seeded vets. */
 export const SEED_NATIONAL_IDS = {
