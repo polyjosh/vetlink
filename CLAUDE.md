@@ -124,7 +124,7 @@ Create `.claude/settings.json` (shared permissions: allow safe dev commands, den
 
 Tick items as they are completed and verified. Each milestone has a **Done when** condition and a **Read** list. Read those spec files before planning (not from memory). Do not start a milestone until the previous one's **Done when** is true, unless the owner says otherwise. Owner prompts for starting sessions are in `docs/kickoff-prompts.md`.
 
-- [ ] **M0: Repo and Claude Code setup.** `git init`, `.gitignore`, `.claude/settings.json`, slash commands, README stub. *Done when:* repo committed on `main`, config files exist, `/task` appears as a command. **Read:** `00-claude-code-setup.md`.
+- [x] **M0: Repo and Claude Code setup.** *(2026-10-15, `main`)* `git init`, `.gitignore`, `.claude/settings.json`, slash commands, README stub. *Done when:* repo committed on `main`, config files exist, `/task` appears as a command. **Read:** `00-claude-code-setup.md`.
 - [ ] **M1: Scaffold and Docker.** pnpm + Turborepo monorepo, `apps/api` skeleton with `/health` and `/ready`, `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, root scripts from 0.4, CI that builds the image, README with the local access map. *Done when:* `docker compose up -d` starts everything healthy, `curl localhost:4000/health` returns OK, `pnpm check` is green. **Read:** `02-docker-and-environments.md`.
 - [ ] **M2: Database.** Drizzle schema for the data model, first migration, `db:seed` with demo users and one county's wards. *Done when:* `docker compose run --rm migrate` creates all tables from a clean volume and the seed runs twice without errors. **Read:** `07-data-model.md`, `12-security-privacy.md`.
 - [ ] **M3: Auth and roles.** OTP request/verify (`SMS_MODE=log`), JWT + refresh rotation, devices, role claims and guards, admin TOTP 2FA and step-up. *Done when:* the auth and authorization tests pass. **Read:** `03-auth-and-roles.md`, `08-api.md`, `12-security-privacy.md`, `11-testing.md`.
@@ -151,6 +151,8 @@ Record decisions here so future sessions inherit them. Format: `YYYY-MM-DD: deci
 - 2026-10-15: Backend runs in Docker (api, worker, Postgres, Redis, MinIO) locally; managed Postgres in production.
 - 2026-10-15: Drizzle is the ORM; pnpm + Turborepo monorepo; Expo and Next.js dev servers run on the host.
 - 2026-10-15: Vets receive no requests until an admin approves their application; enforced server-side in matching, availability, accept, and SMS.
+- 2026-10-15: Default branch is `main` (renamed from `master`); M0 committed directly on `main` as the one bootstrap exception to 0.5. Required by the M0 done-when.
+- 2026-10-15: `.claude/settings.json` denies reading `.env`, `.env.local`, `.env.*.local`, `.env.production`, `.env.staging` instead of `.env.*`. The broad pattern also blocked `.env.example`.
 
 ### 0.11 Quality bar
 
