@@ -1,10 +1,13 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import type { Channel } from '@vetlink/shared';
+import { DEPOSIT_KES, SPECIES, type Channel } from '@vetlink/shared';
+import { eq } from 'drizzle-orm';
+import { farmers } from '../../db/schema/index.js';
+import { quoteCallOutFee } from './pricing.js';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { DomainError } from '../../lib/errors.js';
-import { noContent, responses } from '../../schemas/common.js';
+import { intId, named, noContent, responses } from '../../schemas/common.js';
 import { access, authOf } from '../auth/access.js';
 import {
   bookingParams,
@@ -83,6 +86,46 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         idempotencyKey: key.data,
       });
       return reply.code(created ? 201 : 200).send(firstView(await farmerViews(ctx.db, [booking])));
+    },
+  );
+
+  r.get(
+    '/v1/bookings/quote',
+    {
+      config: { access: access.role('farmer') },
+      schema: {
+        tags: farmerTags,
+        summary: 'The call-out fee and deposit before confirming (§8.6: fees shown up front)',
+        description:
+          'The same server-side quote the booking will store. Defaults to the saved ward.',
+        querystring: z.object({
+          species: z.enum(SPECIES),
+          wardId: intId.optional(),
+          lat: z.coerce.number().min(-5).max(6).optional(),
+          lng: z.coerce.number().min(33).max(42.5).optional(),
+        }),
+        response: responses({
+          200: named(
+            z.object({ feeQuoted: z.number().int(), depositKes: z.number().int() }),
+            'Quote',
+          ),
+        }),
+      },
+    },
+    async (req) => {
+      const auth = authOf(req);
+      const [farmer] = await ctx.db.select().from(farmers).where(eq(farmers.userId, auth.userId));
+      const wardId = req.query.wardId ?? farmer?.wardId;
+      if (!wardId) throw new DomainError('farmer_profile_required');
+      return {
+        feeQuoted: await quoteCallOutFee(ctx, {
+          wardId,
+          species: req.query.species,
+          lat: req.query.lat ?? null,
+          lng: req.query.lng ?? null,
+        }),
+        depositKes: DEPOSIT_KES,
+      };
     },
   );
 
