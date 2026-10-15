@@ -95,5 +95,52 @@
       "follow_up": "Follow-up"
     },
     "requestedNoStk": "Request {ref} saved, but M-Pesa is not available now. Dial again to pay the KES {deposit} deposit, or use the VetLink app."
+  },
+  "notify": {
+    "offer": {
+      "title": "New job {ref}: {animal}",
+      "body": "{animal}, {problem}, {ward} (~{km} km). Call-out KES {fee}. Tap to accept.",
+      "sms": "VETLINK JOB {ref}\n{animal}, {problem}, {ward} (~{km}km)\nCall-out KES {fee}\nReply Y{ref} to accept, N{ref} to decline"
+    },
+    "offerEmergency": {
+      "title": "EMERGENCY job {ref}",
+      "body": "EMERGENCY: {animal}, {ward} (~{km} km). Call-out KES {fee}. Tap to accept now.",
+      "sms": "VETLINK EMERGENCY {ref}\n{animal}, {ward} (~{km}km)\nCall-out KES {fee}\nReply Y{ref} to accept, N{ref} to decline"
+    },
+    "booking_matched": {
+      "title": "A vet is coming",
+      "body": "{vet} accepted request {ref}. Phone: {phone}.",
+      "sms": "VetLink: {vet} accepted your request {ref}. Call them on {phone}."
+    },
+    "vet_en_route": {
+      "title": "Vet on the way",
+      "body": "{vet} is on the way for request {ref}.",
+      "sms": "VetLink: {vet} is on the way to you (request {ref})."
+    },
+    "vet_arrived": {
+      "title": "Vet has arrived",
+      "body": "{vet} has arrived (request {ref}).",
+      "sms": "VetLink: {vet} has arrived (request {ref})."
+    },
+    "booking_completed": {
+      "title": "Visit complete",
+      "body": "Request {ref} is done. How was {vet}? Tap to rate.",
+      "sms": "VetLink: request {ref} is done. Rate {vet}: reply R{ref} 1-5 (5 = best)."
+    },
+    "still_searching": {
+      "title": "Still looking for a vet",
+      "body": "No vet has accepted request {ref} yet. We are still searching.",
+      "sms": "VetLink: no vet has accepted request {ref} yet. We are still searching and will SMS you."
+    },
+    "no_vet_found": {
+      "title": "No vet available",
+      "body": "Sorry, no vet could take request {ref}. Your KES {deposit} deposit will be refunded.",
+      "sms": "VetLink: sorry, no vet could take request {ref}. Your KES {deposit} deposit will be refunded."
+    },
+    "booking_cancelled": {
+      "title": "Job cancelled",
+      "body": "Request {ref} was cancelled. You do not need to go.",
+      "sms": "VetLink: request {ref} was cancelled. You do not need to go."
+    }
   }
 }

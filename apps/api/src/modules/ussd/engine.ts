@@ -226,7 +226,7 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
       problem: t().problems[problemType],
       ward: chosenWard.name,
       // The same server-side quote the booking stores (§8.6: fees are shown before commitment).
-      fee: await quoteCallOutFee(),
+      fee: await quoteCallOutFee(ctx, { wardId: chosenWard.id, species }),
       deposit: DEPOSIT_KES,
     };
     const confirmed = ask(

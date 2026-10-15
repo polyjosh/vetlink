@@ -19,6 +19,7 @@ const daraja = {
   DARAJA_CONSUMER_SECRET: 'consumer-secret',
   DARAJA_SHORTCODE: '174379',
   DARAJA_PASSKEY: 'passkey',
+  PUSH_MODE: 'expo',
 };
 
 describe('loadConfig', () => {
@@ -58,7 +59,13 @@ describe('loadConfig', () => {
   });
 
   it('requires a WEBHOOK_SECRET of 24+ characters in production only', () => {
-    const prod = { ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'mock' };
+    const prod = {
+      ...base,
+      APP_ENV: 'production',
+      SMS_MODE: 'live',
+      PAYMENTS_MODE: 'mock',
+      PUSH_MODE: 'expo',
+    };
     expect(() => loadConfig(prod)).toThrow(/WEBHOOK_SECRET is required/);
     expect(() => loadConfig({ ...prod, WEBHOOK_SECRET: 'short' })).toThrow(/WEBHOOK_SECRET/);
     expect(loadConfig(base).WEBHOOK_SECRET).toBeUndefined();

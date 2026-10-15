@@ -82,6 +82,10 @@ After changing a route or schema, run `pnpm api:generate` and commit `packages/a
 
 `PAYMENTS_MODE=mock` simulates M-Pesa. The payer's last digit picks the outcome: `…9` cancels, `…8` sends no callback (reconciliation settles it by query), `…7` cannot reach M-Pesa, and any other digit pays after about 3 s. Simulated callbacks go through the same worker job as real Daraja callbacks, so keep the `worker` container running. `sandbox`/`live` need `PUBLIC_BASE_URL`, `WEBHOOK_SECRET` and the `DARAJA_*` settings. Daraja calls `${PUBLIC_BASE_URL}/webhooks/mpesa?token=…`, which needs a public tunnel locally. Finance admins record refunds under `/v1/admin/payments`.
 
+## Matching and notifications
+
+Once a deposit is paid, the worker sends job offers in waves (closest, best-scored vets first; see §8.5). A vet receives offers only when approved and online (`PATCH /v1/vets/me/availability`). Offers and updates go out as app push when the user has the app (`PUSH_MODE=log` prints pushes locally), with an SMS fallback after 15 s, or by SMS when they have no app. With `SMS_MODE=log`, look for `VETLINK JOB` in `docker compose logs worker`. Super admins tune matching under `/v1/admin/config`.
+
 ## USSD
 
 `pnpm ussd:sim` walks the farmer USSD menu against the running API, as the seeded demo farmer (`-- --phone 07…` for another number). Menus and rules: `docs/ussd-flows.md`.

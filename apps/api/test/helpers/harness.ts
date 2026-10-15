@@ -15,6 +15,7 @@ import { memoryCounters } from '../../src/lib/counters.js';
 import { fieldContext } from '../../src/lib/crypto.js';
 import { base32Decode, hotp, totpStep } from '../../src/modules/auth/totp.js';
 import { FakeGateway } from './fake-gateway.js';
+import { FakePush } from './fake-push.js';
 import type { TestDatabase } from './test-db.js';
 
 export const TEST_KEY = Buffer.alloc(32, 5).toString('base64');
@@ -41,6 +42,7 @@ export class Harness {
   ctx: AppContext;
   app: FastifyInstance;
   gateway = new FakeGateway();
+  push = new FakePush();
   jobs: ReturnType<typeof inlineJobs>;
   private static phoneSeq = 0;
   private static wardSeq = 0;
@@ -56,6 +58,7 @@ export class Harness {
     this.ctx = createContext({
       db: tdb.handle.db,
       payments: this.gateway,
+      push: this.push,
       jobs: this.jobs,
       counters: memoryCounters(() => this.now),
       sms: {
@@ -140,13 +143,28 @@ export class Harness {
     return { ...tokens, phone: normalized ?? phone, userId: me.json<{ id: string }>().id };
   }
 
-  async ward(name = `Ward ${Harness.wardSeq++}`): Promise<number> {
+  /**
+   * A ward of its own: about 66 km from the previous one, beyond even a widened matching radius,
+   * so vets from other tests never count as nearby. Use `near` for a ward close to another.
+   */
+  async ward(
+    name = `Ward ${Harness.wardSeq}`,
+    position = { lat: -1.1 + Harness.wardSeq * 0.6, lng: 36.8 },
+  ): Promise<number> {
+    Harness.wardSeq += 1;
     const [row] = await this.db
       .insert(locations)
-      .values({ county: 'Testcounty', subCounty: 'Testsub', ward: name, lat: -1.1, lng: 36.8 })
+      .values({ county: 'Testcounty', subCounty: 'Testsub', ward: name, ...position })
       .returning({ id: locations.id });
     if (!row) throw new Error('ward insert failed');
     return row.id;
+  }
+
+  /** A ward `km` north of another (1° latitude is about 111 km). */
+  async wardNear(wardId: number, km: number): Promise<number> {
+    const [base] = await this.db.select().from(locations).where(eq(locations.id, wardId));
+    if (base?.lat == null || base.lng == null) throw new Error('base ward has no position');
+    return this.ward(`Near ${Harness.wardSeq}`, { lat: base.lat + km / 111.2, lng: base.lng });
   }
 
   async setRoles(userId: string, roles: UserRole[]): Promise<void> {
@@ -165,7 +183,17 @@ export class Harness {
   }
 
   /** A signed-in vet with the given verification status (approved vets start online). */
-  async vet(wardId: number, status: VerificationStatus = 'approved'): Promise<Session> {
+  async vet(
+    wardId: number,
+    status: VerificationStatus = 'approved',
+    options: {
+      specialties?: string[];
+      fee?: number | null;
+      radiusKm?: number;
+      online?: boolean;
+      rating?: string | null;
+    } = {},
+  ): Promise<Session> {
     const s = await this.login();
     await this.setRoles(s.userId, ['vet']);
     await this.db.insert(vets).values({
@@ -173,10 +201,12 @@ export class Harness {
       type: 'vet',
       verificationStatus: status,
       wardId,
-      specialties: ['cattle', 'goat', 'sheep'],
+      specialties: options.specialties ?? ['cattle', 'goat', 'sheep'],
       services: ['treatment', 'vaccination'],
-      baseCallOutFee: 600,
-      isAvailable: status === 'approved',
+      baseCallOutFee: options.fee === undefined ? 600 : options.fee,
+      serviceRadiusKm: options.radiusKm ?? 50,
+      rating: options.rating ?? null,
+      isAvailable: status === 'approved' && (options.online ?? true),
     });
     return s;
   }

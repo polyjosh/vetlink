@@ -95,5 +95,52 @@
       "follow_up": "Ufuatiliaji"
     },
     "requestedNoStk": "Ombi {ref} limehifadhiwa, lakini M-Pesa haipatikani sasa. Piga tena kulipa amana ya KES {deposit}, au tumia programu ya VetLink."
+  },
+  "notify": {
+    "offer": {
+      "title": "Kazi mpya {ref}: {animal}",
+      "body": "{animal}, {problem}, {ward} (~km {km}). Ada KES {fee}. Gusa kukubali.",
+      "sms": "VETLINK KAZI {ref}\n{animal}, {problem}, {ward} (~km {km})\nAda KES {fee}\nJibu Y{ref} kukubali, N{ref} kukataa"
+    },
+    "offerEmergency": {
+      "title": "DHARURA kazi {ref}",
+      "body": "DHARURA: {animal}, {ward} (~km {km}). Ada KES {fee}. Gusa kukubali sasa.",
+      "sms": "VETLINK DHARURA {ref}\n{animal}, {ward} (~km {km})\nAda KES {fee}\nJibu Y{ref} kukubali, N{ref} kukataa"
+    },
+    "booking_matched": {
+      "title": "Daktari anakuja",
+      "body": "{vet} amekubali ombi {ref}. Simu: {phone}.",
+      "sms": "VetLink: {vet} amekubali ombi lako {ref}. Mpigie kwa {phone}."
+    },
+    "vet_en_route": {
+      "title": "Daktari yuko njiani",
+      "body": "{vet} yuko njiani kwa ombi {ref}.",
+      "sms": "VetLink: {vet} yuko njiani kuja kwako (ombi {ref})."
+    },
+    "vet_arrived": {
+      "title": "Daktari amefika",
+      "body": "{vet} amefika (ombi {ref}).",
+      "sms": "VetLink: {vet} amefika (ombi {ref})."
+    },
+    "booking_completed": {
+      "title": "Ziara imekamilika",
+      "body": "Ombi {ref} limekamilika. {vet} alifanyaje? Gusa kutoa tathmini.",
+      "sms": "VetLink: ombi {ref} limekamilika. Tathmini {vet}: jibu R{ref} 1-5 (5 = bora)."
+    },
+    "still_searching": {
+      "title": "Bado tunatafuta daktari",
+      "body": "Hakuna daktari aliyekubali ombi {ref} bado. Bado tunatafuta.",
+      "sms": "VetLink: hakuna daktari aliyekubali ombi {ref} bado. Tunaendelea kutafuta na tutakutumia SMS."
+    },
+    "no_vet_found": {
+      "title": "Hakuna daktari",
+      "body": "Samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Amana yako ya KES {deposit} itarudishwa.",
+      "sms": "VetLink: samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Amana yako ya KES {deposit} itarudishwa."
+    },
+    "booking_cancelled": {
+      "title": "Kazi imeghairiwa",
+      "body": "Ombi {ref} limeghairiwa. Huhitaji kwenda.",
+      "sms": "VetLink: ombi {ref} limeghairiwa. Huhitaji kwenda."
+    }
   }
 }

@@ -169,7 +169,8 @@ describe.skipIf(!testServerUrl)('bookings (database)', { timeout: 30_000 }, () =
       // The vet sees the offer without the farmer's identity.
       const offers = (await h.get('/v1/vets/me/offers', vet.accessToken)).json<OfferView[]>();
       expect(offers).toHaveLength(1);
-      expect(offers[0]).toMatchObject({ bookingId, species: 'cattle', feeQuoted: 500 });
+      // Quoted from the base fee of the vet who would get it (600), not the client.
+      expect(offers[0]).toMatchObject({ bookingId, species: 'cattle', feeQuoted: 600 });
       expect(JSON.stringify(offers)).not.toContain(farmer.phone);
       expect(Date.parse(offers[0]?.expiresAt ?? '') - Date.parse(offers[0]?.sentAt ?? '')).toBe(
         90_000,
