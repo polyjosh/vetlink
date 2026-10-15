@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { SPECIES, VERIFICATION_STATUSES, VET_SERVICES, VET_TYPES } from '@vetlink/shared';
@@ -8,6 +8,7 @@ import { locations, vets } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { named, responses } from '../../schemas/common.js';
 import { access, authOf } from '../auth/access.js';
+import { setAvailability } from './service.js';
 import { wardView } from '../users/schemas.js';
 
 const vetProfile = named(
@@ -58,29 +59,6 @@ async function loadVet(ctx: AppContext, userId: string): Promise<z.infer<typeof 
     ),
     rating: v.rating === null ? null : Number(v.rating),
   };
-}
-
-/**
- * Set a vet online or offline. Only an approved vet can go online (invariant 2; the database
- * CHECK backs this up). Going offline is always allowed.
- */
-export async function setAvailability(ctx: AppContext, userId: string, isAvailable: boolean) {
-  if (!isAvailable) {
-    await ctx.db.update(vets).set({ isAvailable: false }).where(eq(vets.userId, userId));
-    return;
-  }
-  // Conditional on approval in the same statement, so a suspension cannot slip in between.
-  const updated = await ctx.db
-    .update(vets)
-    .set({ isAvailable: true })
-    .where(and(eq(vets.userId, userId), eq(vets.verificationStatus, 'approved')))
-    .returning({ userId: vets.userId });
-  if (updated.length > 0) return;
-  const [exists] = await ctx.db
-    .select({ id: vets.userId })
-    .from(vets)
-    .where(eq(vets.userId, userId));
-  throw new DomainError(exists ? 'vet_not_approved' : 'not_found');
 }
 
 export function vetRoutes(app: FastifyInstance, ctx: AppContext): void {

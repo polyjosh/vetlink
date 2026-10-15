@@ -57,6 +57,13 @@
       "when": 1792090753166,
       "tag": "0007_config_and_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792092211599,
+      "tag": "0008_sms_inbound",
+      "breakpoints": true
     }
   ]
 }

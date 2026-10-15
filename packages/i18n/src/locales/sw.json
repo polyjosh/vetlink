@@ -3,7 +3,27 @@
     "appName": "VetLink"
   },
   "sms": {
-    "otp": "Nambari yako ya VetLink ni {code}. Itaisha baada ya dakika {minutes}. Usimpe mtu yeyote nambari hii."
+    "otp": "Nambari yako ya VetLink ni {code}. Itaisha baada ya dakika {minutes}. Usimpe mtu yeyote nambari hii.",
+    "help": "Amri za daktari VetLink:\nY4821 kubali kazi, N4821 kataa\nOTW 4821 niko njiani, ARR 4821 nimefika\nDONE 4821 ugonjwa; dawa; f/u 7d\nON / OFF upatikanaji",
+    "helpFarmer": "VetLink: piga *123# kuomba daktari. Kutoa tathmini jibu R na namba ya ombi na 1-5, mfano R4821 5.",
+    "unregistered": "VetLink: piga *123# kuomba daktari, au pakua programu ya VetLink.",
+    "accepted": "Kazi {ref} ni yako. Mfugaji: {farmer}, {phone}. Wadi: {ward}. {notes}Jibu OTW {ref} ukianza safari.",
+    "taken": "Samahani, kazi {ref} imechukuliwa na daktari mwingine.",
+    "noJob": "Hakuna kazi {ref} iliyo wazi kwako.",
+    "needId": "Kazi gani? Jibu {cmd} na namba ya kazi, mfano {cmd}4821.",
+    "declined": "Sawa, umekataa kazi {ref}.",
+    "enRoute": "Sawa. Mfugaji anajua uko njiani (kazi {ref}). Jibu ARR {ref} ukifika.",
+    "arrived": "Sawa, umefika (kazi {ref}). Jibu DONE {ref} ugonjwa; dawa; f/u 7d ukimaliza.",
+    "done": "Kazi {ref} imekamilika. Asante! Maelezo yako yamehifadhiwa.",
+    "online": "Uko MTANDAONI. Utapokea kazi. Jibu OFF kusimamisha.",
+    "offline": "Uko NJE YA MTANDAO. Hutapokea kazi. Jibu ON kuanza tena.",
+    "notVerified": "Akaunti yako ya VetLink bado haijathibitishwa. Tutakutumia SMS itakapoidhinishwa.",
+    "invalidStep": "Kazi {ref} haiwezi kufanya hivyo sasa. Jibu HELP kupata amri.",
+    "rated": "Asante kwa kutoa tathmini ya ombi {ref}!",
+    "rateHow": "Kutoa tathmini, jibu R na namba ya ombi na 1-5, mfano R{ref} 5.",
+    "rateNone": "Hakuna ombi lililokamilika la kutathmini.",
+    "tooMany": "Ujumbe mwingi mno. Tafadhali subiri dakika chache.",
+    "error": "Samahani, hitilafu imetokea. Tafadhali jaribu tena."
   },
   "errors": {
     "invalid_request": "Kuna kitu hakiko sawa katika ombi. Tafadhali angalia na ujaribu tena.",

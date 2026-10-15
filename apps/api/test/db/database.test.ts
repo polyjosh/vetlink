@@ -37,6 +37,7 @@ const EXPECTED_TABLES = [
   'ratings',
   'refresh_tokens',
   'reminders',
+  'sms_inbound',
   'treatments',
   'users',
   'ussd_sessions',

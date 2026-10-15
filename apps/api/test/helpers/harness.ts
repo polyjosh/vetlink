@@ -49,7 +49,10 @@ export class Harness {
 
   constructor(
     readonly tdb: TestDatabase,
-    options: Pick<AppOptions, 'extraRoutes' | 'trustProxy' | 'webhookSecret'> = {},
+    options: Pick<
+      AppOptions,
+      'extraRoutes' | 'trustProxy' | 'webhookSecret' | 'echoSmsReplies'
+    > = {},
   ) {
     this.jobs = inlineJobs(
       () => this.ctx,

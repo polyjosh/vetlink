@@ -12,7 +12,10 @@ import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
 import { parseArgs } from 'node:util';
 
+// `pnpm … sim -- --phone …` passes the `--` through; drop it so the options are seen.
+const args = process.argv.slice(2).filter((a, i) => !(i === 0 && a === '--'));
 const { values } = parseArgs({
+  args,
   options: {
     phone: { type: 'string', default: '0700000001' },
     url: { type: 'string', default: 'http://localhost:4000' },

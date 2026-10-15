@@ -20,6 +20,8 @@ const daraja = {
   DARAJA_SHORTCODE: '174379',
   DARAJA_PASSKEY: 'passkey',
   PUSH_MODE: 'expo',
+  AT_USERNAME: 'vetlink',
+  AT_API_KEY: 'at-api-key',
 };
 
 describe('loadConfig', () => {
@@ -51,11 +53,9 @@ describe('loadConfig', () => {
 
   it.each([
     [{ SMS_MODE: 'log', PAYMENTS_MODE: 'live', ...daraja }, /SMS_MODE=log/],
-    [{ SMS_MODE: 'live', PAYMENTS_MODE: 'mock' }, /PAYMENTS_MODE=mock/],
+    [{ SMS_MODE: 'live', PAYMENTS_MODE: 'mock', ...daraja }, /PAYMENTS_MODE=mock/],
   ])('fails startup in production when a dev shortcut is on (%o)', (modes, message) => {
-    expect(() =>
-      loadConfig({ ...base, APP_ENV: 'production', WEBHOOK_SECRET: 'w'.repeat(24), ...modes }),
-    ).toThrow(message);
+    expect(() => loadConfig({ ...base, APP_ENV: 'production', ...modes })).toThrow(message);
   });
 
   it('requires a WEBHOOK_SECRET of 24+ characters in production only', () => {
@@ -65,10 +65,23 @@ describe('loadConfig', () => {
       SMS_MODE: 'live',
       PAYMENTS_MODE: 'mock',
       PUSH_MODE: 'expo',
+      AT_USERNAME: 'vetlink',
+      AT_API_KEY: 'at-api-key',
     };
-    expect(() => loadConfig(prod)).toThrow(/WEBHOOK_SECRET is required/);
+    // Without a secret, production refuses to start (whichever check notices first).
+    expect(() => loadConfig(prod)).toThrow(/WEBHOOK_SECRET/);
     expect(() => loadConfig({ ...prod, WEBHOOK_SECRET: 'short' })).toThrow(/WEBHOOK_SECRET/);
     expect(loadConfig(base).WEBHOOK_SECRET).toBeUndefined();
+  });
+
+  it("SMS_MODE=sandbox|live needs Africa's Talking settings; live cannot use the sandbox app", () => {
+    expect(() => loadConfig({ ...base, SMS_MODE: 'sandbox' })).toThrow(
+      /SMS_MODE=sandbox needs: AT_USERNAME, AT_API_KEY, WEBHOOK_SECRET/,
+    );
+    expect(() =>
+      loadConfig({ ...base, SMS_MODE: 'live', ...daraja, AT_USERNAME: 'sandbox' }),
+    ).toThrow(/cannot use the sandbox/);
+    expect(loadConfig({ ...base, SMS_MODE: 'sandbox', ...daraja }).AT_USERNAME).toBe('vetlink');
   });
 
   it('PAYMENTS_MODE=sandbox|live needs every Daraja setting', () => {

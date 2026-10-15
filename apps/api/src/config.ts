@@ -58,6 +58,10 @@ const envSchema = z.object({
       .optional(),
   ),
   DARAJA_PASSKEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  // Africa's Talking (SMS_MODE=sandbox|live): AT_USERNAME is `sandbox` for the sandbox app.
+  AT_USERNAME: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  AT_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  AT_SENDER_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().max(11).optional()),
   // App push: `log` prints (dev only; refused in production), `expo` sends via Expo.
   PUSH_MODE: z.enum(['log', 'expo']).default('log'),
   EXPO_ACCESS_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
@@ -112,6 +116,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new ConfigError(`Invalid environment:\n  ${fields.join('\n  ')}`);
   }
   const config = parsed.data;
+  if (config.SMS_MODE !== 'log') {
+    const missing = (['AT_USERNAME', 'AT_API_KEY', 'WEBHOOK_SECRET'] as const).filter(
+      (k) => !config[k],
+    );
+    if (missing.length > 0) {
+      throw new ConfigError(`SMS_MODE=${config.SMS_MODE} needs: ${missing.join(', ')}`);
+    }
+    if (config.SMS_MODE === 'live' && config.AT_USERNAME === 'sandbox') {
+      throw new ConfigError('SMS_MODE=live cannot use the sandbox AT_USERNAME');
+    }
+  }
   if (config.PAYMENTS_MODE !== 'mock') {
     const missing = (
       [

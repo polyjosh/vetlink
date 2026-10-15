@@ -1,4 +1,13 @@
-import { bigserial, boolean, index, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import {
+  bigserial,
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { createdAt, emptyJson, timestamptz } from './helpers.js';
 import { users } from './identity.js';
 
@@ -52,3 +61,24 @@ export const appConfig = pgTable('app_config', {
   updatedBy: uuid('updated_by').references(() => users.id),
   updatedAt: timestamptz('updated_at').notNull().defaultNow(),
 });
+
+/**
+ * Every inbound SMS, stored before it is parsed (§8.4: "store raw text first"). The provider's
+ * message id makes webhook retries no-ops.
+ */
+export const smsInbound = pgTable(
+  'sms_inbound',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    providerMessageId: text('provider_message_id').notNull(),
+    phone: text('phone').notNull(),
+    text: text('text').notNull(),
+    userId: uuid('user_id').references(() => users.id),
+    command: text('command'), // parsed kind, e.g. accept, done, unknown
+    receivedAt: timestamptz('received_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('sms_inbound_provider_message_id_key').on(t.providerMessageId),
+    index('sms_inbound_phone_idx').on(t.phone),
+  ],
+);

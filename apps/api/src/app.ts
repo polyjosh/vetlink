@@ -19,6 +19,7 @@ import { bookingRoutes } from './modules/bookings/routes.js';
 import { notificationRoutes } from './modules/notifications/routes.js';
 import { paymentRoutes } from './modules/payments/routes.js';
 import { profileRoutes } from './modules/users/profile-routes.js';
+import { smsRoutes } from './modules/sms/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { ussdRoutes } from './modules/ussd/routes.js';
 import { vetRoutes } from './modules/vets/routes.js';
@@ -44,6 +45,8 @@ export interface AppOptions {
   minAppVersion?: string;
   /** Africa's Talking callbacks must carry this as `?token=` (required in production). */
   webhookSecret?: string | undefined;
+  /** Return SMS command replies in the webhook response (SMS_MODE=log, for the simulator). */
+  echoSmsReplies?: boolean;
 }
 
 export const OPENAPI_INFO = {
@@ -66,6 +69,7 @@ export function buildApp({
   docs = false,
   minAppVersion = '1.0.0',
   webhookSecret,
+  echoSmsReplies = false,
 }: AppOptions): FastifyInstance {
   const logger = loggerOptions(logLevel);
   const options: FastifyServerOptions = {
@@ -114,6 +118,7 @@ export function buildApp({
       adminRoutes(api, ctx);
       ussdRoutes(api, ctx, { webhookSecret });
       paymentRoutes(api, ctx, { webhookSecret });
+      smsRoutes(api, ctx, { webhookSecret, echoReplies: echoSmsReplies });
     }
   });
   extraRoutes?.(app);
