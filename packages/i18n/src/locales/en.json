@@ -3,7 +3,27 @@
     "appName": "VetLink"
   },
   "sms": {
-    "otp": "Your VetLink code is {code}. It expires in {minutes} minutes. Never share this code."
+    "otp": "Your VetLink code is {code}. It expires in {minutes} minutes. Never share this code.",
+    "help": "VetLink vet commands:\nY4821 accept job, N4821 decline\nOTW 4821 on my way, ARR 4821 arrived\nDONE 4821 diagnosis; drugs; f/u 7d\nON / OFF availability",
+    "helpFarmer": "VetLink: dial *123# to request a vet. To rate a visit reply R and the request number with 1-5, e.g. R4821 5.",
+    "unregistered": "VetLink: dial *123# to request a vet, or get the VetLink app.",
+    "accepted": "Job {ref} is yours. Farmer: {farmer}, {phone}. Ward: {ward}. {notes}Reply OTW {ref} when you set off.",
+    "taken": "Sorry, job {ref} was already taken by another vet.",
+    "noJob": "There is no open job {ref} for you.",
+    "needId": "Which job? Reply {cmd} with the job number, e.g. {cmd}4821.",
+    "declined": "OK, you declined job {ref}.",
+    "enRoute": "OK. The farmer knows you are on the way (job {ref}). Reply ARR {ref} when you arrive.",
+    "arrived": "OK, marked arrived (job {ref}). Reply DONE {ref} diagnosis; drugs; f/u 7d when finished.",
+    "done": "Job {ref} completed. Thank you! Your notes are saved.",
+    "online": "You are ONLINE. You will get job offers. Reply OFF to stop.",
+    "offline": "You are OFFLINE. You will not get job offers. Reply ON to start again.",
+    "notVerified": "Your VetLink account is not yet verified. We will SMS you when it is approved.",
+    "invalidStep": "Job {ref} cannot do that now. Reply HELP for the commands.",
+    "rated": "Thank you for rating request {ref}!",
+    "rateHow": "To rate, reply R and the request number with 1-5, e.g. R{ref} 5.",
+    "rateNone": "There is no finished request to rate.",
+    "tooMany": "Too many messages. Please wait a few minutes.",
+    "error": "Sorry, something went wrong. Please try again."
   },
   "errors": {
     "invalid_request": "Something in the request was not right. Please check and try again.",
