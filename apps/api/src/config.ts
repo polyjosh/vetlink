@@ -6,6 +6,31 @@ const envSchema = z.object({
   APP_ENV: z.enum(APP_ENVS),
   HOST: z.string().default('0.0.0.0'),
   PORT: z.coerce.number().int().positive().default(4000),
+  // Reverse proxies whose X-Forwarded-For is trusted, so per-IP OTP limits see the real client
+  // address instead of the proxy's: comma-separated proxy IPs/CIDRs or the presets `loopback`,
+  // `linklocal`, `uniquelocal`. Hop counts are not accepted: they cannot check who the immediate
+  // peer is, so a direct client could forge X-Forwarded-For and dodge per-IP limits.
+  // Empty (default) trusts nobody: right when the API is reached directly, as in local dev.
+  TRUST_PROXY: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z
+      .string()
+      .regex(
+        /^(loopback|linklocal|uniquelocal|[0-9a-fA-F.:/]+)(\s*,\s*(loopback|linklocal|uniquelocal|[0-9a-fA-F.:/]+))*$/,
+        {
+          message: 'must be comma-separated proxy IPs/CIDRs or loopback/linklocal/uniquelocal',
+        },
+      )
+      .transform((v) => v.split(',').map((x) => x.trim()))
+      .refine(
+        (entries) =>
+          entries.every(
+            (e) => ['loopback', 'linklocal', 'uniquelocal'].includes(e) || /[.:]/.test(e),
+          ),
+        { message: 'hop counts are not allowed; list the proxy IPs/CIDRs' },
+      )
+      .optional(),
+  ),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DATABASE_URL: z.url(),
   REDIS_URL: z.url(),

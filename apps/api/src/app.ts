@@ -1,10 +1,11 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify';
 import type { DestinationStream } from 'pino';
 import type { AppContext } from './context.js';
 import type { DependencyCheck } from './lib/deps.js';
 import { registerErrorHandling } from './lib/errors.js';
 import { loggerOptions } from './lib/logger.js';
 import { registerAccessControl } from './modules/auth/access.js';
+import { adminRoutes } from './modules/admin/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { healthRoutes } from './routes/health.js';
@@ -20,6 +21,8 @@ export interface AppOptions {
   onClose?: () => Promise<void>;
   /** Log destination (tests capture logs to assert nothing sensitive is written). */
   logStream?: DestinationStream;
+  /** Trusted proxy IPs/CIDRs (`TRUST_PROXY`); unset means `request.ip` is the socket address. */
+  trustProxy?: string[] | undefined;
 }
 
 export function buildApp({
@@ -29,9 +32,14 @@ export function buildApp({
   extraRoutes,
   onClose,
   logStream,
+  trustProxy,
 }: AppOptions): FastifyInstance {
   const logger = loggerOptions(logLevel);
-  const app = Fastify({ logger: logStream ? { ...logger, stream: logStream } : logger });
+  const options: FastifyServerOptions = {
+    logger: logStream ? { ...logger, stream: logStream } : logger,
+  };
+  if (trustProxy !== undefined) options.trustProxy = trustProxy;
+  const app = Fastify(options);
   registerErrorHandling(app);
   // Must run before any route is added: it rejects routes without an access declaration.
   registerAccessControl(app, ctx ?? null);
@@ -39,6 +47,7 @@ export function buildApp({
   if (ctx) {
     authRoutes(app, ctx);
     userRoutes(app, ctx);
+    adminRoutes(app, ctx);
   }
   extraRoutes?.(app);
   app.addHook('onClose', async () => {

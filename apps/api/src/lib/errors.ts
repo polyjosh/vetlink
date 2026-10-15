@@ -19,6 +19,7 @@ export const ERROR_STATUS = {
   two_factor_invalid: 401,
   two_factor_locked: 429,
   two_factor_already_enabled: 409,
+  two_factor_enrolment_closed: 403,
   step_up_required: 401,
   sms_unavailable: 503,
 } as const;

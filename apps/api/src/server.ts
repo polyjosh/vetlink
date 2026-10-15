@@ -18,7 +18,7 @@ const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: 2 });
 const ctx = createContext({
   db: db.db,
   counters: redisCounters(redis),
-  sms: createSmsSender(config.SMS_MODE, pino(loggerOptions(config.LOG_LEVEL))),
+  sms: createSmsSender(config.SMS_MODE, pino(loggerOptions(config.LOG_LEVEL)), config.APP_ENV),
   dataEncryptionKey: config.DATA_ENCRYPTION_KEY,
   jwtSecret: config.JWT_SECRET,
   otpFixedCode: config.OTP_FIXED_CODE,
@@ -27,6 +27,7 @@ const app = buildApp({
   logLevel: config.LOG_LEVEL,
   deps: [postgresDependency(config.DATABASE_URL), redisDependency(config.REDIS_URL)],
   ctx,
+  trustProxy: config.TRUST_PROXY,
   onClose: async () => {
     redis.disconnect();
     await db.close();

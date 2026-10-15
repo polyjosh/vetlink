@@ -49,7 +49,7 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
   // Fake numbers in a block no seed or fixture uses.
   const nextPhone = () => `25479${String(phoneSeq++).padStart(7, '0')}`;
 
-  function build(options: { otpFixedCode?: string } = {}) {
+  function build(options: { otpFixedCode?: string; trustProxy?: string[] } = {}) {
     sms = [];
     smsFails = false;
     logs = [];
@@ -79,6 +79,7 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
       deps: [],
       ctx,
       logStream,
+      trustProxy: options.trustProxy,
       extraRoutes: (a) => {
         const ok = async () => ({ ok: true });
         a.get('/v1/probe/farmer', { config: { access: access.role('farmer') } }, ok);
@@ -117,8 +118,10 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
     return code;
   };
   const device = { platform: 'android', appVersion: '1.0.0' };
-  const verify = (phone: string, code: string) =>
-    post('/v1/auth/otp/verify', { phone, code, device });
+  const verify = (phone: string, code: string, ip?: string) =>
+    post('/v1/auth/otp/verify', { phone, code, device }, undefined, ip);
+  const requestCode = (phone: string, ip?: string) =>
+    post('/v1/auth/otp/request', { phone }, undefined, ip);
 
   interface Tokens {
     accessToken: string;
@@ -138,11 +141,13 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
     await tdb.handle.db.update(users).set({ roles, consentAt: now }).where(eq(users.id, userId));
   }
 
+  /** An unenrolled admin gets the 72 h enrolment window a grant opens (M10). */
   async function makeAdmin(userId: string, adminRole: AdminRole, totpEnabled = true) {
     await tdb.handle.db.insert(adminProfiles).values({
       userId,
       adminRole,
       totpEnabled,
+      totpEnrolExpiresAt: totpEnabled ? null : new Date(now.getTime() + 72 * HOUR),
       totpSecretEnc: totpEnabled
         ? ctx.crypto.encrypt(ADMIN_TOTP_SECRET, fieldContext('admin_profiles.totp_secret', userId))
         : null,
@@ -285,41 +290,96 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
       expect(users1).toHaveLength(1);
     });
 
-    it('locks the phone for an hour after 10 wrong codes (brute force)', async () => {
+    it('locks a phone for one IP after 10 wrong codes from that IP (brute force)', async () => {
       const phone = nextPhone();
-      await post('/v1/auth/otp/request', { phone });
-      for (let i = 0; i < 10; i++) await verify(phone, '000000');
-      const locked = await post('/v1/auth/otp/request', { phone });
+      const attacker = '198.51.100.7';
+      for (let round = 0; round < 2; round++) {
+        await requestCode(phone, attacker);
+        for (let i = 0; i < 5; i++) await verify(phone, '000000', attacker);
+      }
+      const locked = await requestCode(phone, attacker);
       expect(locked.statusCode).toBe(429);
       expect(errorCode(locked)).toBe('account_locked');
-      expect(errorCode(await verify(phone, '000000'))).toBe('account_locked');
-      expect(logs.join('')).toContain('OTP lockout');
+      expect(errorCode(await verify(phone, '000000', attacker))).toBe('account_locked');
+      expect(logs.join('')).toContain('OTP lockout (phone and IP)');
 
+      // The owner, on their own connection, is not locked out by someone else's guessing.
+      expect((await login(phone)).accessToken).toBeTruthy();
       advance(HOUR);
-      const user = await login(phone);
-      expect(user.accessToken).toBeTruthy();
+      expect((await requestCode(phone, attacker)).statusCode).toBe(202);
     });
 
-    it('rate-limits OTP SMS per phone and per IP', async () => {
+    it('does not count attempts when no code is live (nothing to guess, no lockout)', async () => {
       const phone = nextPhone();
-      for (let i = 0; i < 3; i++) {
-        expect((await post('/v1/auth/otp/request', { phone })).statusCode).toBe(202);
+      for (let i = 0; i < 40; i++) {
+        expect(errorCode(await verify(phone, '000000', '198.51.100.8'))).toBe('otp_invalid');
       }
-      const limited = await post('/v1/auth/otp/request', { phone });
+      expect((await login(phone)).accessToken).toBeTruthy();
+    });
+
+    it('locks the phone from every IP after 30 wrong codes in a day (distributed guessing)', async () => {
+      const phone = nextPhone();
+      for (let n = 0; n < 6; n++) {
+        const ip = `198.51.100.${20 + n}`;
+        expect((await requestCode(phone, ip)).statusCode).toBe(202);
+        for (let i = 0; i < 5; i++) await verify(phone, '000000', ip);
+      }
+      expect(logs.join('')).toContain('OTP lockout (phone)');
+      expect(errorCode(await requestCode(phone, '203.0.113.50'))).toBe('account_locked');
+      advance(HOUR);
+      expect((await login(phone)).accessToken).toBeTruthy();
+    });
+
+    it('rate-limits OTP SMS per phone+IP, per phone, and per IP', async () => {
+      const phone = nextPhone();
+      for (let i = 0; i < 3; i++) expect((await requestCode(phone)).statusCode).toBe(202);
+      const limited = await requestCode(phone);
       expect(limited.statusCode).toBe(429);
       expect(errorCode(limited)).toBe('rate_limited');
       expect(sms.filter((m) => m.phone === phone)).toHaveLength(3);
-      advance(10 * MINUTE);
-      expect((await post('/v1/auth/otp/request', { phone })).statusCode).toBe(202);
+      // Someone else exhausting a number's quota from their IP does not block the owner's IP...
+      expect((await requestCode(phone, '203.0.113.60')).statusCode).toBe(202);
+      // ...up to the per-phone cap of 10 an hour across all IPs.
+      for (let i = 0; i < 6; i++) await requestCode(phone, `203.0.113.${61 + i}`);
+      expect(errorCode(await requestCode(phone, '203.0.113.99'))).toBe('rate_limited');
+      advance(HOUR);
+      expect((await requestCode(phone)).statusCode).toBe(202);
 
       const ip = '203.0.113.9';
       for (let i = 0; i < 30; i++) {
-        expect(
-          (await post('/v1/auth/otp/request', { phone: nextPhone() }, undefined, ip)).statusCode,
-        ).toBe(202);
+        expect((await requestCode(nextPhone(), ip)).statusCode).toBe(202);
       }
-      const byIp = await post('/v1/auth/otp/request', { phone: nextPhone() }, undefined, ip);
-      expect(byIp.statusCode).toBe(429);
+      expect((await requestCode(nextPhone(), ip)).statusCode).toBe(429);
+    });
+
+    it('with TRUST_PROXY, limits use the client IP from X-Forwarded-For', async () => {
+      await app.close();
+      build({ trustProxy: ['127.0.0.1'] }); // inject() connects from 127.0.0.1, the "proxy"
+      const phone = nextPhone();
+      const from = (ip: string) =>
+        app.inject({
+          method: 'POST',
+          url: '/v1/auth/otp/request',
+          payload: { phone },
+          headers: { 'x-forwarded-for': ip },
+        });
+      for (let i = 0; i < 3; i++) expect((await from('192.0.2.1')).statusCode).toBe(202);
+      expect((await from('192.0.2.1')).statusCode).toBe(429);
+      // Same proxy socket, different client: a separate phone+IP bucket.
+      expect((await from('192.0.2.2')).statusCode).toBe(202);
+    });
+
+    it('without TRUST_PROXY, a forged X-Forwarded-For does not dodge the limits', async () => {
+      const phone = nextPhone();
+      const forged = (ip: string) =>
+        app.inject({
+          method: 'POST',
+          url: '/v1/auth/otp/request',
+          payload: { phone },
+          headers: { 'x-forwarded-for': ip },
+        });
+      for (let i = 0; i < 3; i++) expect((await forged(`192.0.2.${10 + i}`)).statusCode).toBe(202);
+      expect((await forged('192.0.2.99')).statusCode).toBe(429);
     });
 
     it('reports an SMS provider failure as sms_unavailable', async () => {
@@ -397,6 +457,24 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
       expect(logs.join('')).toContain('refresh token reuse detected');
     });
 
+    it('two simultaneous refreshes with the same token both succeed (no instant sign-out)', async () => {
+      const user = await login();
+      const [a, b] = await Promise.all([
+        post('/v1/auth/refresh', { refreshToken: user.refreshToken }),
+        post('/v1/auth/refresh', { refreshToken: user.refreshToken }),
+      ]);
+      expect([a.statusCode, b.statusCode]).toEqual([200, 200]);
+      // Exactly one of the two new tokens stays live; clients must refresh one at a time
+      // (single-flight) so they keep that one. Using the retired one within the grace window
+      // still works and does not revoke the session.
+      const results = await Promise.all(
+        [a, b].map((r) =>
+          post('/v1/auth/refresh', { refreshToken: r.json<Tokens>().refreshToken }),
+        ),
+      );
+      expect(results.map((r) => r.statusCode)).toEqual([200, 200]);
+    });
+
     it('allows a retry with the previous token within the grace window (lost response)', async () => {
       const user = await login();
       const lost = (
@@ -416,6 +494,22 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
       );
     });
 
+    it('refreshing two tokens of one session at once never deadlocks (no 500)', async () => {
+      // Regression: locking the token row before the session row deadlocked here.
+      for (let i = 0; i < 10; i++) {
+        const user = await login();
+        const first = await Promise.all(
+          [1, 2].map(() => post('/v1/auth/refresh', { refreshToken: user.refreshToken })),
+        );
+        const second = await Promise.all(
+          first.map((r) =>
+            post('/v1/auth/refresh', { refreshToken: r.json<Tokens>().refreshToken }),
+          ),
+        );
+        expect([...first, ...second].map((r) => r.statusCode)).not.toContain(500);
+      }
+    });
+
     it('rejects expired refresh tokens and expired access tokens', async () => {
       const user = await login();
       advance(16 * MINUTE);
@@ -432,7 +526,13 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
 
     it('logout revokes the access token and the refresh token', async () => {
       const user = await login();
+      const pushToken = 'ExponentPushToken[logout-test]';
+      expect((await post('/v1/devices', { pushToken }, user.accessToken)).statusCode).toBe(204);
       expect((await post('/v1/auth/logout', {}, user.accessToken)).statusCode).toBe(204);
+      // The logged-out phone stops receiving this account's notifications.
+      expect(
+        await tdb.handle.db.select().from(devices).where(eq(devices.pushToken, pushToken)),
+      ).toHaveLength(0);
       expect((await get('/v1/me', user.accessToken)).statusCode).toBe(401);
       expect((await post('/v1/auth/refresh', { refreshToken: user.refreshToken })).statusCode).toBe(
         401,
@@ -709,6 +809,117 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
         .where(eq(adminProfiles.userId, user.userId));
       expect(row?.recoveryCodesHash).toHaveLength(9);
     });
+
+    it('a recovery code used from two sessions at once works exactly once', async () => {
+      const user = await login();
+      await makeAdmin(user.userId, 'support', false);
+      const { secret } = (await post('/v1/auth/2fa/setup', {}, user.accessToken)).json<{
+        secret: string;
+      }>();
+      const { recoveryCodes } = (
+        await post('/v1/auth/2fa/enable', { code: totpNow(secret) }, user.accessToken)
+      ).json<{ recoveryCodes: string[] }>();
+      const [s1, s2] = [await login(user.phone), await login(user.phone)];
+      const results = await Promise.all(
+        [s1, s2].map((sess) =>
+          post('/v1/auth/2fa/verify', { recoveryCode: recoveryCodes[0] }, sess.accessToken),
+        ),
+      );
+      expect(results.map((r) => r.statusCode).sort()).toEqual([204, 401]);
+    });
+
+    it('enrolment is only open inside the window opened by grant or reset', async () => {
+      const user = await login();
+      await makeAdmin(user.userId, 'support', false);
+      advance(72 * HOUR);
+      const fresh = await login(user.phone);
+      const res = await post('/v1/auth/2fa/setup', {}, fresh.accessToken);
+      expect(res.statusCode).toBe(403);
+      expect(errorCode(res)).toBe('two_factor_enrolment_closed');
+
+      // An admin profile with no window at all (e.g. granted without one) cannot enrol either.
+      const other = await login();
+      await makeAdmin(other.userId, 'support', false);
+      await tdb.handle.db
+        .update(adminProfiles)
+        .set({ totpEnrolExpiresAt: null })
+        .where(eq(adminProfiles.userId, other.userId));
+      expect(errorCode(await post('/v1/auth/2fa/setup', {}, other.accessToken))).toBe(
+        'two_factor_enrolment_closed',
+      );
+    });
+
+    it('enrolling closes the window, so a second authenticator cannot be added', async () => {
+      const user = await login();
+      await makeAdmin(user.userId, 'support', false);
+      const { secret } = (await post('/v1/auth/2fa/setup', {}, user.accessToken)).json<{
+        secret: string;
+      }>();
+      await post('/v1/auth/2fa/enable', { code: totpNow(secret) }, user.accessToken);
+      const [row] = await tdb.handle.db
+        .select()
+        .from(adminProfiles)
+        .where(eq(adminProfiles.userId, user.userId));
+      expect(row?.totpEnrolExpiresAt).toBeNull();
+    });
+
+    it('a super admin with step-up resets another admin, who must enrol again', async () => {
+      const target = await adminSession('verifier');
+      expect((await get('/v1/admin/probe/verifier', target.accessToken)).statusCode).toBe(200);
+      const boss = await adminSession('super_admin');
+      const url = `/v1/admin/users/${target.userId}/2fa/reset`;
+
+      expect(errorCode(await post(url, {}, boss.accessToken))).toBe('step_up_required');
+      await post('/v1/auth/step-up', { code: totpNow() }, boss.accessToken);
+      const res = await post(url, {}, boss.accessToken);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({
+        enrolExpiresAt: new Date(now.getTime() + 72 * HOUR).toISOString(),
+      });
+
+      // The target's sessions lose 2FA and the old authenticator no longer works.
+      expect(errorCode(await get('/v1/admin/probe/verifier', target.accessToken))).toBe(
+        'two_factor_setup_required',
+      );
+      advance(30_000);
+      expect(
+        errorCode(await post('/v1/auth/2fa/verify', { code: totpNow() }, target.accessToken)),
+      ).toBe('two_factor_setup_required');
+      // ...and can enrol a new one inside the window.
+      const { secret } = (await post('/v1/auth/2fa/setup', {}, target.accessToken)).json<{
+        secret: string;
+      }>();
+      expect(
+        (await post('/v1/auth/2fa/enable', { code: totpNow(secret) }, target.accessToken))
+          .statusCode,
+      ).toBe(200);
+
+      const audits = await tdb.handle.db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.entityId, target.userId));
+      expect(audits.find((a) => a.action === 'admin.2fa_reset')?.actorUserId).toBe(boss.userId);
+    });
+
+    it('2FA reset: not for other admin roles, not on yourself, not on non-admins', async () => {
+      const verifier = await adminSession('verifier');
+      const boss = await adminSession('super_admin');
+      const plain = await login();
+      expect(
+        (await post(`/v1/admin/users/${boss.userId}/2fa/reset`, {}, verifier.accessToken))
+          .statusCode,
+      ).toBe(404);
+      await post('/v1/auth/step-up', { code: totpNow() }, boss.accessToken);
+      expect(
+        errorCode(await post(`/v1/admin/users/${boss.userId}/2fa/reset`, {}, boss.accessToken)),
+      ).toBe('forbidden');
+      expect(
+        errorCode(await post(`/v1/admin/users/${plain.userId}/2fa/reset`, {}, boss.accessToken)),
+      ).toBe('not_found');
+      expect(
+        errorCode(await post('/v1/admin/users/not-a-uuid/2fa/reset', {}, boss.accessToken)),
+      ).toBe('invalid_request');
+    });
   });
 
   describe('GET /v1/me and devices', () => {
@@ -724,6 +935,31 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
         vet: { verificationStatus: 'submitted' },
         admin: null,
       });
+    });
+
+    it('answers not_found for a session without a device', async () => {
+      const user = await login();
+      const [session] = await tdb.handle.db
+        .insert(authSessions)
+        .values({ userId: user.userId })
+        .returning({ id: authSessions.id });
+      const token = await ctx.tokens.sign(
+        { userId: user.userId, sessionId: session?.id ?? '', roles: [] },
+        now,
+      );
+      expect(errorCode(await post('/v1/devices', { pushToken: 'x' }, token))).toBe('not_found');
+    });
+
+    it('a session revoked for token reuse also stops push to its device', async () => {
+      const user = await login();
+      const pushToken = 'ExponentPushToken[reuse-test]';
+      await post('/v1/devices', { pushToken }, user.accessToken);
+      await post('/v1/auth/refresh', { refreshToken: user.refreshToken });
+      advance(2 * MINUTE);
+      await post('/v1/auth/refresh', { refreshToken: user.refreshToken });
+      expect(
+        await tdb.handle.db.select().from(devices).where(eq(devices.pushToken, pushToken)),
+      ).toHaveLength(0);
     });
 
     it('registers a push token for this device and detaches it from any other account', async () => {

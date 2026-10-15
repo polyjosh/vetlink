@@ -22,6 +22,7 @@
     "two_factor_invalid": "That authenticator code is not correct.",
     "two_factor_locked": "Too many wrong authenticator codes. Try again in 15 minutes.",
     "two_factor_already_enabled": "Your authenticator app is already set up.",
+    "two_factor_enrolment_closed": "Authenticator setup is closed for your account. Ask a super admin to reopen it.",
     "step_up_required": "Confirm with a fresh authenticator code to do this.",
     "sms_unavailable": "We could not send the SMS. Please try again shortly."
   }

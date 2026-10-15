@@ -44,7 +44,7 @@ export function authRoutes(app: FastifyInstance, ctx: AppContext): void {
 
   app.post('/v1/auth/otp/verify', { config: { access: access.public } }, async (req) => {
     const body = parseInput(schemas.otpVerify, req.body);
-    return verifyOtp(ctx, body, req.log);
+    return verifyOtp(ctx, { ...body, ip: req.ip }, req.log);
   });
 
   app.post('/v1/auth/refresh', { config: { access: access.public } }, async (req) => {

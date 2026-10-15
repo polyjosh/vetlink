@@ -64,6 +64,17 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...prod, OTP_FIXED_CODE: '' })).not.toThrow();
   });
 
+  it('parses TRUST_PROXY as proxy IPs/CIDRs and refuses hop counts', () => {
+    expect(loadConfig(base).TRUST_PROXY).toBeUndefined();
+    expect(loadConfig({ ...base, TRUST_PROXY: '' }).TRUST_PROXY).toBeUndefined();
+    expect(
+      loadConfig({ ...base, TRUST_PROXY: '10.0.0.1, 172.16.0.0/12,uniquelocal' }).TRUST_PROXY,
+    ).toEqual(['10.0.0.1', '172.16.0.0/12', 'uniquelocal']);
+    expect(() => loadConfig({ ...base, TRUST_PROXY: '1' })).toThrow(/hop counts are not allowed/);
+    expect(() => loadConfig({ ...base, TRUST_PROXY: 'true' })).toThrow(/TRUST_PROXY/);
+    expect(() => loadConfig({ ...base, TRUST_PROXY: 'proxy.example.com' })).toThrow(/TRUST_PROXY/);
+  });
+
   it('allows dev shortcuts in staging and test but not production', () => {
     expect(() => loadConfig({ ...base, APP_ENV: 'staging' })).not.toThrow();
     expect(() =>

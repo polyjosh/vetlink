@@ -32,6 +32,8 @@
 
 **Deep links:** `vetlink://booking/:id` and universal/app links for SMS links, so an SMS about a booking can open the app when installed, or the web app otherwise.
 
+**Token refresh:** refresh one request at a time (single-flight). Concurrent calls wait for the in-flight refresh and reuse its result; on web, coordinate across tabs (Web Locks or BroadcastChannel). The server accepts a just-rotated token for 60 s (lost responses), but a client that keeps using a superseded token after that has its whole session revoked as suspected theft.
+
 **Security on device:** tokens in secure storage (Keychain / Keystore via `expo-secure-store`), certificate pinning considered later, no sensitive data in logs, screenshots allowed but no PII in notification previews on lock screen for payment info.
 
 ## 12. Web App Requirements

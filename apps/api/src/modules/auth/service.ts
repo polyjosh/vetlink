@@ -1,5 +1,5 @@
 import { randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
-import { and, desc, eq, isNull, ne, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import { DEFAULT_LOCALE, interpolate, messages } from '@vetlink/i18n';
 import { normalizePhone, type DevicePlatform, type SessionRole } from '@vetlink/shared';
@@ -24,12 +24,21 @@ const HOUR = 60 * MINUTE;
 export const OTP_TTL_MS = 5 * MINUTE;
 /** Wrong guesses allowed on one code before it is burned. */
 export const OTP_MAX_ATTEMPTS = 5;
-/** OTP SMS per phone per window (each SMS costs money and can be used to harass a number). */
-export const OTP_REQUESTS_PER_PHONE = { limit: 3, windowMs: 10 * MINUTE };
+// Limits are keyed on phone+IP first, so someone else hammering a number from their own address
+// cannot lock its owner out; looser per-phone caps still bound guessing from many addresses.
+/** OTP SMS per phone from one IP per window (each SMS costs money and can harass a number). */
+export const OTP_REQUESTS_PER_PHONE_IP = { limit: 3, windowMs: 10 * MINUTE };
+/** OTP SMS per phone from all IPs. */
+export const OTP_REQUESTS_PER_PHONE = { limit: 10, windowMs: HOUR };
 /** Generous: many farmers share a carrier NAT address. */
 export const OTP_REQUESTS_PER_IP = { limit: 30, windowMs: HOUR };
-/** Wrong codes per phone (across codes) before the phone is locked. */
-export const OTP_FAILURES_BEFORE_LOCK = { limit: 10, windowMs: HOUR };
+/** Wrong codes for one phone from one IP before that pair is locked. */
+export const OTP_FAILURES_PER_PHONE_IP = { limit: 10, windowMs: HOUR };
+/**
+ * Wrong codes for one phone from all IPs before the phone is locked. With 5 guesses per code
+ * this bounds distributed guessing to about 30 per day (success odds ~3 in 100,000).
+ */
+export const OTP_FAILURES_PER_PHONE = { limit: 30, windowMs: 24 * HOUR };
 export const OTP_LOCK_MS = HOUR;
 /**
  * A rotated refresh token still works this long, for clients that retry after losing the
@@ -39,8 +48,11 @@ export const REFRESH_REUSE_GRACE_MS = MINUTE;
 
 const keys = {
   lock: (phone: string) => `otp:lock:${phone}`,
+  lockFromIp: (phone: string, ip: string) => `otp:lock:${phone}:${ip}`,
   failures: (phone: string) => `otp:fail:${phone}`,
+  failuresFromIp: (phone: string, ip: string) => `otp:fail:${phone}:${ip}`,
   perPhone: (phone: string) => `otp:req:phone:${phone}`,
+  perPhoneIp: (phone: string, ip: string) => `otp:req:phone:${phone}:${ip}`,
   perIp: (ip: string) => `otp:req:ip:${ip}`,
 };
 
@@ -62,8 +74,20 @@ function sameHash(a: string, b: string): boolean {
   return x.length === y.length && timingSafeEqual(x, y);
 }
 
-async function assertNotLocked(ctx: AppContext, phone: string): Promise<void> {
-  if ((await ctx.counters.get(keys.lock(phone))) > 0) throw new DomainError('account_locked');
+async function assertNotLocked(ctx: AppContext, phone: string, ip: string): Promise<void> {
+  const [phoneLock, pairLock] = await Promise.all([
+    ctx.counters.get(keys.lock(phone)),
+    ctx.counters.get(keys.lockFromIp(phone, ip)),
+  ]);
+  if (phoneLock > 0 || pairLock > 0) throw new DomainError('account_locked');
+}
+
+async function overLimit(
+  ctx: AppContext,
+  key: string,
+  rule: { limit: number; windowMs: number },
+): Promise<boolean> {
+  return (await ctx.counters.hit(key, rule.windowMs)) > rule.limit;
 }
 
 /** Send a login code. Same response whether or not the number has an account. */
@@ -73,16 +97,11 @@ export async function requestOtp(
   log: FastifyBaseLogger,
 ): Promise<{ expiresInSeconds: number }> {
   const phone = requirePhone(input.phone);
-  await assertNotLocked(ctx, phone);
+  await assertNotLocked(ctx, phone, input.ip);
   if (
-    (await ctx.counters.hit(keys.perIp(input.ip), OTP_REQUESTS_PER_IP.windowMs)) >
-    OTP_REQUESTS_PER_IP.limit
-  ) {
-    throw new DomainError('rate_limited');
-  }
-  if (
-    (await ctx.counters.hit(keys.perPhone(phone), OTP_REQUESTS_PER_PHONE.windowMs)) >
-    OTP_REQUESTS_PER_PHONE.limit
+    (await overLimit(ctx, keys.perIp(input.ip), OTP_REQUESTS_PER_IP)) ||
+    (await overLimit(ctx, keys.perPhoneIp(phone, input.ip), OTP_REQUESTS_PER_PHONE_IP)) ||
+    (await overLimit(ctx, keys.perPhone(phone), OTP_REQUESTS_PER_PHONE))
   ) {
     throw new DomainError('rate_limited');
   }
@@ -124,18 +143,27 @@ export async function requestOtp(
 async function recordOtpFailure(
   ctx: AppContext,
   phone: string,
+  ip: string,
   log: FastifyBaseLogger,
 ): Promise<void> {
-  const failures = await ctx.counters.hit(keys.failures(phone), OTP_FAILURES_BEFORE_LOCK.windowMs);
-  if (failures >= OTP_FAILURES_BEFORE_LOCK.limit) {
+  const [fromIp, total] = await Promise.all([
+    ctx.counters.hit(keys.failuresFromIp(phone, ip), OTP_FAILURES_PER_PHONE_IP.windowMs),
+    ctx.counters.hit(keys.failures(phone), OTP_FAILURES_PER_PHONE.windowMs),
+  ]);
+  if (fromIp >= OTP_FAILURES_PER_PHONE_IP.limit) {
+    await ctx.counters.claim(keys.lockFromIp(phone, ip), OTP_LOCK_MS);
+    log.warn({ phone: maskPhone(phone), failures: fromIp }, 'OTP lockout (phone and IP)');
+  }
+  if (total >= OTP_FAILURES_PER_PHONE.limit) {
     await ctx.counters.claim(keys.lock(phone), OTP_LOCK_MS);
-    log.warn({ phone: maskPhone(phone), failures }, 'OTP lockout');
+    log.warn({ phone: maskPhone(phone), failures: total }, 'OTP lockout (phone)');
   }
 }
 
 export interface VerifyOtpInput {
   phone: string;
   code: string;
+  ip: string;
   device: { platform: DevicePlatform; appVersion?: string | undefined };
 }
 
@@ -146,7 +174,7 @@ export async function verifyOtp(
   log: FastifyBaseLogger,
 ): Promise<IssuedTokens & { isNewUser: boolean }> {
   const phone = requirePhone(input.phone);
-  await assertNotLocked(ctx, phone);
+  await assertNotLocked(ctx, phone, input.ip);
   const now = ctx.clock();
 
   const [otp] = await ctx.db
@@ -155,10 +183,9 @@ export async function verifyOtp(
     .where(and(eq(otpCodes.phone, phone), isNull(otpCodes.consumedAt)))
     .orderBy(desc(otpCodes.id))
     .limit(1);
-  if (!otp) {
-    await recordOtpFailure(ctx, phone, log);
-    throw new DomainError('otp_invalid');
-  }
+  // No live code means nothing can be guessed, so this is not counted as a failure (counting it
+  // would let anyone lock a number without ever requesting a code for it).
+  if (!otp) throw new DomainError('otp_invalid');
   if (otp.expiresAt <= now) throw new DomainError('otp_expired');
 
   if (!sameHash(ctx.hashOtp(`${phone}:${input.code}`), otp.codeHash)) {
@@ -170,7 +197,7 @@ export async function verifyOtp(
         consumedAt: sql`case when ${otpCodes.attempts} + 1 >= ${OTP_MAX_ATTEMPTS} then ${now.toISOString()}::timestamptz else null end`,
       })
       .where(and(eq(otpCodes.id, otp.id), isNull(otpCodes.consumedAt)));
-    await recordOtpFailure(ctx, phone, log);
+    await recordOtpFailure(ctx, phone, input.ip, log);
     throw new DomainError('otp_invalid');
   }
 
@@ -181,7 +208,7 @@ export async function verifyOtp(
     .where(and(eq(otpCodes.id, otp.id), isNull(otpCodes.consumedAt)))
     .returning({ id: otpCodes.id });
   if (consumed.length === 0) throw new DomainError('otp_invalid');
-  await ctx.counters.reset(keys.failures(phone));
+  await ctx.counters.reset(keys.failuresFromIp(phone, input.ip));
 
   const { userId, isNewUser, sessionId, refreshToken } = await ctx.db.transaction(async (tx) => {
     const created = await tx
@@ -258,6 +285,40 @@ async function signAccess(
   };
 }
 
+type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
+
+/**
+ * End a session: revoke it and its refresh tokens, and detach its device's push token so a
+ * logged-out (or shared, or stolen) phone stops receiving this account's notifications.
+ */
+async function endSession(
+  tx: Tx,
+  sessionId: string,
+  reason: 'logout' | 'refresh_token_reuse',
+  now: Date,
+): Promise<void> {
+  await tx
+    .update(authSessions)
+    .set({ revokedAt: now, revokedReason: reason })
+    .where(and(eq(authSessions.id, sessionId), isNull(authSessions.revokedAt)));
+  await tx
+    .update(refreshTokens)
+    .set({ revokedAt: now })
+    .where(and(eq(refreshTokens.sessionId, sessionId), isNull(refreshTokens.revokedAt)));
+  await tx
+    .update(devices)
+    .set({ pushToken: null })
+    .where(
+      inArray(
+        devices.id,
+        tx
+          .select({ id: sql<string>`${authSessions.deviceId}` })
+          .from(authSessions)
+          .where(eq(authSessions.id, sessionId)),
+      ),
+    );
+}
+
 /**
  * Rotate a refresh token. Each session has one live token; the presented one is replaced.
  * Presenting an already-rotated token after the grace window revokes the whole session.
@@ -268,7 +329,25 @@ export async function refresh(
   log: FastifyBaseLogger,
 ): Promise<IssuedTokens> {
   const now = ctx.clock();
+  const tokenHash = sha256(presented);
   const result = await ctx.db.transaction(async (tx) => {
+    // Lock order: the session row first, then its tokens (endSession does the same). Locking a
+    // token row first deadlocks when two different tokens of one session refresh at once: each
+    // holds its token and waits for the session, then needs the other's token to retire it.
+    const [owner] = await tx
+      .select({ sessionId: refreshTokens.sessionId })
+      .from(refreshTokens)
+      .where(eq(refreshTokens.tokenHash, tokenHash))
+      .limit(1);
+    if (!owner) return { kind: 'invalid' } as const;
+    // Serializes every refresh and logout of this session.
+    await tx
+      .select({ id: authSessions.id })
+      .from(authSessions)
+      .where(eq(authSessions.id, owner.sessionId))
+      .for('update');
+
+    // Re-read under the lock: a concurrent refresh may have just rotated this token.
     const [row] = await tx
       .select({
         id: refreshTokens.id,
@@ -283,22 +362,13 @@ export async function refresh(
       .from(refreshTokens)
       .innerJoin(authSessions, eq(authSessions.id, refreshTokens.sessionId))
       .innerJoin(users, eq(users.id, refreshTokens.userId))
-      .where(eq(refreshTokens.tokenHash, sha256(presented)))
-      .limit(1)
-      // Serializes concurrent refreshes of the same session.
-      .for('update');
+      .where(eq(refreshTokens.tokenHash, tokenHash))
+      .limit(1);
     if (!row || row.sessionRevokedAt || row.userDeletedAt || row.expiresAt <= now) {
       return { kind: 'invalid' } as const;
     }
     if (row.revokedAt && now.getTime() - row.revokedAt.getTime() >= REFRESH_REUSE_GRACE_MS) {
-      await tx
-        .update(authSessions)
-        .set({ revokedAt: now, revokedReason: 'refresh_token_reuse' })
-        .where(eq(authSessions.id, row.sessionId));
-      await tx
-        .update(refreshTokens)
-        .set({ revokedAt: now })
-        .where(and(eq(refreshTokens.sessionId, row.sessionId), isNull(refreshTokens.revokedAt)));
+      await endSession(tx, row.sessionId, 'refresh_token_reuse', now);
       return { kind: 'reuse', userId: row.userId, sessionId: row.sessionId } as const;
     }
 
@@ -345,17 +415,8 @@ export async function refresh(
   return signAccess(ctx, result.userId, result.sessionId, result.token);
 }
 
-/** End this session everywhere: its refresh tokens stop working and access tokens are refused. */
+/** End this session: its refresh tokens stop working, access tokens are refused, push stops. */
 export async function logout(ctx: AppContext, sessionId: string): Promise<void> {
   const now = ctx.clock();
-  await ctx.db.transaction(async (tx) => {
-    await tx
-      .update(authSessions)
-      .set({ revokedAt: now, revokedReason: 'logout' })
-      .where(and(eq(authSessions.id, sessionId), isNull(authSessions.revokedAt)));
-    await tx
-      .update(refreshTokens)
-      .set({ revokedAt: now })
-      .where(and(eq(refreshTokens.sessionId, sessionId), isNull(refreshTokens.revokedAt)));
-  });
+  await ctx.db.transaction((tx) => endSession(tx, sessionId, 'logout', now));
 }
