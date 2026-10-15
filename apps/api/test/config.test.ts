@@ -7,6 +7,7 @@ const base = {
   REDIS_URL: 'redis://localhost:6379',
   SMS_MODE: 'log',
   PAYMENTS_MODE: 'mock',
+  DATA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
 };
 
 describe('loadConfig', () => {
@@ -24,6 +25,16 @@ describe('loadConfig', () => {
     expect(run).toThrow(/DATABASE_URL/);
     expect(run).toThrow(/SMS_MODE/);
     expect(run).not.toThrow(/secretvalue/);
+  });
+
+  it('rejects a DATA_ENCRYPTION_KEY that is not 32 bytes of base64', () => {
+    const short = Buffer.alloc(16, 7).toString('base64');
+    expect(() => loadConfig({ ...base, DATA_ENCRYPTION_KEY: short })).toThrow(
+      /DATA_ENCRYPTION_KEY: must be 32 bytes/,
+    );
+    expect(() => loadConfig({ ...base, DATA_ENCRYPTION_KEY: undefined })).toThrow(
+      /DATA_ENCRYPTION_KEY/,
+    );
   });
 
   it.each([

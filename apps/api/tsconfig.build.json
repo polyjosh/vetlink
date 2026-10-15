@@ -6,5 +6,8 @@
     "customConditions": [],
     "declaration": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  // The dev seed (published admin TOTP secret) never ships in the production image.
+  // seed/fixtures.ts still compiles: the production seed guard imports it.
+  "exclude": ["src/db/seed/seed.ts", "src/db/seed/run.ts", "src/db/seed/kiambu-wards.ts"]
 }

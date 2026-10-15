@@ -21,10 +21,12 @@ CREATE TABLE locations (
 -- Identity and auth
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  phone TEXT UNIQUE NOT NULL,            -- 2547XXXXXXXX
+  phone TEXT,                            -- 2547XXXXXXXX; NULL only after deletion (anonymized).
+                                         -- CHECK: valid unless deleted; UNIQUE among active users
   name TEXT,
   language TEXT NOT NULL DEFAULT 'sw',   -- 'sw' | 'en'
-  roles TEXT[] NOT NULL DEFAULT '{}',    -- farmer, vet, admin (admin only via admin_profiles)
+  roles TEXT[] NOT NULL DEFAULT '{}',    -- farmer, vet. Admin is never stored here: it comes
+                                         -- only from an admin_profiles row with revoked_at NULL
   consent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   deleted_at TIMESTAMPTZ                 -- soft delete → anonymize job
@@ -94,7 +96,7 @@ CREATE TABLE vets (
   service_radius_km INT NOT NULL DEFAULT 20,
   base_call_out_fee INT,
   rating NUMERIC(2,1),
-  is_available BOOLEAN NOT NULL DEFAULT false,
+  is_available BOOLEAN NOT NULL DEFAULT false,  -- CHECK: only when verification_status = 'approved'
   share_live_location BOOLEAN NOT NULL DEFAULT false,
   live_lat DOUBLE PRECISION,
   live_lng DOUBLE PRECISION,
