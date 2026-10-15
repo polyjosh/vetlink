@@ -191,11 +191,12 @@ CMD ["node", "dist/server.js"]
 **Dev conveniences (must be impossible to enable in production; assert on startup):**
 - `SMS_MODE=log`: outbound SMS and OTPs are printed to the API logs instead of being sent (no cost, no real numbers). Values: `log | sandbox | live`.
 - `PAYMENTS_MODE=mock`: simulates STK push success/failure/timeout locally. Values: `mock | sandbox | live`.
+- `OTP_FIXED_CODE`: optional 6-digit code that every OTP login uses. Empty means random codes.
 - **Seed data:** demo farmer, approved vet, pending vet application, and an admin (with a known TOTP secret printed by the seed script so an authenticator app can be set up), plus one county's wards.
 - **Local USSD simulator:** a dev-only script/page (`pnpm ussd:sim`) that posts to `/webhooks/ussd` like Africa's Talking, so the USSD flow can be tested without the real network.
 - **Public URL for webhooks:** Africa's Talking and Daraja need to reach the API over HTTPS. In dev use a tunnel (ngrok or Cloudflare Tunnel) and set `PUBLIC_BASE_URL`.
 
-**`.env.example` (placeholders only):** `APP_ENV`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AT_API_KEY`, `AT_USERNAME`, `AT_SENDER_ID`, `DARAJA_CONSUMER_KEY`, `DARAJA_CONSUMER_SECRET`, `DARAJA_SHORTCODE`, `DARAJA_PASSKEY`, `PUBLIC_BASE_URL`, `SMS_MODE`, `PAYMENTS_MODE`, `MAPS_API_KEY`, `SENTRY_DSN`.
+**`.env.example` (placeholders only):** `APP_ENV`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET` (at least 32 characters; refresh tokens are opaque and hashed, so they need no secret), `DATA_ENCRYPTION_KEY`, `TEST_DATABASE_URL`, `TEST_REDIS_URL`, `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AT_API_KEY`, `AT_USERNAME`, `AT_SENDER_ID`, `DARAJA_CONSUMER_KEY`, `DARAJA_CONSUMER_SECRET`, `DARAJA_SHORTCODE`, `DARAJA_PASSKEY`, `PUBLIC_BASE_URL`, `SMS_MODE`, `PAYMENTS_MODE`, `OTP_FIXED_CODE`, `MAPS_API_KEY`, `SENTRY_DSN`.
 
 **Local access map (default ports):**
 

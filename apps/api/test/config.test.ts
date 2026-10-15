@@ -8,6 +8,7 @@ const base = {
   SMS_MODE: 'log',
   PAYMENTS_MODE: 'mock',
   DATA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
+  JWT_SECRET: 'x'.repeat(32),
 };
 
 describe('loadConfig', () => {
@@ -42,6 +43,25 @@ describe('loadConfig', () => {
     [{ SMS_MODE: 'live', PAYMENTS_MODE: 'mock' }, /PAYMENTS_MODE=mock/],
   ])('fails startup in production when a dev shortcut is on (%o)', (modes, message) => {
     expect(() => loadConfig({ ...base, APP_ENV: 'production', ...modes })).toThrow(message);
+  });
+
+  it('requires a JWT_SECRET of at least 32 characters', () => {
+    expect(() => loadConfig({ ...base, JWT_SECRET: 'change-me' })).toThrow(
+      /JWT_SECRET: must be at least 32 characters/,
+    );
+    expect(() => loadConfig({ ...base, JWT_SECRET: undefined })).toThrow(/JWT_SECRET/);
+  });
+
+  it('accepts a 6-digit OTP_FIXED_CODE in development and treats empty as off', () => {
+    expect(loadConfig({ ...base, OTP_FIXED_CODE: '123456' }).OTP_FIXED_CODE).toBe('123456');
+    expect(loadConfig({ ...base, OTP_FIXED_CODE: '' }).OTP_FIXED_CODE).toBeUndefined();
+    expect(() => loadConfig({ ...base, OTP_FIXED_CODE: '1234' })).toThrow(/OTP_FIXED_CODE/);
+  });
+
+  it('fails startup in production when OTP_FIXED_CODE is set', () => {
+    const prod = { ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'live' };
+    expect(() => loadConfig({ ...prod, OTP_FIXED_CODE: '123456' })).toThrow(/OTP_FIXED_CODE/);
+    expect(() => loadConfig({ ...prod, OTP_FIXED_CODE: '' })).not.toThrow();
   });
 
   it('allows dev shortcuts in staging and test but not production', () => {

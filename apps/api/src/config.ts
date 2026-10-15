@@ -11,6 +11,16 @@ const envSchema = z.object({
   REDIS_URL: z.url(),
   SMS_MODE: z.enum(SMS_MODES),
   PAYMENTS_MODE: z.enum(PAYMENTS_MODES),
+  // HS256 key for access tokens: `openssl rand -base64 32`.
+  JWT_SECRET: z.string().min(32, { message: 'must be at least 32 characters' }),
+  // Dev shortcut: every OTP is this code. Empty means off.
+  OTP_FIXED_CODE: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z
+      .string()
+      .regex(/^\d{6}$/, { message: 'must be 6 digits' })
+      .optional(),
+  ),
   // Master key for field encryption (national IDs, TOTP secrets): `openssl rand -base64 32`.
   DATA_ENCRYPTION_KEY: z.string().refine(
     (v) => {
@@ -34,12 +44,12 @@ export class ConfigError extends Error {
 /**
  * Dev-only shortcuts that must never be on in production (CLAUDE.md invariant 9).
  * The seeded dev admin is checked against the database at startup (db/dev-seed-guard.ts).
- * M3 adds the fixed OTP here.
  */
 function devShortcutsEnabled(config: Config): string[] {
   const enabled: string[] = [];
   if (config.SMS_MODE === 'log') enabled.push('SMS_MODE=log');
   if (config.PAYMENTS_MODE === 'mock') enabled.push('PAYMENTS_MODE=mock');
+  if (config.OTP_FIXED_CODE !== undefined) enabled.push('OTP_FIXED_CODE');
   return enabled;
 }
 

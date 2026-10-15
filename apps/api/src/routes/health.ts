@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { DependencyCheck } from '../lib/deps.js';
+import { access } from '../modules/auth/access.js';
 
 const CHECK_TIMEOUT_MS = 2000;
 
@@ -21,10 +22,10 @@ function withTimeout(promise: Promise<void>, ms: number): Promise<void> {
 
 export function healthRoutes(app: FastifyInstance, deps: DependencyCheck[]): void {
   // Liveness: the process is up. Never touches dependencies.
-  app.get('/health', async () => ({ status: 'ok' }));
+  app.get('/health', { config: { access: access.public } }, async () => ({ status: 'ok' }));
 
   // Readiness: the database and Redis are reachable.
-  app.get('/ready', async (request, reply) => {
+  app.get('/ready', { config: { access: access.public } }, async (request, reply) => {
     const results = await Promise.all(
       deps.map(async (dep) => {
         try {

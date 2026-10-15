@@ -1,5 +1,28 @@
 {
   "common": {
     "appName": "VetLink"
+  },
+  "sms": {
+    "otp": "Nambari yako ya VetLink ni {code}. Itaisha baada ya dakika {minutes}. Usimpe mtu yeyote nambari hii."
+  },
+  "errors": {
+    "invalid_request": "Kuna kitu hakiko sawa katika ombi. Tafadhali angalia na ujaribu tena.",
+    "not_found": "Hatukuweza kupata hicho.",
+    "internal_error": "Hitilafu imetokea. Tafadhali jaribu tena.",
+    "unauthenticated": "Tafadhali ingia tena.",
+    "forbidden": "Huruhusiwi kufanya hivyo.",
+    "invalid_phone": "Weka nambari sahihi ya Safaricom, Airtel au Telkom, mfano 0712 345 678.",
+    "otp_invalid": "Nambari hiyo si sahihi. Angalia SMS na ujaribu tena.",
+    "otp_expired": "Nambari hiyo imeisha muda. Omba nambari mpya.",
+    "rate_limited": "Majaribio mengi mno. Tafadhali subiri dakika chache kisha ujaribu tena.",
+    "account_locked": "Nambari nyingi zisizo sahihi. Jaribu tena baada ya saa moja.",
+    "refresh_invalid": "Muda wako umeisha. Tafadhali ingia tena.",
+    "two_factor_required": "Weka nambari kutoka programu yako ya uthibitishaji ili kuendelea.",
+    "two_factor_setup_required": "Sanidi programu yako ya uthibitishaji ili kuendelea.",
+    "two_factor_invalid": "Nambari hiyo ya uthibitishaji si sahihi.",
+    "two_factor_locked": "Nambari nyingi za uthibitishaji zisizo sahihi. Jaribu tena baada ya dakika 15.",
+    "two_factor_already_enabled": "Programu yako ya uthibitishaji tayari imesanidiwa.",
+    "step_up_required": "Thibitisha kwa nambari mpya ya uthibitishaji ili kufanya hivi.",
+    "sms_unavailable": "Hatukuweza kutuma SMS. Tafadhali jaribu tena baadaye kidogo."
   }
 }
