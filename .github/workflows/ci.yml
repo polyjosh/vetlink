@@ -39,6 +39,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Generated API client is up to date
+        run: pnpm api:generate && git diff --exit-code packages/api-client
 
   image:
     runs-on: ubuntu-latest

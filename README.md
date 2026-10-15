@@ -50,7 +50,7 @@ curl http://localhost:4000/ready
 
 | What | Where |
 |---|---|
-| API | `http://localhost:4000` (health at `/health`, readiness at `/ready`, API docs at `/docs` from M5) |
+| API | `http://localhost:4000` (health at `/health`, readiness at `/ready`, Swagger UI at `/docs`, OpenAPI JSON at `/docs/json`; not served in production) |
 | Web app (farmer, vet) | `http://localhost:3000` (from M11) |
 | Admin console | `http://localhost:3000/admin` (from M11) |
 | Mobile app | Expo dev server: scan the QR code (Expo Go or a dev build) or use an Android emulator (from M12) |
@@ -61,6 +61,22 @@ curl http://localhost:4000/ready
 | USSD / SMS / M-Pesa callbacks | Public tunnel URL → `/webhooks/*` |
 
 Inside the Docker network the database host is `db`, Redis is `redis`, and storage is `s3:8333`.
+
+## API and typed client
+
+Every route declares zod schemas for its body, params, query and responses. They validate requests, serialize responses (a field not in the schema is never sent), and generate the OpenAPI document. Mobile and web call the API only through `@vetlink/api-client`:
+
+```ts
+import { createApiClient, newIdempotencyKey } from '@vetlink/api-client';
+
+const api = createApiClient({ baseUrl, channel: 'web', getAccessToken: () => token });
+const { data, error } = await api.POST('/v1/bookings', {
+  params: { header: { 'idempotency-key': newIdempotencyKey() } }, // generate on tap, reuse on retry
+  body: { species: 'cattle', problemType: 'sick' },
+});
+```
+
+After changing a route or schema, run `pnpm api:generate` and commit `packages/api-client/openapi.json` and `src/schema.ts`. A test and a CI step fail if they are stale.
 
 ## Database
 

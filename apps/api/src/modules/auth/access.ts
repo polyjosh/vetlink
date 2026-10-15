@@ -159,19 +159,52 @@ function guard(ctx: AppContext, rule: RouteAccess, url: string): preHandlerHookH
   };
 }
 
+function describeAccess(rule: RouteAccess): string {
+  switch (rule.kind) {
+    case 'public':
+      return 'Access: public.';
+    case 'user':
+      return 'Access: any signed-in user.';
+    case 'role':
+      return `Access: role \`${rule.role}\`.`;
+    case 'admin':
+      return (
+        `Access: admin permission \`${rule.permission}\` with 2FA` +
+        (rule.stepUp ? ' and a step-up within 5 minutes.' : '.')
+      );
+  }
+}
+
 /**
  * Install before any route is registered. `ctx` is null only in apps without the database
  * (health-check tests); there, only public routes are allowed.
  */
-export function registerAccessControl(app: FastifyInstance, ctx: AppContext | null): void {
+export function registerAccessControl(
+  app: FastifyInstance,
+  ctx: AppContext | null,
+  options: {
+    /** Routes from third-party plugins that cannot declare access (e.g. `/docs` outside production). */
+    publicPrefixes?: readonly string[];
+  } = {},
+): void {
   app.decorateRequest('auth', null);
   app.addHook('onRoute', (route) => {
-    const rule = route.config?.access;
     const name = `${String(route.method)} ${route.url}`;
+    const pluginPublic = (options.publicPrefixes ?? []).some(
+      (prefix) => route.url === prefix || route.url.startsWith(`${prefix}/`),
+    );
+    const rule = route.config?.access ?? (pluginPublic ? access.public : undefined);
     if (!rule) throw new Error(`Route ${name} does not declare config.access`);
     if (route.url.startsWith('/v1/admin') && rule.kind !== 'admin') {
       throw new Error(`Admin route ${name} must declare admin access with a permission`);
     }
+    // Document the rule in OpenAPI so client authors see it next to each endpoint.
+    const schema = (route.schema ?? {}) as Record<string, unknown>;
+    route.schema = {
+      ...schema,
+      description: [describeAccess(rule), schema.description].filter(Boolean).join('\n\n'),
+      ...(rule.kind !== 'public' && { security: [{ bearer: [] }] }),
+    };
     if (rule.kind === 'public') return;
     if (!ctx) throw new Error(`Route ${name} needs authentication but the app has no context`);
     const existing = route.preHandler;

@@ -28,6 +28,9 @@ const app = buildApp({
   deps: [postgresDependency(config.DATABASE_URL), redisDependency(config.REDIS_URL)],
   ctx,
   trustProxy: config.TRUST_PROXY,
+  minAppVersion: config.MIN_APP_VERSION,
+  // Swagger UI for developers; the API surface is not advertised in production.
+  docs: config.APP_ENV !== 'production',
   onClose: async () => {
     redis.disconnect();
     await db.close();

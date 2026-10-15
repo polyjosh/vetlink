@@ -78,6 +78,9 @@ export type Channel = (typeof CHANNELS)[number];
 export const SPECIES = ['cattle', 'goat', 'sheep', 'pig', 'poultry', 'dog', 'other'] as const;
 export type Species = (typeof SPECIES)[number];
 
+export const ANIMAL_SEXES = ['female', 'male'] as const;
+export type AnimalSex = (typeof ANIMAL_SEXES)[number];
+
 /** What the farmer reports. Emergency is a separate flag, not a problem type. */
 export const PROBLEM_TYPES = ['sick', 'injury', 'breeding', 'vaccination', 'other'] as const;
 export type ProblemType = (typeof PROBLEM_TYPES)[number];
