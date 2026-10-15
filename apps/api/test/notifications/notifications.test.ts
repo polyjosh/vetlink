@@ -33,6 +33,8 @@ describe('notification templates', () => {
     vet: 'Dr. Wanjiru Kamau',
     phone: '254712345678',
     deposit: 200,
+    hours: 48,
+    days: 30,
   };
   it.each(
     (['sw', 'en'] as Locale[]).flatMap((lang) =>

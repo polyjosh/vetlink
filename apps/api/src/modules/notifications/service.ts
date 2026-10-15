@@ -30,6 +30,13 @@ export const NOTIFICATION_KINDS = {
   still_searching: { critical: true },
   no_vet_found: { critical: true },
   booking_cancelled: { critical: true },
+  application_submitted: { critical: false },
+  application_changes: { critical: false },
+  application_approved: { critical: false },
+  application_rejected: { critical: false },
+  vet_suspended: { critical: true },
+  vet_reinstated: { critical: false },
+  licence_expiring: { critical: false },
 } as const;
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
 

@@ -143,6 +143,11 @@ CREATE TABLE vet_applications (
   checklist JSONB                        -- reviewer's verification checklist results
 );
 
+-- vet_applications.data holds the wizard answers by step (professional_type, personal,
+-- credentials, practice, service_area, payout, declaration). The national ID is never stored
+-- there in plain text: personal.nationalIdEnc (AES-GCM bound to the application row),
+-- nationalIdHash (keyed HMAC, duplicate detection), nationalIdLast3 (shown to the vet).
+-- flagged_fields lists `step.field` / `doc.<kind>` the vet must fix in changes_requested.
 CREATE TABLE vet_documents (
   id SERIAL PRIMARY KEY,
   application_id INT NOT NULL REFERENCES vet_applications(id),

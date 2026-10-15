@@ -16,6 +16,7 @@ import { fieldContext } from '../../src/lib/crypto.js';
 import { base32Decode, hotp, totpStep } from '../../src/modules/auth/totp.js';
 import { FakeGateway } from './fake-gateway.js';
 import { FakePush } from './fake-push.js';
+import { FakeStorage } from './fake-storage.js';
 import type { TestDatabase } from './test-db.js';
 
 export const TEST_KEY = Buffer.alloc(32, 5).toString('base64');
@@ -43,6 +44,7 @@ export class Harness {
   app: FastifyInstance;
   gateway = new FakeGateway();
   push = new FakePush();
+  storage = new FakeStorage();
   jobs: ReturnType<typeof inlineJobs>;
   private static phoneSeq = 0;
   private static wardSeq = 0;
@@ -63,6 +65,7 @@ export class Harness {
       payments: this.gateway,
       push: this.push,
       jobs: this.jobs,
+      storage: this.storage,
       counters: memoryCounters(() => this.now),
       sms: {
         send: async (phone, text) => {

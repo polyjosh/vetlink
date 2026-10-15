@@ -4,6 +4,8 @@ x-api-env: &api-env
   DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
   REDIS_URL: redis://redis:6379
   S3_ENDPOINT: http://s3:8333
+  # Presigned URLs must be reachable from the browser/phone, not just inside Docker.
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:8333}
 
 services:
   db:

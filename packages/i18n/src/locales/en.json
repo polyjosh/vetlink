@@ -53,7 +53,11 @@
     "farmer_profile_required": "Please finish setting up your farmer profile first.",
     "already_rated": "You have already rated this visit.",
     "consent_required": "Please accept the data protection terms first.",
-    "payment_unavailable": "M-Pesa is not available right now. Please try again in a few minutes."
+    "payment_unavailable": "M-Pesa is not available right now. Please try again in a few minutes.",
+    "application_incomplete": "Your application is not complete yet. Fill in the missing items.",
+    "application_locked": "This part of your application cannot be changed now.",
+    "application_claimed": "Another reviewer is already handling this application.",
+    "upload_invalid": "That file cannot be used. Upload a clear JPG, PNG or PDF under 5 MB."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -161,6 +165,57 @@
       "title": "Job cancelled",
       "body": "Request {ref} was cancelled. You do not need to go.",
       "sms": "VetLink: request {ref} was cancelled. You do not need to go."
+    },
+    "application_submitted": {
+      "title": "Application received",
+      "body": "We got your application {ref}. We usually reply within {hours} hours.",
+      "sms": "VetLink: we received your application {ref}. We usually reply within {hours} hours."
+    },
+    "application_changes": {
+      "title": "Changes needed",
+      "body": "Please fix a few items in application {ref} and resubmit.",
+      "sms": "VetLink: please fix a few items in your application {ref} in the app and resubmit."
+    },
+    "application_approved": {
+      "title": "You are approved!",
+      "body": "Welcome to VetLink. Go online to start getting jobs.",
+      "sms": "VetLink: you are approved! Reply ON or go online in the app to start getting jobs."
+    },
+    "application_rejected": {
+      "title": "Application not approved",
+      "body": "Application {ref} was not approved. See the app for the reason.",
+      "sms": "VetLink: your application {ref} was not approved. Open the app or call support for details."
+    },
+    "vet_suspended": {
+      "title": "Account suspended",
+      "body": "You will not get jobs while suspended. Contact support.",
+      "sms": "VetLink: your account is suspended and you will not get jobs. Please contact support."
+    },
+    "vet_reinstated": {
+      "title": "Account active again",
+      "body": "Your suspension has been lifted. Go online to get jobs.",
+      "sms": "VetLink: your account is active again. Reply ON to start getting jobs."
+    },
+    "licence_expiring": {
+      "title": "Licence expiring",
+      "body": "Your practising licence expires in {days} days. Upload the renewal in the app.",
+      "sms": "VetLink: your practising licence expires in {days} days. Upload the renewal in the app to keep getting jobs."
+    }
+  },
+  "application": {
+    "reasons": {
+      "id_unclear": "The ID photo is not clear. Retake it flat, well lit, with all corners visible.",
+      "id_mismatch": "The name or number on the ID does not match your application.",
+      "photo_unclear": "Your profile photo must clearly show your face.",
+      "certificate_unclear": "The certificate is not clear. Upload a sharper photo or a PDF.",
+      "licence_unclear": "The practising licence is not clear. Upload a sharper photo or a PDF.",
+      "licence_expired": "Your practising licence has expired. Upload a current licence.",
+      "kvb_unverifiable": "We could not confirm your KVB registration. Check the number.",
+      "fraudulent_documents": "The documents could not be accepted.",
+      "outside_service_area": "VetLink is not yet available in your service area.",
+      "fee_out_of_band": "Your call-out fee is outside the allowed range.",
+      "duplicate_account": "These details are already registered on another account.",
+      "other": "Please see the reviewer's note."
     }
   }
 }

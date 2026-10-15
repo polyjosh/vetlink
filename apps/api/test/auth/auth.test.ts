@@ -16,6 +16,7 @@ import {
 import { memoryCounters } from '../../src/lib/counters.js';
 import { FakeGateway } from '../helpers/fake-gateway.js';
 import { FakePush } from '../helpers/fake-push.js';
+import { FakeStorage } from '../helpers/fake-storage.js';
 import { fieldContext } from '../../src/lib/crypto.js';
 import type { SmsSender } from '../../src/lib/sms.js';
 import { access } from '../../src/modules/auth/access.js';
@@ -67,6 +68,7 @@ describe.skipIf(!testServerUrl)('auth and authorization (database)', { timeout: 
       sms: sender,
       payments: new FakeGateway(),
       push: new FakePush(),
+      storage: new FakeStorage(),
       jobs: { add: async () => {} },
       dataEncryptionKey: KEY,
       jwtSecret: JWT_SECRET,

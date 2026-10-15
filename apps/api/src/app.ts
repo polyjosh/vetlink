@@ -13,6 +13,7 @@ import type { DependencyCheck } from './lib/deps.js';
 import { registerErrorHandling } from './lib/errors.js';
 import { loggerOptions } from './lib/logger.js';
 import { adminRoutes } from './modules/admin/routes.js';
+import { applicationRoutes } from './modules/applications/routes.js';
 import { registerAccessControl } from './modules/auth/access.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { bookingRoutes } from './modules/bookings/routes.js';
@@ -114,6 +115,7 @@ export function buildApp({
       profileRoutes(api, ctx);
       bookingRoutes(api, ctx);
       vetRoutes(api, ctx);
+      applicationRoutes(api, ctx);
       notificationRoutes(api, ctx);
       adminRoutes(api, ctx);
       ussdRoutes(api, ctx, { webhookSecret });

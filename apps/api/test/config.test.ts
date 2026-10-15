@@ -9,6 +9,10 @@ const base = {
   PAYMENTS_MODE: 'mock',
   DATA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
   JWT_SECRET: 'x'.repeat(32),
+  S3_ENDPOINT: 'http://localhost:8333',
+  S3_BUCKET: 'vetlink-test',
+  S3_ACCESS_KEY: 'access',
+  S3_SECRET_KEY: 'secret',
 };
 
 // What PAYMENTS_MODE=sandbox|live needs.
