@@ -13,6 +13,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import {
+  BOOKING_ACTOR_KINDS,
+  BOOKING_EVENTS,
   BOOKING_STATUSES,
   CHANNELS,
   MEDIA_KINDS,
@@ -20,7 +22,9 @@ import {
   OFFER_RESPONSES,
   PAYMENT_STATUSES,
   PAYMENT_TYPES,
+  PROBLEM_TYPES,
   REMINDER_TYPES,
+  SPECIES,
 } from '@vetlink/shared';
 import { createdAt, oneOf, timestamptz } from './helpers.js';
 import { users } from './identity.js';
@@ -52,8 +56,8 @@ export const bookings = pgTable(
       .references(() => farmers.userId),
     vetId: uuid('vet_id').references(() => vets.userId),
     animalId: uuid('animal_id').references(() => animals.id),
-    species: text('species').notNull(),
-    problemType: text('problem_type').notNull(),
+    species: text('species', { enum: SPECIES }).notNull(),
+    problemType: text('problem_type', { enum: PROBLEM_TYPES }).notNull(),
     note: text('note'),
     isEmergency: boolean('is_emergency').notNull().default(false),
     sourceChannel: text('source_channel', { enum: CHANNELS }).notNull(),
@@ -73,10 +77,42 @@ export const bookings = pgTable(
   (t) => [
     check('bookings_source_channel_check', oneOf(t.sourceChannel, CHANNELS)),
     check('bookings_status_check', oneOf(t.status, BOOKING_STATUSES)),
+    check('bookings_species_check', oneOf(t.species, SPECIES)),
+    check('bookings_problem_type_check', oneOf(t.problemType, PROBLEM_TYPES)),
     check('bookings_fee_quoted_check', sql`${t.feeQuoted} >= 0`),
     index('bookings_status_created_at_idx').on(t.status, t.createdAt),
     index('bookings_farmer_id_idx').on(t.farmerId),
     index('bookings_vet_id_idx').on(t.vetId),
+  ],
+);
+
+/**
+ * Every booking status change, written by `bookings/transitions.ts` in the same transaction as
+ * the change. Drives the tracking timeline and the audit trail; append-only.
+ */
+export const bookingEvents = pgTable(
+  'booking_events',
+  {
+    id: serial('id').primaryKey(),
+    bookingId: integer('booking_id')
+      .notNull()
+      .references(() => bookings.id),
+    event: text('event', { enum: BOOKING_EVENTS }).notNull(),
+    fromStatus: text('from_status', { enum: BOOKING_STATUSES }).notNull(),
+    toStatus: text('to_status', { enum: BOOKING_STATUSES }).notNull(),
+    actorKind: text('actor_kind', { enum: BOOKING_ACTOR_KINDS }).notNull(),
+    actorUserId: uuid('actor_user_id').references(() => users.id),
+    channel: text('channel', { enum: CHANNELS }),
+    reason: text('reason'), // e.g. cancellation reason; never PII
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check('booking_events_event_check', oneOf(t.event, BOOKING_EVENTS)),
+    check('booking_events_from_status_check', oneOf(t.fromStatus, BOOKING_STATUSES)),
+    check('booking_events_to_status_check', oneOf(t.toStatus, BOOKING_STATUSES)),
+    check('booking_events_actor_kind_check', oneOf(t.actorKind, BOOKING_ACTOR_KINDS)),
+    check('booking_events_channel_check', oneOf(t.channel, CHANNELS)),
+    index('booking_events_booking_id_idx').on(t.bookingId),
   ],
 );
 
