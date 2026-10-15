@@ -9,9 +9,15 @@ import {
   text,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { DEFAULT_LOCALE, LOCALES } from '@vetlink/i18n';
-import { ADMIN_ROLES, DEVICE_PLATFORMS, USER_ROLES } from '@vetlink/shared';
+import {
+  ADMIN_ROLES,
+  DEVICE_PLATFORMS,
+  SESSION_REVOKED_REASONS,
+  USER_ROLES,
+} from '@vetlink/shared';
 import { createdAt, emptyTextArray, oneOf, subsetOf, timestamptz } from './helpers.js';
 
 /** The phone number is the account (invariant 1). Farmer and vet are profiles on top. */
@@ -54,6 +60,7 @@ export const otpCodes = pgTable(
     expiresAt: timestamptz('expires_at').notNull(),
     attempts: integer('attempts').notNull().default(0),
     consumedAt: timestamptz('consumed_at'),
+    createdAt: createdAt(),
   },
   (t) => [index('otp_codes_phone_expires_at_idx').on(t.phone, t.expiresAt)],
 );
@@ -77,6 +84,30 @@ export const devices = pgTable(
   ],
 );
 
+/**
+ * One login on one device. Refresh tokens rotate within a session; logout or refresh-token reuse
+ * revokes the whole session. Admin 2FA and step-up state live here, never in the client.
+ */
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    deviceId: uuid('device_id').references(() => devices.id),
+    createdAt: createdAt(),
+    revokedAt: timestamptz('revoked_at'),
+    revokedReason: text('revoked_reason', { enum: SESSION_REVOKED_REASONS }),
+    mfaVerifiedAt: timestamptz('mfa_verified_at'), // admin TOTP satisfied on this session
+    stepUpAt: timestamptz('step_up_at'), // fresh TOTP for sensitive admin actions
+  },
+  (t) => [
+    check('auth_sessions_revoked_reason_check', oneOf(t.revokedReason, SESSION_REVOKED_REASONS)),
+    index('auth_sessions_user_id_idx').on(t.userId),
+  ],
+);
+
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
@@ -84,14 +115,20 @@ export const refreshTokens = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id),
-    tokenHash: text('token_hash').notNull(),
-    deviceId: uuid('device_id').references(() => devices.id),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => authSessions.id),
+    tokenHash: text('token_hash').notNull(), // SHA-256 of a random 256-bit token
     expiresAt: timestamptz('expires_at').notNull(),
     revokedAt: timestamptz('revoked_at'),
+    // Set when rotated; presenting a rotated token outside the grace window revokes the session.
+    replacedById: uuid('replaced_by_id').references((): AnyPgColumn => refreshTokens.id),
+    createdAt: createdAt(),
   },
   (t) => [
     uniqueIndex('refresh_tokens_token_hash_key').on(t.tokenHash),
     index('refresh_tokens_user_id_idx').on(t.userId),
+    index('refresh_tokens_session_id_idx').on(t.sessionId),
   ],
 );
 
@@ -106,6 +143,10 @@ export const adminProfiles = pgTable(
     totpSecretEnc: text('totp_secret_enc'), // AES-256-GCM, see lib/crypto.ts
     totpEnabled: boolean('totp_enabled').notNull().default(false),
     recoveryCodesHash: text('recovery_codes_hash').array(),
+    // TOTP can be enrolled only before this time. Set when admin is granted (M10) or when a
+    // super admin resets 2FA; NULL means no enrolment is open. Limits the window in which
+    // control of the phone (OTP) alone is enough to enrol an authenticator.
+    totpEnrolExpiresAt: timestamptz('totp_enrol_expires_at'),
     grantedBy: uuid('granted_by').references(() => users.id),
     grantedAt: timestamptz('granted_at').notNull().defaultNow(),
     revokedAt: timestamptz('revoked_at'),

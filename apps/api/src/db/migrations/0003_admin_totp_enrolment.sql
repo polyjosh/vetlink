@@ -1,0 +1,1 @@
+ALTER TABLE "admin_profiles" ADD COLUMN "totp_enrol_expires_at" timestamp with time zone;

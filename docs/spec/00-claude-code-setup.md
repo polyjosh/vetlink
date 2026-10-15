@@ -28,7 +28,10 @@ Create these files in **Milestone 0**, commit the shared ones, and verify syntax
       "Bash(docker compose down -v:*)",
       "Bash(docker volume rm:*)",
       "Bash(rm -rf:*)",
-      "Bash(git push:*)",
+      "Bash(git push*--force*)",
+      "Bash(git push* -f*)",
+      "Bash(git push* +*)",
+      "Bash(git push*--mirror*)",
       "Bash(git reset --hard:*)",
       "Read(./.env)",
       "Read(./.env.*)"

@@ -15,6 +15,10 @@ export type SessionRole = (typeof SESSION_ROLES)[number];
 export const ADMIN_ROLES = ['super_admin', 'verifier', 'support', 'finance', 'analyst'] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
 
+/** Why an auth session (one login on one device) was ended. */
+export const SESSION_REVOKED_REASONS = ['logout', 'refresh_token_reuse'] as const;
+export type SessionRevokedReason = (typeof SESSION_REVOKED_REASONS)[number];
+
 export const DEVICE_PLATFORMS = ['android', 'ios', 'web'] as const;
 export type DevicePlatform = (typeof DEVICE_PLATFORMS)[number];
 

@@ -17,6 +17,7 @@ Connects Kenyan smallholder farmers with nearby verified veterinarians and parav
 pnpm install
 cp .env.example .env          # dev placeholders; never commit .env
 echo "DATA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env   # field-encryption key
+echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env            # access-token signing key
 docker compose up -d          # api, worker, db, redis, s3 (SeaweedFS)
 docker compose run --rm migrate
 pnpm --filter api db:seed     # demo users + Kiambu wards; safe to re-run
@@ -64,9 +65,10 @@ Inside the Docker network the database host is `db`, Redis is `redis`, and stora
 ## Database
 
 - Schema: `apps/api/src/db/schema/`. Migrations (committed SQL): `apps/api/src/db/migrations/`. Change the schema, run `db:generate`, review the SQL, commit it, then run `migrate`. Migrations are forward-only: never edit one that has been applied.
-- `pnpm test` runs DB integration tests against `TEST_DATABASE_URL` (in `.env`). Each run creates and drops its own throwaway database, so your dev data is untouched. Without `TEST_DATABASE_URL` those tests are skipped.
+- `pnpm test` runs DB integration tests against `TEST_DATABASE_URL` (in `.env`). Each run creates and drops its own throwaway database, so your dev data is untouched. Without `TEST_DATABASE_URL` those tests are skipped. Redis-backed rate-limit tests use `TEST_REDIS_URL` (logical DB 15) the same way.
+- **Logging in locally:** `POST /v1/auth/otp/request` with `{"phone":"07…"}`, read the code from the API logs, then `POST /v1/auth/otp/verify` with `{"phone","code","device":{"platform":"web"}}`. The seeded super admin then completes 2FA with `POST /v1/auth/2fa/verify` and a code from an authenticator app set up with the printed TOTP secret.
 - The seed loads Kiambu's 60 wards (approximate sub-county coordinates, dev only), a demo farmer with a cow, an approved vet, a paravet with a submitted application, and a super admin. It prints the admin's TOTP secret for an authenticator app. Demo phone numbers are in `apps/api/src/db/seed/fixtures.ts`. The seed only runs against a local database (`localhost`, `127.0.0.1`, `[::1]` or the compose `db` host) and is not included in the production image.
 
 ## Dev-only shortcuts
 
-`SMS_MODE=log` prints SMS and OTPs to the API logs, and `PAYMENTS_MODE=mock` simulates M-Pesa. The API **refuses to start** if either is on with `APP_ENV=production`. In production the API and worker also refuse to start, or exit if one appears later, when any dev seed account (including the seeded admin) exists in the database. The seed itself refuses to run unless `APP_ENV` is `development` or `test`.
+`SMS_MODE=log` prints SMS and OTPs to the API logs (`docker compose logs api`, look for `SMS (SMS_MODE=log`), `OTP_FIXED_CODE` makes every login code the same, and `PAYMENTS_MODE=mock` simulates M-Pesa. The API **refuses to start** if any of them is on with `APP_ENV=production`. In production the API and worker also refuse to start, or exit if one appears later, when any dev seed account (including the seeded admin) exists in the database. The seed itself refuses to run unless `APP_ENV` is `development` or `test`.

@@ -6,11 +6,46 @@ const envSchema = z.object({
   APP_ENV: z.enum(APP_ENVS),
   HOST: z.string().default('0.0.0.0'),
   PORT: z.coerce.number().int().positive().default(4000),
+  // Reverse proxies whose X-Forwarded-For is trusted, so per-IP OTP limits see the real client
+  // address instead of the proxy's: comma-separated proxy IPs/CIDRs or the presets `loopback`,
+  // `linklocal`, `uniquelocal`. Hop counts are not accepted: they cannot check who the immediate
+  // peer is, so a direct client could forge X-Forwarded-For and dodge per-IP limits.
+  // Empty (default) trusts nobody: right when the API is reached directly, as in local dev.
+  TRUST_PROXY: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z
+      .string()
+      .regex(
+        /^(loopback|linklocal|uniquelocal|[0-9a-fA-F.:/]+)(\s*,\s*(loopback|linklocal|uniquelocal|[0-9a-fA-F.:/]+))*$/,
+        {
+          message: 'must be comma-separated proxy IPs/CIDRs or loopback/linklocal/uniquelocal',
+        },
+      )
+      .transform((v) => v.split(',').map((x) => x.trim()))
+      .refine(
+        (entries) =>
+          entries.every(
+            (e) => ['loopback', 'linklocal', 'uniquelocal'].includes(e) || /[.:]/.test(e),
+          ),
+        { message: 'hop counts are not allowed; list the proxy IPs/CIDRs' },
+      )
+      .optional(),
+  ),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DATABASE_URL: z.url(),
   REDIS_URL: z.url(),
   SMS_MODE: z.enum(SMS_MODES),
   PAYMENTS_MODE: z.enum(PAYMENTS_MODES),
+  // HS256 key for access tokens: `openssl rand -base64 32`.
+  JWT_SECRET: z.string().min(32, { message: 'must be at least 32 characters' }),
+  // Dev shortcut: every OTP is this code. Empty means off.
+  OTP_FIXED_CODE: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z
+      .string()
+      .regex(/^\d{6}$/, { message: 'must be 6 digits' })
+      .optional(),
+  ),
   // Master key for field encryption (national IDs, TOTP secrets): `openssl rand -base64 32`.
   DATA_ENCRYPTION_KEY: z.string().refine(
     (v) => {
@@ -34,12 +69,12 @@ export class ConfigError extends Error {
 /**
  * Dev-only shortcuts that must never be on in production (CLAUDE.md invariant 9).
  * The seeded dev admin is checked against the database at startup (db/dev-seed-guard.ts).
- * M3 adds the fixed OTP here.
  */
 function devShortcutsEnabled(config: Config): string[] {
   const enabled: string[] = [];
   if (config.SMS_MODE === 'log') enabled.push('SMS_MODE=log');
   if (config.PAYMENTS_MODE === 'mock') enabled.push('PAYMENTS_MODE=mock');
+  if (config.OTP_FIXED_CODE !== undefined) enabled.push('OTP_FIXED_CODE');
   return enabled;
 }
 

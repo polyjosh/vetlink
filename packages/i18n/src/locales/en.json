@@ -1,5 +1,29 @@
 {
   "common": {
     "appName": "VetLink"
+  },
+  "sms": {
+    "otp": "Your VetLink code is {code}. It expires in {minutes} minutes. Never share this code."
+  },
+  "errors": {
+    "invalid_request": "Something in the request was not right. Please check and try again.",
+    "not_found": "We could not find that.",
+    "internal_error": "Something went wrong. Please try again.",
+    "unauthenticated": "Please log in again.",
+    "forbidden": "You are not allowed to do that.",
+    "invalid_phone": "Enter a valid Safaricom, Airtel or Telkom number, e.g. 0712 345 678.",
+    "otp_invalid": "That code is not correct. Check the SMS and try again.",
+    "otp_expired": "That code has expired. Request a new one.",
+    "rate_limited": "Too many attempts. Please wait a few minutes and try again.",
+    "account_locked": "Too many wrong codes. Try again in an hour.",
+    "refresh_invalid": "Your session has ended. Please log in again.",
+    "two_factor_required": "Enter the code from your authenticator app to continue.",
+    "two_factor_setup_required": "Set up your authenticator app to continue.",
+    "two_factor_invalid": "That authenticator code is not correct.",
+    "two_factor_locked": "Too many wrong authenticator codes. Try again in 15 minutes.",
+    "two_factor_already_enabled": "Your authenticator app is already set up.",
+    "two_factor_enrolment_closed": "Authenticator setup is closed for your account. Ask a super admin to reopen it.",
+    "step_up_required": "Confirm with a fresh authenticator code to do this.",
+    "sms_unavailable": "We could not send the SMS. Please try again shortly."
   }
 }
