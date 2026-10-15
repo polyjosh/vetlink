@@ -18,6 +18,7 @@ import { authRoutes } from './modules/auth/routes.js';
 import { bookingRoutes } from './modules/bookings/routes.js';
 import { profileRoutes } from './modules/users/profile-routes.js';
 import { userRoutes } from './modules/users/routes.js';
+import { ussdRoutes } from './modules/ussd/routes.js';
 import { healthRoutes } from './routes/health.js';
 import { metaRoutes } from './routes/meta.js';
 
@@ -38,6 +39,8 @@ export interface AppOptions {
   docs?: boolean;
   /** Oldest app version still supported (`GET /v1/meta/min-app-version`). */
   minAppVersion?: string;
+  /** Africa's Talking callbacks must carry this as `?token=` (required in production). */
+  webhookSecret?: string | undefined;
 }
 
 export const OPENAPI_INFO = {
@@ -59,6 +62,7 @@ export function buildApp({
   trustProxy,
   docs = false,
   minAppVersion = '1.0.0',
+  webhookSecret,
 }: AppOptions): FastifyInstance {
   const logger = loggerOptions(logLevel);
   const options: FastifyServerOptions = {
@@ -71,6 +75,12 @@ export function buildApp({
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
   registerErrorHandling(app);
+  // Africa's Talking posts form-encoded webhooks. Parsed here without a dependency.
+  app.addContentTypeParser(
+    'application/x-www-form-urlencoded',
+    { parseAs: 'string', bodyLimit: 16 * 1024 },
+    (_req, body, done) => done(null, Object.fromEntries(new URLSearchParams(body as string))),
+  );
   // Must run before any route is added: it rejects routes without an access declaration.
   registerAccessControl(app, ctx ?? null, { publicPrefixes: docs ? ['/docs'] : [] });
 
@@ -97,6 +107,7 @@ export function buildApp({
       profileRoutes(api, ctx);
       bookingRoutes(api, ctx);
       adminRoutes(api, ctx);
+      ussdRoutes(api, ctx, { webhookSecret });
     }
   });
   extraRoutes?.(app);

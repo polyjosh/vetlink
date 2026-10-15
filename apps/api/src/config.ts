@@ -41,6 +41,11 @@ const envSchema = z.object({
     .string()
     .regex(/^\d+\.\d+\.\d+$/, { message: 'must be MAJOR.MINOR.PATCH' })
     .default('1.0.0'),
+  // Shared secret Africa's Talking sends as `?token=` on webhook URLs. Required in production.
+  WEBHOOK_SECRET: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(24, { message: 'must be at least 24 characters' }).optional(),
+  ),
   // HS256 key for access tokens: `openssl rand -base64 32`.
   JWT_SECRET: z.string().min(32, { message: 'must be at least 32 characters' }),
   // Dev shortcut: every OTP is this code. Empty means off.
@@ -91,6 +96,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new ConfigError(`Invalid environment:\n  ${fields.join('\n  ')}`);
   }
   const config = parsed.data;
+  if (config.APP_ENV === 'production' && !config.WEBHOOK_SECRET) {
+    throw new ConfigError('WEBHOOK_SECRET is required with APP_ENV=production');
+  }
   if (config.APP_ENV === 'production') {
     const shortcuts = devShortcutsEnabled(config);
     if (shortcuts.length > 0) {

@@ -33,5 +33,65 @@
     "farmer_profile_required": "Tafadhali kamilisha wasifu wako wa mfugaji kwanza.",
     "already_rated": "Tayari umetoa tathmini ya ziara hii.",
     "consent_required": "Tafadhali kubali masharti ya ulinzi wa data kwanza."
+  },
+  "ussd": {
+    "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
+    "consent": "VetLink inahifadhi namba yako ya simu na maelezo ya shamba ili kukuunganisha na madaktari.\n1. Nakubali\n2. Sikubali",
+    "consentDeclined": "Bila idhini yako hatuwezi kukusaidia. Piga tena wakati wowote.",
+    "mainMenu": "VetLink\n1. Omba daktari\n2. Mifugo yangu\n3. Vikumbusho\n4. Historia",
+    "chooseAnimal": "Mnyama gani?\n1. Ng'ombe wa maziwa\n2. Mbuzi/Kondoo\n3. Kuku\n4. Mwingine",
+    "chooseProblem": "Tatizo ni nini?\n1. Mgonjwa/hali\n2. Jeraha\n3. Uzazi/AI\n4. Chanjo\n5. DHARURA SASA",
+    "chooseLocation": "Mnyama yuko wapi?\n1. {ward} (iliyohifadhiwa)\n2. Wadi nyingine",
+    "enterWard": "Andika jina la wadi yako:",
+    "wardNotFound": "Hakuna wadi \"{query}\". Andika jina la wadi tena:",
+    "chooseWard": "Chagua wadi yako:\n{options}",
+    "confirm": "{animal}, {problem}\nWadi: {ward}\nAda ya daktari KES {fee} (mlipe daktari)\nAmana KES {deposit} sasa\n1. Thibitisha na ulipe\n2. Ghairi",
+    "confirmEmergency": "DHARURA: {animal}\nWadi: {ward}\nAda KES {fee} (mlipe daktari)\nAmana KES {deposit} sasa\n1. Thibitisha na ulipe\n2. Ghairi",
+    "requested": "Ombi {ref} limetumwa. Weka PIN ya M-Pesa ukiombwa kulipa amana ya KES {deposit}. Tutakutumia SMS daktari akikubali.",
+    "cancelled": "Ombi limeghairiwa. Piga tena wakati wowote.",
+    "invalid": "Chaguo si sahihi.",
+    "animalsList": "Mifugo yako:\n{list}\n1. Ongeza mnyama",
+    "animalsEmpty": "Hujahifadhi mnyama yeyote.\n1. Ongeza mnyama",
+    "addAnimalSpecies": "Mnyama gani?\n1. Ng'ombe wa maziwa\n2. Mbuzi\n3. Kondoo\n4. Kuku\n5. Nguruwe\n6. Mwingine",
+    "addAnimalName": "Andika jina lake au namba ya hereni:",
+    "animalSaved": "Amehifadhiwa: {name}. Utamwona pia kwenye programu ya VetLink.",
+    "reminders": "Vinavyokuja:\n{list}",
+    "remindersEmpty": "Huna vikumbusho vinavyokuja.",
+    "history": "Maombi yako ya mwisho:\n{list}",
+    "historyEmpty": "Bado huna maombi.",
+    "tooMany": "Maombi mengi mno. Tafadhali jaribu tena baada ya dakika chache.",
+    "error": "Samahani, hitilafu imetokea. Tafadhali piga tena.",
+    "species": {
+      "cattle": "Ng'ombe",
+      "goat": "Mbuzi",
+      "sheep": "Kondoo",
+      "pig": "Nguruwe",
+      "poultry": "Kuku",
+      "dog": "Mbwa",
+      "other": "Mwingine"
+    },
+    "problems": {
+      "sick": "Mgonjwa",
+      "injury": "Jeraha",
+      "breeding": "Uzazi/AI",
+      "vaccination": "Chanjo",
+      "other": "Mengine"
+    },
+    "statuses": {
+      "pending_payment": "Inasubiri malipo",
+      "pending": "Tunatafuta daktari",
+      "matched": "Daktari anakuja",
+      "en_route": "Daktari njiani",
+      "in_service": "Daktari yupo",
+      "done": "Imekamilika",
+      "cancelled": "Imeghairiwa",
+      "expired": "Imeisha muda"
+    },
+    "reminderTypes": {
+      "vaccine": "Chanjo",
+      "deworm": "Dawa ya minyoo",
+      "calving": "Kuzaa",
+      "follow_up": "Ufuatiliaji"
+    }
   }
 }

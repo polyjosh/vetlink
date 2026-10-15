@@ -21,7 +21,7 @@
     "db:seed": "tsx --conditions=@vetlink/source --env-file-if-exists=../../.env src/db/seed/run.ts",
     "db:studio": "node --conditions=@vetlink/source --env-file-if-exists=../../.env node_modules/drizzle-kit/bin.cjs studio",
     "api:generate": "tsx --conditions=@vetlink/source src/openapi/export.ts ../../packages/api-client/openapi.json && pnpm --filter @vetlink/api-client generate",
-    "ussd:sim": "node -e \"console.error('ussd:sim is added in Milestone 6'); process.exit(1)\""
+    "ussd:sim": "tsx --env-file-if-exists=../../.env scripts/ussd-sim.ts"
   },
   "dependencies": {
     "@fastify/swagger": "9.9.1",

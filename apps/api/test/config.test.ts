@@ -42,7 +42,17 @@ describe('loadConfig', () => {
     [{ SMS_MODE: 'log', PAYMENTS_MODE: 'live' }, /SMS_MODE=log/],
     [{ SMS_MODE: 'live', PAYMENTS_MODE: 'mock' }, /PAYMENTS_MODE=mock/],
   ])('fails startup in production when a dev shortcut is on (%o)', (modes, message) => {
-    expect(() => loadConfig({ ...base, APP_ENV: 'production', ...modes })).toThrow(message);
+    expect(() =>
+      loadConfig({ ...base, APP_ENV: 'production', WEBHOOK_SECRET: 'w'.repeat(24), ...modes }),
+    ).toThrow(message);
+  });
+
+  it('requires a WEBHOOK_SECRET of 24+ characters in production only', () => {
+    const prod = { ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'live' };
+    expect(() => loadConfig(prod)).toThrow(/WEBHOOK_SECRET is required/);
+    expect(() => loadConfig({ ...prod, WEBHOOK_SECRET: 'short' })).toThrow(/WEBHOOK_SECRET/);
+    expect(() => loadConfig({ ...prod, WEBHOOK_SECRET: 'w'.repeat(24) })).not.toThrow();
+    expect(loadConfig(base).WEBHOOK_SECRET).toBeUndefined();
   });
 
   it('requires a JWT_SECRET of at least 32 characters', () => {
@@ -59,7 +69,13 @@ describe('loadConfig', () => {
   });
 
   it('fails startup in production when OTP_FIXED_CODE is set', () => {
-    const prod = { ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'live' };
+    const prod = {
+      ...base,
+      APP_ENV: 'production',
+      SMS_MODE: 'live',
+      PAYMENTS_MODE: 'live',
+      WEBHOOK_SECRET: 'w'.repeat(24),
+    };
     expect(() => loadConfig({ ...prod, OTP_FIXED_CODE: '123456' })).toThrow(/OTP_FIXED_CODE/);
     expect(() => loadConfig({ ...prod, OTP_FIXED_CODE: '' })).not.toThrow();
   });
@@ -78,7 +94,13 @@ describe('loadConfig', () => {
   it('allows dev shortcuts in staging and test but not production', () => {
     expect(() => loadConfig({ ...base, APP_ENV: 'staging' })).not.toThrow();
     expect(() =>
-      loadConfig({ ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'live' }),
+      loadConfig({
+        ...base,
+        APP_ENV: 'production',
+        SMS_MODE: 'live',
+        PAYMENTS_MODE: 'live',
+        WEBHOOK_SECRET: 'w'.repeat(24),
+      }),
     ).not.toThrow();
   });
 });

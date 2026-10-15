@@ -43,7 +43,7 @@ export class Harness {
 
   constructor(
     readonly tdb: TestDatabase,
-    options: Pick<AppOptions, 'extraRoutes' | 'trustProxy'> = {},
+    options: Pick<AppOptions, 'extraRoutes' | 'trustProxy' | 'webhookSecret'> = {},
   ) {
     this.ctx = createContext({
       db: tdb.handle.db,

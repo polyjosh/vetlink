@@ -33,5 +33,65 @@
     "farmer_profile_required": "Please finish setting up your farmer profile first.",
     "already_rated": "You have already rated this visit.",
     "consent_required": "Please accept the data protection terms first."
+  },
+  "ussd": {
+    "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
+    "consent": "VetLink keeps your phone number and farm details to connect you with vets.\n1. I agree\n2. I do not agree",
+    "consentDeclined": "Without your consent we cannot help you. Dial again anytime.",
+    "mainMenu": "VetLink\n1. Request vet\n2. My animals\n3. Reminders\n4. History",
+    "chooseAnimal": "Which animal?\n1. Dairy cow\n2. Goat/Sheep\n3. Chicken\n4. Other",
+    "chooseProblem": "What is the problem?\n1. Sick/not eating\n2. Injury\n3. Breeding/AI\n4. Vaccination\n5. EMERGENCY NOW",
+    "chooseLocation": "Where is the animal?\n1. {ward} (saved)\n2. Another ward",
+    "enterWard": "Enter your ward name:",
+    "wardNotFound": "No ward called \"{query}\". Enter the ward name again:",
+    "chooseWard": "Choose your ward:\n{options}",
+    "confirm": "{animal}, {problem}\nWard: {ward}\nVet call-out fee KES {fee} (pay the vet)\nDeposit KES {deposit} now\n1. Confirm and pay\n2. Cancel",
+    "confirmEmergency": "EMERGENCY: {animal}\nWard: {ward}\nCall-out KES {fee} (pay the vet)\nDeposit KES {deposit} now\n1. Confirm and pay\n2. Cancel",
+    "requested": "Request {ref} sent. Enter your M-Pesa PIN when asked to pay the KES {deposit} deposit. We will SMS you when a vet accepts.",
+    "cancelled": "Request cancelled. Dial again anytime.",
+    "invalid": "Invalid choice.",
+    "animalsList": "Your animals:\n{list}\n1. Add animal",
+    "animalsEmpty": "You have no animals saved.\n1. Add animal",
+    "addAnimalSpecies": "Which animal?\n1. Dairy cow\n2. Goat\n3. Sheep\n4. Chicken\n5. Pig\n6. Other",
+    "addAnimalName": "Enter its name or ear tag:",
+    "animalSaved": "Saved: {name}. You can see it in the VetLink app too.",
+    "reminders": "Upcoming:\n{list}",
+    "remindersEmpty": "You have no upcoming reminders.",
+    "history": "Your last requests:\n{list}",
+    "historyEmpty": "You have no requests yet.",
+    "tooMany": "Too many requests. Please try again in a few minutes.",
+    "error": "Sorry, something went wrong. Please dial again.",
+    "species": {
+      "cattle": "Cow",
+      "goat": "Goat",
+      "sheep": "Sheep",
+      "pig": "Pig",
+      "poultry": "Chicken",
+      "dog": "Dog",
+      "other": "Other"
+    },
+    "problems": {
+      "sick": "Sick",
+      "injury": "Injury",
+      "breeding": "Breeding/AI",
+      "vaccination": "Vaccination",
+      "other": "Other"
+    },
+    "statuses": {
+      "pending_payment": "Awaiting payment",
+      "pending": "Finding vet",
+      "matched": "Vet coming",
+      "en_route": "Vet on the way",
+      "in_service": "Vet with you",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "reminderTypes": {
+      "vaccine": "Vaccine",
+      "deworm": "Deworming",
+      "calving": "Calving",
+      "follow_up": "Follow-up"
+    }
   }
 }
