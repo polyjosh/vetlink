@@ -189,7 +189,11 @@ describe.skipIf(!testServerUrl)('payments (database)', { timeout: 60_000 }, () =
         resultCode: 1032,
         resultDesc: 'cancelled',
       });
+      // A repeat of the same callback is deduplicated (as in BullMQ); the first one's retry asks
+      // M-Pesa again and gets the real answer.
       await postCallback(callback(id, 0));
+      h.advance(10_000);
+      await h.jobs.runDue();
       expect((await paymentRows(bookingId))[0]?.status).toBe('cancelled');
       expect((await booking(farmer, bookingId)).status).toBe('pending_payment');
     });

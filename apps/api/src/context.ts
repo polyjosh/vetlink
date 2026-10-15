@@ -3,6 +3,7 @@ import type { Counters } from './lib/counters.js';
 import { fieldCrypto, secretHasher, type FieldCrypto } from './lib/crypto.js';
 import type { Jobs } from './jobs/types.js';
 import type { SmsSender } from './lib/sms.js';
+import type { PushSender } from './modules/notifications/push.js';
 import type { PaymentsGateway } from './modules/payments/gateway.js';
 import { accessTokens, type AccessTokens } from './modules/auth/tokens.js';
 
@@ -11,6 +12,8 @@ export interface AppContext {
   db: Db;
   counters: Counters;
   sms: SmsSender;
+  /** App push (Expo, or log in dev). Only the notification router uses it. */
+  push: PushSender;
   /** M-Pesa STK push (Daraja or mock, by PAYMENTS_MODE). */
   payments: PaymentsGateway;
   /** Background jobs (BullMQ in the app; inline in tests). */
@@ -29,6 +32,7 @@ export interface ContextOptions {
   db: Db;
   counters: Counters;
   sms: SmsSender;
+  push: PushSender;
   payments: PaymentsGateway;
   jobs: Jobs;
   dataEncryptionKey: string;
@@ -42,6 +46,7 @@ export function createContext(o: ContextOptions): AppContext {
     db: o.db,
     counters: o.counters,
     sms: o.sms,
+    push: o.push,
     payments: o.payments,
     jobs: o.jobs,
     crypto: fieldCrypto(o.dataEncryptionKey),

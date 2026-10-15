@@ -6,6 +6,7 @@ import { bookings, payments, users } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { maskPhone } from '../../lib/phone.js';
 import { audit } from '../admin/audit.js';
+import { afterCommit } from '../bookings/effects.js';
 import { transition } from '../bookings/transitions.js';
 import { CANCELLED_RESULT_CODES, type StkResult } from './gateway.js';
 import {
@@ -182,7 +183,7 @@ export async function handleStkResult(
     return;
   }
 
-  await ctx.db.transaction(async (tx) => {
+  const confirmed = await ctx.db.transaction(async (tx) => {
     const [settled] = await tx
       .update(payments)
       .set({
@@ -194,21 +195,24 @@ export async function handleStkResult(
       })
       .where(and(eq(payments.id, payment.id), eq(payments.status, 'pending')))
       .returning();
-    if (!settled) return; // a concurrent result got there first
+    if (!settled) return null; // a concurrent result got there first
     const [booking] = await tx
       .select({ status: bookings.status })
       .from(bookings)
       .where(eq(bookings.id, settled.bookingId));
     if (booking?.status === 'pending_payment') {
-      await transition(tx, settled.bookingId, 'deposit_confirmed', { kind: 'system' }, now, {
+      return transition(tx, settled.bookingId, 'deposit_confirmed', { kind: 'system' }, now, {
         reason: source,
       });
     } else {
       // Paid after the booking was cancelled or expired: give the money back.
       await createRefundIfPaid(tx, settled.bookingId, now, 'paid_after_close');
       log.warn({ paymentId: settled.id, status: booking?.status }, 'late deposit; refund created');
+      return null;
     }
   });
+  // Paid: start looking for a vet (dispatch runs as a job once this has committed).
+  if (confirmed) await afterCommit(ctx, confirmed, 'deposit_confirmed');
 }
 
 export interface ReconcileSummary {

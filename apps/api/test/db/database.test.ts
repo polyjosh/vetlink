@@ -21,6 +21,7 @@ const SETUP_TIMEOUT_MS = 60_000;
 const EXPECTED_TABLES = [
   'admin_profiles',
   'animals',
+  'app_config',
   'audit_log',
   'auth_sessions',
   'booking_events',

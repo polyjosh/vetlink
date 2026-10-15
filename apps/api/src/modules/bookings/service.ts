@@ -1,4 +1,4 @@
-import { and, avg, desc, eq, inArray, lt, type SQL } from 'drizzle-orm';
+import { and, avg, desc, eq, inArray, isNull, lt, type SQL } from 'drizzle-orm';
 import type {
   CancelReason,
   Channel,
@@ -21,6 +21,7 @@ import {
 import { DomainError } from '../../lib/errors.js';
 import { depositOutcomeOnCancel } from '../payments/policy.js';
 import { createRefundIfPaid } from '../payments/refunds.js';
+import { afterCommit } from './effects.js';
 import { quoteCallOutFee } from './pricing.js';
 import { transition, type BookingActor, type BookingRow } from './transitions.js';
 import { farmerViews, vetJobViews } from './views.js';
@@ -122,7 +123,12 @@ export async function createBooking(
       wardId,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
-      feeQuoted: await quoteCallOutFee(),
+      feeQuoted: await quoteCallOutFee(ctx, {
+        wardId,
+        species: input.species,
+        lat: input.lat ?? null,
+        lng: input.lng ?? null,
+      }),
       idempotencyKey: key,
       createdAt: now,
     })
@@ -200,8 +206,8 @@ export async function cancelByFarmer(
   reason: CancelReason,
 ): Promise<BookingRow> {
   const now = ctx.clock();
-  return ctx.db.transaction(async (tx) => {
-    const result = await transition(
+  const result = await ctx.db.transaction(async (tx) => {
+    const r = await transition(
       tx,
       bookingId,
       'farmer_cancelled',
@@ -210,11 +216,13 @@ export async function cancelByFarmer(
       { reason },
     );
     // Refund or forfeit, per payments/policy.ts, in the same transaction as the cancellation.
-    if (result.changed && depositOutcomeOnCancel(result.from, 'farmer_cancelled') === 'refund') {
+    if (r.changed && depositOutcomeOnCancel(r.from, 'farmer_cancelled') === 'refund') {
       await createRefundIfPaid(tx, bookingId, now, 'farmer_cancelled');
     }
-    return result.booking;
+    return r;
   });
+  await afterCommit(ctx, result, 'farmer_cancelled');
+  return result.booking;
 }
 
 /** Vet job steps: on my way, arrived. Idempotent on retry. */
@@ -229,6 +237,7 @@ export async function vetStep(
   const result = await ctx.db.transaction((tx) =>
     transition(tx, bookingId, event, { kind: 'vet', ...vet }, now),
   );
+  await afterCommit(ctx, result, event);
   return result.booking;
 }
 
@@ -242,6 +251,7 @@ export async function releaseByVet(
   const result = await ctx.db.transaction((tx) =>
     transition(tx, bookingId, 'vet_released', { kind: 'vet', ...vet }, now),
   );
+  await afterCommit(ctx, result, 'vet_released');
   return result.booking;
 }
 
@@ -267,7 +277,7 @@ export async function completeByVet(
   input: CompletionInput,
 ): Promise<BookingRow> {
   const now = ctx.clock();
-  return ctx.db.transaction(async (tx) => {
+  const done = await ctx.db.transaction(async (tx) => {
     const result = await transition(tx, bookingId, 'vet_completed', { kind: 'vet', ...vet }, now);
     if (result.changed) {
       await tx.insert(treatments).values({
@@ -282,8 +292,10 @@ export async function completeByVet(
         createdAt: now,
       });
     }
-    return result.booking;
+    return result;
   });
+  await afterCommit(ctx, done, 'vet_completed');
+  return done.booking;
 }
 
 /**
@@ -339,8 +351,8 @@ export async function cancelByAdmin(
   reason: string,
 ): Promise<BookingRow> {
   const now = ctx.clock();
-  return ctx.db.transaction(async (tx) => {
-    const result = await transition(
+  const result = await ctx.db.transaction(async (tx) => {
+    const r = await transition(
       tx,
       bookingId,
       'admin_cancelled',
@@ -348,11 +360,13 @@ export async function cancelByAdmin(
       now,
       { reason },
     );
-    if (result.changed && depositOutcomeOnCancel(result.from, 'admin_cancelled') === 'refund') {
+    if (r.changed && depositOutcomeOnCancel(r.from, 'admin_cancelled') === 'refund') {
       await createRefundIfPaid(tx, bookingId, now, 'admin_cancelled');
     }
-    return result.booking;
+    return r;
   });
+  await afterCommit(ctx, result, 'admin_cancelled');
+  return result.booking;
 }
 
 // ---- Offers -------------------------------------------------------------------------------
@@ -384,7 +398,7 @@ export async function acceptOffer(
   input: { offerId: number; bookingId: number; vetId: string; channel: Channel },
 ): Promise<BookingRow> {
   const now = ctx.clock();
-  return ctx.db.transaction(async (tx) => {
+  const accepted = await ctx.db.transaction(async (tx) => {
     const [offer] = await tx
       .select()
       .from(bookingOffers)
@@ -421,8 +435,10 @@ export async function acceptOffer(
         .set({ response: 'accepted', respondedAt: now })
         .where(eq(bookingOffers.id, offer.id));
     }
-    return result.booking;
+    return result;
   });
+  await afterCommit(ctx, accepted, 'vet_accepted');
+  return accepted.booking;
 }
 
 /** Decline an offer. Idempotent; cannot decline an offer already accepted. */
@@ -450,6 +466,25 @@ export async function declineOffer(
     .update(bookingOffers)
     .set({ response: 'declined', respondedAt: ctx.clock() })
     .where(eq(bookingOffers.id, offer.id));
+  // If every vet in this wave has now answered, the next wave goes out at once (§8.5).
+  const [open] = await ctx.db
+    .select({ id: bookingOffers.id })
+    .from(bookingOffers)
+    .where(
+      and(
+        eq(bookingOffers.bookingId, offer.bookingId),
+        eq(bookingOffers.wave, offer.wave),
+        isNull(bookingOffers.response),
+      ),
+    )
+    .limit(1);
+  if (!open) {
+    await ctx.jobs.add(
+      'matching.wave-timeout',
+      { bookingId: offer.bookingId, wave: offer.wave },
+      { jobId: `wave-done-${offer.bookingId}-${offer.wave}` },
+    );
+  }
 }
 
 /** Mark unanswered offers as timed out (the dispatch job in M8 calls this). */

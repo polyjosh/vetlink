@@ -27,6 +27,8 @@ export interface TransitionResult {
   /** False when the booking was already in the target state from the same event (a retry). */
   changed: boolean;
   from: BookingStatus;
+  /** The booking_events row written (null for a retry). Identifies the change for side effects. */
+  eventId: number | null;
 }
 
 export interface TransitionOptions {
@@ -133,23 +135,26 @@ export async function transition(
         .orderBy(desc(bookingEvents.id))
         .limit(1);
       if (last?.event === event && last.actorUserId === actorUserId(actor)) {
-        return { booking: current, changed: false, from: current.status };
+        return { booking: current, changed: false, from: current.status, eventId: null };
       }
     }
     throw new DomainError('invalid_transition', { event, status: current.status });
   }
 
   const from = current.status;
-  await tx.insert(bookingEvents).values({
-    bookingId,
-    event,
-    fromStatus: from,
-    toStatus: rule.to,
-    actorKind: actor.kind,
-    actorUserId: actorUserId(actor),
-    channel: actorChannel(actor),
-    reason: options.reason ?? null,
-    createdAt: now,
-  });
-  return { booking: updated, changed: true, from };
+  const [logged] = await tx
+    .insert(bookingEvents)
+    .values({
+      bookingId,
+      event,
+      fromStatus: from,
+      toStatus: rule.to,
+      actorKind: actor.kind,
+      actorUserId: actorUserId(actor),
+      channel: actorChannel(actor),
+      reason: options.reason ?? null,
+      createdAt: now,
+    })
+    .returning({ id: bookingEvents.id });
+  return { booking: updated, changed: true, from, eventId: logged?.id ?? null };
 }

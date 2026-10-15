@@ -58,6 +58,9 @@ const envSchema = z.object({
       .optional(),
   ),
   DARAJA_PASSKEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  // App push: `log` prints (dev only; refused in production), `expo` sends via Expo.
+  PUSH_MODE: z.enum(['log', 'expo']).default('log'),
+  EXPO_ACCESS_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   // HS256 key for access tokens: `openssl rand -base64 32`.
   JWT_SECRET: z.string().min(32, { message: 'must be at least 32 characters' }),
   // Dev shortcut: every OTP is this code. Empty means off.
@@ -97,6 +100,7 @@ function devShortcutsEnabled(config: Config): string[] {
   if (config.SMS_MODE === 'log') enabled.push('SMS_MODE=log');
   if (config.PAYMENTS_MODE === 'mock') enabled.push('PAYMENTS_MODE=mock');
   if (config.OTP_FIXED_CODE !== undefined) enabled.push('OTP_FIXED_CODE');
+  if (config.PUSH_MODE === 'log') enabled.push('PUSH_MODE=log');
   return enabled;
 }
 

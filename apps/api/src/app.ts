@@ -16,10 +16,12 @@ import { adminRoutes } from './modules/admin/routes.js';
 import { registerAccessControl } from './modules/auth/access.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { bookingRoutes } from './modules/bookings/routes.js';
+import { notificationRoutes } from './modules/notifications/routes.js';
 import { paymentRoutes } from './modules/payments/routes.js';
 import { profileRoutes } from './modules/users/profile-routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { ussdRoutes } from './modules/ussd/routes.js';
+import { vetRoutes } from './modules/vets/routes.js';
 import { healthRoutes } from './routes/health.js';
 import { metaRoutes } from './routes/meta.js';
 
@@ -107,6 +109,8 @@ export function buildApp({
       userRoutes(api, ctx);
       profileRoutes(api, ctx);
       bookingRoutes(api, ctx);
+      vetRoutes(api, ctx);
+      notificationRoutes(api, ctx);
       adminRoutes(api, ctx);
       ussdRoutes(api, ctx, { webhookSecret });
       paymentRoutes(api, ctx, { webhookSecret });

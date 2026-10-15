@@ -9,6 +9,7 @@ import { createSmsSender } from './lib/sms.js';
 import { darajaGateway } from './modules/payments/daraja.js';
 import type { PaymentsGateway } from './modules/payments/gateway.js';
 import { mockGateway } from './modules/payments/mock.js';
+import { expoPushSender, logPushSender } from './modules/notifications/push.js';
 
 export interface Runtime {
   ctx: AppContext;
@@ -49,6 +50,10 @@ export function buildRuntime(config: Config, log: Logger): Runtime {
     db: db.db,
     counters: redisCounters(redis),
     sms: createSmsSender(config.SMS_MODE, log, config.APP_ENV),
+    push:
+      config.PUSH_MODE === 'expo'
+        ? expoPushSender({ accessToken: config.EXPO_ACCESS_TOKEN })
+        : logPushSender(log),
     payments,
     jobs,
     dataEncryptionKey: config.DATA_ENCRYPTION_KEY,

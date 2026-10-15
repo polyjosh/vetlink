@@ -56,20 +56,75 @@ export function startWorker(
   return worker;
 }
 
+/** A job the inline runner is holding: due now, delayed, or waiting to retry. */
+interface HeldJob {
+  name: JobName;
+  data: unknown;
+  dueAt: number;
+  attempts: number;
+}
+
 /**
- * Tests (and anywhere without Redis): run each job immediately, in-process, and surface errors.
- * `delayMs` is ignored: tests drive time themselves.
+ * Tests (and anywhere without Redis): BullMQ's semantics, in-process. Jobs without a delay run
+ * at once; delayed jobs wait until `runDue()` is called with the clock past their time; a failed
+ * job is retried with backoff (up to the same 6 attempts); a `jobId` already seen is ignored,
+ * like BullMQ ignoring a duplicate id while the job is kept.
  */
 export function inlineJobs(
   getCtx: () => AppContext,
   getLog: () => FastifyBaseLogger,
-): Jobs & { ran: { name: JobName; data: unknown }[] } {
+): Jobs & {
+  ran: { name: JobName; data: unknown }[];
+  failed: { name: JobName; error: unknown }[];
+  pending(): HeldJob[];
+  runDue(): Promise<number>;
+} {
   const ran: { name: JobName; data: unknown }[] = [];
+  const failed: { name: JobName; error: unknown }[] = [];
+  const held: HeldJob[] = [];
+  const seen = new Set<string>();
+  const now = () => getCtx().clock().getTime();
+
+  async function attempt(job: HeldJob): Promise<void> {
+    job.attempts += 1;
+    try {
+      ran.push({ name: job.name, data: job.data });
+      await runJob(getCtx(), job.name, job.data as JobPayloads[JobName], getLog());
+    } catch (error) {
+      if (job.attempts < DEFAULT_JOB_OPTIONS.attempts) {
+        held.push({
+          ...job,
+          dueAt: now() + DEFAULT_JOB_OPTIONS.backoff.delay * 2 ** (job.attempts - 1),
+        });
+      } else {
+        failed.push({ name: job.name, error });
+      }
+    }
+  }
+
   return {
     ran,
-    async add(name, data) {
-      ran.push({ name, data });
-      await runJob(getCtx(), name, data, getLog());
+    failed,
+    pending: () => [...held],
+    async add(name, data, options = {}) {
+      if (options.jobId) {
+        if (seen.has(options.jobId)) return;
+        seen.add(options.jobId);
+      }
+      const job: HeldJob = { name, data, dueAt: now() + (options.delayMs ?? 0), attempts: 0 };
+      if (options.delayMs) held.push(job);
+      else await attempt(job);
+    },
+    async runDue() {
+      let count = 0;
+      for (;;) {
+        held.sort((a, b) => a.dueAt - b.dueAt);
+        const next = held[0];
+        if (!next || next.dueAt > now()) return count;
+        held.shift();
+        count += 1;
+        await attempt(next);
+      }
     },
   };
 }

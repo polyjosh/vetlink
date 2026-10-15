@@ -1,5 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
 import type { AppContext } from '../context.js';
+import { runBookingEffects } from '../modules/bookings/effects.js';
+import { dispatchWave, giveUp, waveTimedOut } from '../modules/matching/dispatch.js';
+import { deliver, notify, smsFallback } from '../modules/notifications/service.js';
 import { handleStkResult, reconcilePayments } from '../modules/payments/service.js';
 import type { JobName, JobPayloads } from './types.js';
 
@@ -13,6 +16,13 @@ type Handler<N extends JobName> = (
 export const jobHandlers: { [N in JobName]: Handler<N> } = {
   'payments.stk-result': (ctx, data, log) => handleStkResult(ctx, data, 'callback', log),
   'payments.reconcile': (ctx, _data, log) => reconcilePayments(ctx, log),
+  'bookings.after-transition': (ctx, data, log) => runBookingEffects(ctx, data, log),
+  'matching.dispatch': (ctx, data, log) => dispatchWave(ctx, data, log),
+  'matching.wave-timeout': (ctx, data, log) => waveTimedOut(ctx, data, log),
+  'matching.give-up': (ctx, data) => giveUp(ctx, data.bookingId),
+  'notifications.send': (ctx, data, log) => notify(ctx, data, log),
+  'notifications.deliver': (ctx, data, log) => deliver(ctx, data.notificationId, log),
+  'notifications.sms-fallback': (ctx, data, log) => smsFallback(ctx, data.notificationId, log),
 };
 
 export async function runJob<N extends JobName>(

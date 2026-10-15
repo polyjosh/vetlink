@@ -12,6 +12,7 @@ import { resetTwoFactor } from '../auth/two-factor.js';
 import { adminBooking, bookingParams, farmerBooking } from '../bookings/schemas.js';
 import { cancelByAdmin } from '../bookings/service.js';
 import { farmerViews } from '../bookings/views.js';
+import { allConfig, setConfig } from '../config/service.js';
 import { audit } from './audit.js';
 
 const tags = ['admin'];
@@ -141,6 +142,58 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
       const [view] = await farmerViews(ctx.db, [booking]);
       if (!view) throw new DomainError('not_found');
       return view;
+    },
+  );
+
+  r.get(
+    '/v1/admin/config',
+    {
+      config: { access: access.admin('super_admin') },
+      schema: {
+        tags,
+        summary: 'Runtime settings (matching weights, radii, waves) and whether each is a default',
+        response: responses({
+          200: z.array(
+            z.object({
+              key: z.string(),
+              value: z.unknown(),
+              isDefault: z.boolean(),
+              updatedAt: z.string().nullable(),
+            }),
+          ),
+        }),
+      },
+    },
+    async () => allConfig(ctx),
+  );
+
+  r.put(
+    '/v1/admin/config/:key',
+    {
+      config: { access: access.admin('super_admin', { stepUp: true }) },
+      schema: {
+        tags,
+        summary: 'Change one runtime setting (validated; step-up; audited)',
+        params: z.object({ key: z.string().max(100) }),
+        body: z.object({ value: z.unknown() }),
+        response: responses({ 204: z.null() }),
+      },
+    },
+    async (req, reply) => {
+      const auth = authOf(req);
+      await setConfig(ctx, req.params.key, req.body.value, auth.userId);
+      await audit(
+        ctx.db,
+        {
+          actorUserId: auth.userId,
+          action: 'config.changed',
+          entity: 'config',
+          entityId: req.params.key,
+          meta: { value: req.body.value },
+        },
+        ctx.clock(),
+      );
+      return reply.code(204).send(null);
     },
   );
 }
