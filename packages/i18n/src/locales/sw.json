@@ -31,6 +31,7 @@
     "idempotency_key_reused": "Ombi hili halilingani na la awali. Tafadhali anza upya.",
     "vet_not_approved": "Akaunti yako ya VetLink bado haijathibitishwa. Tutakujulisha itakapoidhinishwa.",
     "farmer_profile_required": "Tafadhali kamilisha wasifu wako wa mfugaji kwanza.",
-    "already_rated": "Tayari umetoa tathmini ya ziara hii."
+    "already_rated": "Tayari umetoa tathmini ya ziara hii.",
+    "consent_required": "Tafadhali kubali masharti ya ulinzi wa data kwanza."
   }
 }

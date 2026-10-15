@@ -1,4 +1,8 @@
 import type { FastifyInstance } from 'fastify';
+import {
+  hasZodFastifySchemaValidationErrors,
+  isResponseSerializationError,
+} from 'fastify-type-provider-zod';
 import type { z } from 'zod';
 
 /** Every error code the API returns, with its HTTP status. `message_key` is `errors.<code>`. */
@@ -29,6 +33,7 @@ export const ERROR_STATUS = {
   vet_not_approved: 403,
   farmer_profile_required: 409,
   already_rated: 409,
+  consent_required: 409,
 } as const;
 export type ErrorCode = keyof typeof ERROR_STATUS;
 
@@ -66,6 +71,18 @@ export function registerErrorHandling(app: FastifyInstance): void {
   app.setErrorHandler((err, request, reply) => {
     if (err instanceof DomainError) {
       return reply.code(err.status).send(errorBody(err.code, err.details));
+    }
+    if (hasZodFastifySchemaValidationErrors(err)) {
+      // Same shape as parseInput: the failing fields, e.g. `device.platform`.
+      const fields = err.validation.map(
+        (v) => v.instancePath.replace(/^\//, '').replaceAll('/', '.') || '(root)',
+      );
+      return reply.code(400).send(errorBody('invalid_request', { fields: [...new Set(fields)] }));
+    }
+    if (isResponseSerializationError(err)) {
+      // A handler returned something its response schema does not allow: a bug, never sent.
+      request.log.error({ err, url: err.url }, 'response did not match its schema');
+      return reply.code(500).send(errorBody('internal_error'));
     }
     const status = (err as { statusCode?: number }).statusCode;
     if (typeof status === 'number' && status >= 400 && status < 500) {

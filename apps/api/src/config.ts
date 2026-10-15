@@ -36,6 +36,11 @@ const envSchema = z.object({
   REDIS_URL: z.url(),
   SMS_MODE: z.enum(SMS_MODES),
   PAYMENTS_MODE: z.enum(PAYMENTS_MODES),
+  // Oldest app version still supported; older apps are asked to update (§10).
+  MIN_APP_VERSION: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/, { message: 'must be MAJOR.MINOR.PATCH' })
+    .default('1.0.0'),
   // HS256 key for access tokens: `openssl rand -base64 32`.
   JWT_SECRET: z.string().min(32, { message: 'must be at least 32 characters' }),
   // Dev shortcut: every OTP is this code. Empty means off.

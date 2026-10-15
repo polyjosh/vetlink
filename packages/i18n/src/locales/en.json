@@ -31,6 +31,7 @@
     "idempotency_key_reused": "This request does not match the earlier one. Please start again.",
     "vet_not_approved": "Your VetLink account is not yet verified. We will let you know when it is approved.",
     "farmer_profile_required": "Please finish setting up your farmer profile first.",
-    "already_rated": "You have already rated this visit."
+    "already_rated": "You have already rated this visit.",
+    "consent_required": "Please accept the data protection terms first."
   }
 }

@@ -49,6 +49,25 @@ describe('route access declarations', () => {
     ).toThrow(/no context/);
   });
 
+  it('serves /docs only when enabled, and nothing else gets a free pass', async () => {
+    const withDocs = buildApp({ logLevel: 'silent', deps: [], docs: true });
+    await withDocs.ready();
+    expect((await withDocs.inject({ method: 'GET', url: '/docs/json' })).statusCode).toBe(200);
+    await withDocs.close();
+    const without = buildApp({ logLevel: 'silent', deps: [] });
+    await without.ready();
+    expect((await without.inject({ method: 'GET', url: '/docs/json' })).statusCode).toBe(404);
+    await without.close();
+    expect(() =>
+      buildApp({
+        logLevel: 'silent',
+        deps: [],
+        docs: true,
+        extraRoutes: (app) => app.get('/documents', async () => ({})),
+      }),
+    ).toThrow(/does not declare config.access/);
+  });
+
   it('returns the standard error shape for unknown routes', async () => {
     const app = build();
     const res = await app.inject({ method: 'GET', url: '/v1/nope' });

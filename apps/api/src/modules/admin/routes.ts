@@ -1,59 +1,85 @@
 import { and, desc, eq, lt, type SQL } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { BOOKING_STATUSES } from '@vetlink/shared';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { bookingOffers, bookings, users } from '../../db/schema/index.js';
-import { DomainError, parseInput } from '../../lib/errors.js';
+import { DomainError } from '../../lib/errors.js';
+import { intId, named, responses } from '../../schemas/common.js';
 import { access, authOf } from '../auth/access.js';
 import { resetTwoFactor } from '../auth/two-factor.js';
+import { adminBooking, bookingParams, farmerBooking } from '../bookings/schemas.js';
 import { cancelByAdmin } from '../bookings/service.js';
 import { farmerViews } from '../bookings/views.js';
 import { audit } from './audit.js';
 
-const userParams = z.object({ userId: z.uuid() });
-const bookingId = z.coerce.number().int().positive().max(2_147_483_647);
-const bookingParams = z.object({ id: bookingId });
-const listQuery = z.object({
-  status: z.enum(BOOKING_STATUSES).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-  before: bookingId.optional(),
-});
-const cancelBody = z.object({ reason: z.string().trim().min(3).max(200) });
+const tags = ['admin'];
+const enrolmentReopened = named(z.object({ enrolExpiresAt: z.string() }), 'EnrolmentReopened');
 
 export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
-  /** Reset another admin's 2FA. Super admin only, with a fresh step-up; audit-logged. */
-  app.post(
+  const r = app.withTypeProvider<ZodTypeProvider>();
+
+  r.post(
     '/v1/admin/users/:userId/2fa/reset',
-    { config: { access: access.admin('super_admin', { stepUp: true }) } },
+    {
+      config: { access: access.admin('super_admin', { stepUp: true }) },
+      schema: {
+        tags,
+        summary: "Reset another admin's 2FA and reopen enrolment for 72 hours (audited)",
+        params: z.object({ userId: z.uuid() }),
+        response: responses({ 200: enrolmentReopened }),
+      },
+    },
     async (req) => {
-      const { userId } = parseInput(userParams, req.params);
-      const { enrolExpiresAt } = await resetTwoFactor(ctx, authOf(req), userId, req.log);
+      const { enrolExpiresAt } = await resetTwoFactor(ctx, authOf(req), req.params.userId, req.log);
       return { enrolExpiresAt: enrolExpiresAt.toISOString() };
     },
   );
 
-  /** Booking queue for support: newest first, optional status filter. */
-  app.get('/v1/admin/bookings', { config: { access: access.admin('support') } }, async (req) => {
-    const q = parseInput(listQuery, req.query);
-    const conditions: SQL[] = [];
-    if (q.status) conditions.push(eq(bookings.status, q.status));
-    if (q.before) conditions.push(lt(bookings.id, q.before));
-    const rows = await ctx.db
-      .select()
-      .from(bookings)
-      .where(and(...conditions))
-      .orderBy(desc(bookings.id))
-      .limit(q.limit);
-    return farmerViews(ctx.db, rows);
-  });
-
-  /** One booking with the farmer's contact and every offer sent (the supply-gap record). */
-  app.get(
-    '/v1/admin/bookings/:id',
-    { config: { access: access.admin('support') } },
+  r.get(
+    '/v1/admin/bookings',
+    {
+      config: { access: access.admin('support') },
+      schema: {
+        tags,
+        summary: 'Booking queue, newest first',
+        querystring: z.object({
+          status: z.enum(BOOKING_STATUSES).optional(),
+          limit: z.coerce.number().int().min(1).max(100).default(50),
+          before: intId.optional(),
+        }),
+        response: responses({ 200: z.array(farmerBooking) }),
+      },
+    },
     async (req) => {
-      const { id } = parseInput(bookingParams, req.params);
+      const q = req.query;
+      const conditions: SQL[] = [];
+      if (q.status) conditions.push(eq(bookings.status, q.status));
+      if (q.before) conditions.push(lt(bookings.id, q.before));
+      const rows = await ctx.db
+        .select()
+        .from(bookings)
+        .where(and(...conditions))
+        .orderBy(desc(bookings.id))
+        .limit(q.limit);
+      return farmerViews(ctx.db, rows);
+    },
+  );
+
+  r.get(
+    '/v1/admin/bookings/:id',
+    {
+      config: { access: access.admin('support') },
+      schema: {
+        tags,
+        summary: "One booking with the farmer's contact and every offer sent",
+        params: bookingParams,
+        response: responses({ 200: adminBooking }),
+      },
+    },
+    async (req) => {
+      const id = req.params.id;
       const [b] = await ctx.db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
       if (!b) throw new DomainError('not_found');
       const [[view], [farmer], offers] = await Promise.all([
@@ -63,32 +89,44 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
           .from(users)
           .where(eq(users.id, b.farmerId)),
         ctx.db
-          .select({
-            id: bookingOffers.id,
-            vetId: bookingOffers.vetId,
-            wave: bookingOffers.wave,
-            channel: bookingOffers.channel,
-            sentAt: bookingOffers.sentAt,
-            respondedAt: bookingOffers.respondedAt,
-            response: bookingOffers.response,
-          })
+          .select()
           .from(bookingOffers)
           .where(eq(bookingOffers.bookingId, id))
           .orderBy(bookingOffers.id),
       ]);
-      return { ...view, farmer: farmer ?? null, offers };
+      if (!view) throw new DomainError('not_found');
+      return {
+        ...view,
+        farmer: farmer ?? null,
+        offers: offers.map((o) => ({
+          id: o.id,
+          vetId: o.vetId,
+          wave: o.wave,
+          channel: o.channel,
+          sentAt: o.sentAt.toISOString(),
+          respondedAt: o.respondedAt ? o.respondedAt.toISOString() : null,
+          response: o.response,
+        })),
+      };
     },
   );
 
-  /** Cancel a booking. Can lead to a refund, so it needs a fresh step-up; audit-logged. */
-  app.post(
+  r.post(
     '/v1/admin/bookings/:id/cancel',
-    { config: { access: access.admin('support', { stepUp: true }) } },
+    {
+      config: { access: access.admin('support', { stepUp: true }) },
+      schema: {
+        tags,
+        summary: 'Cancel a booking (may lead to a refund; step-up; audited)',
+        params: bookingParams,
+        body: z.object({ reason: z.string().trim().min(3).max(200) }),
+        response: responses({ 200: farmerBooking }),
+      },
+    },
     async (req) => {
       const auth = authOf(req);
-      const { id } = parseInput(bookingParams, req.params);
-      const { reason } = parseInput(cancelBody, req.body);
-      const booking = await cancelByAdmin(ctx, id, auth.userId, reason);
+      const id = req.params.id;
+      const booking = await cancelByAdmin(ctx, id, auth.userId, req.body.reason);
       await audit(
         ctx.db,
         {
@@ -96,11 +134,12 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
           action: 'booking.cancelled',
           entity: 'booking',
           entityId: String(id),
-          meta: { reason },
+          meta: { reason: req.body.reason },
         },
         ctx.clock(),
       );
       const [view] = await farmerViews(ctx.db, [booking]);
+      if (!view) throw new DomainError('not_found');
       return view;
     },
   );
