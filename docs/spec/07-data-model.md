@@ -294,10 +294,22 @@ CREATE TABLE notifications (
   id BIGSERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id),
   kind TEXT NOT NULL,
-  payload JSONB NOT NULL,
+  payload JSONB NOT NULL,                -- params (rendered in the recipient's language), data
+  critical BOOLEAN NOT NULL DEFAULT false, -- push then SMS fallback; ignores quiet hours
   push_sent_at TIMESTAMPTZ,
-  sms_sent_at TIMESTAMPTZ,
-  read_at TIMESTAMPTZ
+  push_ticket_id TEXT,                   -- Expo ticket
+  push_error TEXT,
+  sms_sent_at TIMESTAMPTZ,               -- claimed before sending: never texts twice
+  read_at TIMESTAMPTZ,                   -- app confirmed (stops the SMS fallback)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Runtime settings an admin can change (matching weights, radii, waves); defaults in code.
+CREATE TABLE app_config (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_by UUID REFERENCES users(id),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE ussd_sessions (
