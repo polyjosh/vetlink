@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type DbHandle } from '../../src/db/client.js';
@@ -21,6 +22,7 @@ const EXPECTED_TABLES = [
   'admin_profiles',
   'animals',
   'audit_log',
+  'auth_sessions',
   'booking_offers',
   'bookings',
   'devices',
@@ -101,7 +103,11 @@ describe.skipIf(!serverUrl)('database (migrations, seed, constraints)', () => {
 
   it('applies every committed migration', async () => {
     const [row] = await h.sql`select count(*)::int n from drizzle.__drizzle_migrations`;
-    expect(row?.n).toBe(2);
+    const journal = JSON.parse(
+      readFileSync(new URL('../../src/db/migrations/meta/_journal.json', import.meta.url), 'utf8'),
+    ) as { entries: unknown[] };
+    expect(journal.entries.length).toBeGreaterThanOrEqual(3);
+    expect(row?.n).toBe(journal.entries.length);
   });
 
   it('stores vet national IDs and the admin TOTP secret encrypted and bound to their row', async () => {

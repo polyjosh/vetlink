@@ -38,16 +38,32 @@ CREATE TABLE otp_codes (
   code_hash TEXT NOT NULL,               -- never store plain OTPs
   expires_at TIMESTAMPTZ NOT NULL,
   attempts INT NOT NULL DEFAULT 0,
-  consumed_at TIMESTAMPTZ
+  consumed_at TIMESTAMPTZ,               -- also set when superseded or burned after 5 attempts
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- One login on one device. Logout or refresh-token reuse revokes the whole session.
+-- Admin 2FA and step-up state live here (server-side), never in the client.
+CREATE TABLE auth_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id),
+  device_id UUID REFERENCES devices(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at TIMESTAMPTZ,
+  revoked_reason TEXT CHECK (revoked_reason IN ('logout','refresh_token_reuse')),
+  mfa_verified_at TIMESTAMPTZ,           -- admin TOTP satisfied on this session (valid 8 h)
+  step_up_at TIMESTAMPTZ                 -- fresh TOTP for sensitive admin actions (valid 5 min)
 );
 
 CREATE TABLE refresh_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id),
-  token_hash TEXT NOT NULL,
-  device_id UUID,
+  session_id UUID NOT NULL REFERENCES auth_sessions(id),
+  token_hash TEXT NOT NULL UNIQUE,       -- SHA-256 of a random 256-bit opaque token
   expires_at TIMESTAMPTZ NOT NULL,
-  revoked_at TIMESTAMPTZ
+  revoked_at TIMESTAMPTZ,
+  replaced_by_id UUID REFERENCES refresh_tokens(id),  -- set on rotation
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE devices (
@@ -283,6 +299,8 @@ CREATE INDEX ON booking_offers (booking_id);
 CREATE INDEX ON vets (ward_id) WHERE verification_status = 'approved' AND is_available;
 CREATE INDEX ON treatments (diagnosis_code, created_at);
 CREATE INDEX ON devices (user_id);
+CREATE INDEX ON auth_sessions (user_id);
+CREATE INDEX ON refresh_tokens (session_id);
 ```
 
 **Booking state machine:**
