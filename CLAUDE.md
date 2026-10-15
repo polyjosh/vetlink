@@ -75,7 +75,7 @@ These are the only commands to document and use. **If a script does not exist ye
 | Purpose | Command |
 |---|---|
 | Install deps | `pnpm install` |
-| Start backend (api, worker, db, redis, minio) | `docker compose up -d` |
+| Start backend (api, worker, db, redis, s3) | `docker compose up -d` |
 | Stop backend (keeps data) | `docker compose down` |
 | Backend logs | `docker compose logs -f api` (or `worker`) |
 | Rebuild after dependency changes | `docker compose build api worker` |
@@ -225,7 +225,7 @@ VetLink connects Kenyan smallholder farmers with nearby veterinarians and animal
 | Push | FCM (Android) + APNs (iOS) via Expo Notifications | SMS fallback if push is not delivered |
 | File storage | S3-compatible bucket, presigned uploads | Compress images on device before upload |
 | Testing | Vitest + Supertest (API), Jest + React Native Testing Library (app), Playwright (web), Maestro (app E2E) | |
-| Containers | **Docker + Docker Compose** for the whole backend (API, worker, Postgres, Redis, MinIO) | See section 6.1. Expo and Next.js dev servers run on the host, not in Docker |
+| Containers | **Docker + Docker Compose** for the whole backend (API, worker, Postgres, Redis, SeaweedFS for S3-compatible storage) | See section 6.1. Expo and Next.js dev servers run on the host, not in Docker |
 | CI/CD | GitHub Actions builds and pushes Docker images; EAS for app builds | |
 | Observability | Pino logs + Sentry (API, web, mobile) | Redact phone numbers in logs |
 
