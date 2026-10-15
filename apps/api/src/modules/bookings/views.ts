@@ -22,6 +22,7 @@ import {
   users,
   vets,
 } from '../../db/schema/index.js';
+import { depositStates } from '../payments/service.js';
 import type { BookingRow } from './transitions.js';
 
 const iso = (d: Date | null) => (d ? d.toISOString() : null);
@@ -69,7 +70,7 @@ async function timelines(db: Db, bookingIds: number[]): Promise<Map<number, Time
 export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBookingView[]> {
   const ids = rows.map((b) => b.id);
   const vetIds = [...new Set(rows.map((b) => b.vetId).filter((v): v is string => v !== null))];
-  const [wards, times, vetRows, treatmentRows, ratingRows] = await Promise.all([
+  const [wards, times, vetRows, treatmentRows, ratingRows, deposits] = await Promise.all([
     wardsById(
       db,
       rows.map((b) => b.wardId),
@@ -94,6 +95,7 @@ export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBoo
     ids.length
       ? db.select().from(ratings).where(inArray(ratings.bookingId, ids))
       : Promise.resolve([]),
+    depositStates({ db }, ids),
   ]);
   const vetById = new Map(vetRows.map((v) => [v.userId, v]));
   const treatmentByBooking = new Map(treatmentRows.map((t) => [t.bookingId, t]));
@@ -115,6 +117,7 @@ export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBoo
       ward: wardView(wards.get(b.wardId), b.wardId),
       feeQuoted: b.feeQuoted,
       depositKes: DEPOSIT_KES,
+      deposit: deposits.get(b.id) ?? { status: 'none', receipt: null, paymentId: null },
       createdAt: b.createdAt.toISOString(),
       acceptedAt: iso(b.acceptedAt),
       completedAt: iso(b.completedAt),

@@ -11,6 +11,16 @@ const base = {
   JWT_SECRET: 'x'.repeat(32),
 };
 
+// What PAYMENTS_MODE=sandbox|live needs.
+const daraja = {
+  PUBLIC_BASE_URL: 'https://api.vetlink.example',
+  WEBHOOK_SECRET: 'w'.repeat(24),
+  DARAJA_CONSUMER_KEY: 'consumer-key',
+  DARAJA_CONSUMER_SECRET: 'consumer-secret',
+  DARAJA_SHORTCODE: '174379',
+  DARAJA_PASSKEY: 'passkey',
+};
+
 describe('loadConfig', () => {
   it('accepts a valid development environment and applies defaults', () => {
     const config = loadConfig(base);
@@ -39,7 +49,7 @@ describe('loadConfig', () => {
   });
 
   it.each([
-    [{ SMS_MODE: 'log', PAYMENTS_MODE: 'live' }, /SMS_MODE=log/],
+    [{ SMS_MODE: 'log', PAYMENTS_MODE: 'live', ...daraja }, /SMS_MODE=log/],
     [{ SMS_MODE: 'live', PAYMENTS_MODE: 'mock' }, /PAYMENTS_MODE=mock/],
   ])('fails startup in production when a dev shortcut is on (%o)', (modes, message) => {
     expect(() =>
@@ -48,11 +58,22 @@ describe('loadConfig', () => {
   });
 
   it('requires a WEBHOOK_SECRET of 24+ characters in production only', () => {
-    const prod = { ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'live' };
+    const prod = { ...base, APP_ENV: 'production', SMS_MODE: 'live', PAYMENTS_MODE: 'mock' };
     expect(() => loadConfig(prod)).toThrow(/WEBHOOK_SECRET is required/);
     expect(() => loadConfig({ ...prod, WEBHOOK_SECRET: 'short' })).toThrow(/WEBHOOK_SECRET/);
-    expect(() => loadConfig({ ...prod, WEBHOOK_SECRET: 'w'.repeat(24) })).not.toThrow();
     expect(loadConfig(base).WEBHOOK_SECRET).toBeUndefined();
+  });
+
+  it('PAYMENTS_MODE=sandbox|live needs every Daraja setting', () => {
+    expect(() => loadConfig({ ...base, PAYMENTS_MODE: 'sandbox' })).toThrow(
+      /PAYMENTS_MODE=sandbox needs: PUBLIC_BASE_URL, WEBHOOK_SECRET, DARAJA_CONSUMER_KEY/,
+    );
+    expect(() =>
+      loadConfig({ ...base, PAYMENTS_MODE: 'sandbox', ...daraja, DARAJA_SHORTCODE: '12' }),
+    ).toThrow(/DARAJA_SHORTCODE/);
+    expect(loadConfig({ ...base, PAYMENTS_MODE: 'sandbox', ...daraja }).DARAJA_SHORTCODE).toBe(
+      '174379',
+    );
   });
 
   it('requires a JWT_SECRET of at least 32 characters', () => {
@@ -74,6 +95,7 @@ describe('loadConfig', () => {
       APP_ENV: 'production',
       SMS_MODE: 'live',
       PAYMENTS_MODE: 'live',
+      ...daraja,
       WEBHOOK_SECRET: 'w'.repeat(24),
     };
     expect(() => loadConfig({ ...prod, OTP_FIXED_CODE: '123456' })).toThrow(/OTP_FIXED_CODE/);
@@ -99,6 +121,7 @@ describe('loadConfig', () => {
         APP_ENV: 'production',
         SMS_MODE: 'live',
         PAYMENTS_MODE: 'live',
+        ...daraja,
         WEBHOOK_SECRET: 'w'.repeat(24),
       }),
     ).not.toThrow();

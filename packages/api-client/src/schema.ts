@@ -4895,13 +4895,551 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/payments/stk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pay the booking deposit: sends an M-Pesa prompt to my phone
+         * @description Access: role `farmer`.
+         *
+         *     Returns the in-flight or already-paid deposit instead of sending a second prompt. The amount is set by the server. Poll the payment or the booking for the result; the client never marks a payment successful.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        bookingId: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Payment"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/payments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One of my payments (poll after an STK push)
+         * @description Access: role `farmer`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Payment"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Payments and refunds, newest first (e.g. ?type=refund&status=pending)
+         * @description Access: admin permission `finance` with 2FA.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    type?: "deposit" | "balance" | "refund";
+                    status?: "pending" | "success" | "failed" | "cancelled" | "refunded";
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminPayment"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments/{id}/refund-complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record that a pending refund was sent (M-Pesa reference); audited
+         * @description Access: admin permission `finance` with 2FA and a step-up within 5 minutes.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        mpesaReceipt: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Payment"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ErrorInput: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -4985,6 +5523,12 @@ export interface components {
             /** @description KES, quoted by the server */
             feeQuoted: number;
             depositKes: number;
+            deposit: {
+                /** @enum {string} */
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                receipt: string | null;
+                paymentId: number | null;
+            };
             createdAt: string;
             acceptedAt: string | null;
             completedAt: string | null;
@@ -5080,6 +5624,12 @@ export interface components {
             /** @description KES, quoted by the server */
             feeQuoted: number;
             depositKes: number;
+            deposit: {
+                /** @enum {string} */
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                receipt: string | null;
+                paymentId: number | null;
+            };
             createdAt: string;
             acceptedAt: string | null;
             completedAt: string | null;
@@ -5153,13 +5703,43 @@ export interface components {
             /** @description Shown once; store safely */
             recoveryCodes: string[];
         };
+        PaymentInput: {
+            id: number;
+            bookingId: number;
+            /** @enum {string} */
+            type: "deposit" | "balance" | "refund";
+            /** @description KES */
+            amount: number;
+            /** @enum {string} */
+            status: "pending" | "success" | "failed" | "cancelled" | "refunded";
+            /** @description M-Pesa receipt, once paid */
+            receipt: string | null;
+            createdAt: string;
+            updatedAt: string;
+        };
+        AdminPaymentInput: {
+            id: number;
+            bookingId: number;
+            /** @enum {string} */
+            type: "deposit" | "balance" | "refund";
+            /** @description KES */
+            amount: number;
+            /** @enum {string} */
+            status: "pending" | "success" | "failed" | "cancelled" | "refunded";
+            /** @description M-Pesa receipt, once paid */
+            receipt: string | null;
+            createdAt: string;
+            updatedAt: string;
+            resultCode: number | null;
+            resultDesc: string | null;
+        };
         MinAppVersionInput: {
             /** @description Older apps must update before continuing */
             minVersion: string;
         };
         Error: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -5243,6 +5823,12 @@ export interface components {
             /** @description KES, quoted by the server */
             feeQuoted: number;
             depositKes: number;
+            deposit: {
+                /** @enum {string} */
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                receipt: string | null;
+                paymentId: number | null;
+            };
             createdAt: string;
             acceptedAt: string | null;
             completedAt: string | null;
@@ -5338,6 +5924,12 @@ export interface components {
             /** @description KES, quoted by the server */
             feeQuoted: number;
             depositKes: number;
+            deposit: {
+                /** @enum {string} */
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                receipt: string | null;
+                paymentId: number | null;
+            };
             createdAt: string;
             acceptedAt: string | null;
             completedAt: string | null;
@@ -5410,6 +6002,36 @@ export interface components {
         RecoveryCodes: {
             /** @description Shown once; store safely */
             recoveryCodes: string[];
+        };
+        Payment: {
+            id: number;
+            bookingId: number;
+            /** @enum {string} */
+            type: "deposit" | "balance" | "refund";
+            /** @description KES */
+            amount: number;
+            /** @enum {string} */
+            status: "pending" | "success" | "failed" | "cancelled" | "refunded";
+            /** @description M-Pesa receipt, once paid */
+            receipt: string | null;
+            createdAt: string;
+            updatedAt: string;
+        };
+        AdminPayment: {
+            id: number;
+            bookingId: number;
+            /** @enum {string} */
+            type: "deposit" | "balance" | "refund";
+            /** @description KES */
+            amount: number;
+            /** @enum {string} */
+            status: "pending" | "success" | "failed" | "cancelled" | "refunded";
+            /** @description M-Pesa receipt, once paid */
+            receipt: string | null;
+            createdAt: string;
+            updatedAt: string;
+            resultCode: number | null;
+            resultDesc: string | null;
         };
         MinAppVersion: {
             /** @description Older apps must update before continuing */

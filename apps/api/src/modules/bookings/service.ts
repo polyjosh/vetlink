@@ -19,6 +19,8 @@ import {
   vets,
 } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
+import { depositOutcomeOnCancel } from '../payments/policy.js';
+import { createRefundIfPaid } from '../payments/refunds.js';
 import { quoteCallOutFee } from './pricing.js';
 import { transition, type BookingActor, type BookingRow } from './transitions.js';
 import { farmerViews, vetJobViews } from './views.js';
@@ -198,11 +200,21 @@ export async function cancelByFarmer(
   reason: CancelReason,
 ): Promise<BookingRow> {
   const now = ctx.clock();
-  const result = await ctx.db.transaction((tx) =>
-    transition(tx, bookingId, 'farmer_cancelled', { kind: 'farmer', ...farmer }, now, { reason }),
-  );
-  // Refund or forfeit of the deposit is decided by payments/policy.ts (M7).
-  return result.booking;
+  return ctx.db.transaction(async (tx) => {
+    const result = await transition(
+      tx,
+      bookingId,
+      'farmer_cancelled',
+      { kind: 'farmer', ...farmer },
+      now,
+      { reason },
+    );
+    // Refund or forfeit, per payments/policy.ts, in the same transaction as the cancellation.
+    if (result.changed && depositOutcomeOnCancel(result.from, 'farmer_cancelled') === 'refund') {
+      await createRefundIfPaid(tx, bookingId, now, 'farmer_cancelled');
+    }
+    return result.booking;
+  });
 }
 
 /** Vet job steps: on my way, arrived. Idempotent on retry. */
@@ -327,12 +339,20 @@ export async function cancelByAdmin(
   reason: string,
 ): Promise<BookingRow> {
   const now = ctx.clock();
-  const result = await ctx.db.transaction((tx) =>
-    transition(tx, bookingId, 'admin_cancelled', { kind: 'admin', userId: adminUserId }, now, {
-      reason,
-    }),
-  );
-  return result.booking;
+  return ctx.db.transaction(async (tx) => {
+    const result = await transition(
+      tx,
+      bookingId,
+      'admin_cancelled',
+      { kind: 'admin', userId: adminUserId },
+      now,
+      { reason },
+    );
+    if (result.changed && depositOutcomeOnCancel(result.from, 'admin_cancelled') === 'refund') {
+      await createRefundIfPaid(tx, bookingId, now, 'admin_cancelled');
+    }
+    return result.booking;
+  });
 }
 
 // ---- Offers -------------------------------------------------------------------------------

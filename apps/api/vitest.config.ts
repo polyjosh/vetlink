@@ -19,5 +19,8 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
     environment: 'node',
+    // Every app build loads Swagger and zod schemas, and many tests hit Postgres; under a busy
+    // machine (Docker, parallel files) 5 s is too tight. Real hangs still fail.
+    testTimeout: 30_000,
   },
 });

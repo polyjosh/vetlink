@@ -78,6 +78,10 @@ const { data, error } = await api.POST('/v1/bookings', {
 
 After changing a route or schema, run `pnpm api:generate` and commit `packages/api-client/openapi.json` and `src/schema.ts`. A test and a CI step fail if they are stale.
 
+## Payments (M-Pesa)
+
+`PAYMENTS_MODE=mock` simulates M-Pesa. The payer's last digit picks the outcome: `…9` cancels, `…8` sends no callback (reconciliation settles it by query), `…7` cannot reach M-Pesa, and any other digit pays after about 3 s. Simulated callbacks go through the same worker job as real Daraja callbacks, so keep the `worker` container running. `sandbox`/`live` need `PUBLIC_BASE_URL`, `WEBHOOK_SECRET` and the `DARAJA_*` settings. Daraja calls `${PUBLIC_BASE_URL}/webhooks/mpesa?token=…`, which needs a public tunnel locally. Finance admins record refunds under `/v1/admin/payments`.
+
 ## USSD
 
 `pnpm ussd:sim` walks the farmer USSD menu against the running API, as the seeded demo farmer (`-- --phone 07…` for another number). Menus and rules: `docs/ussd-flows.md`.

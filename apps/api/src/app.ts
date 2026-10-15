@@ -16,6 +16,7 @@ import { adminRoutes } from './modules/admin/routes.js';
 import { registerAccessControl } from './modules/auth/access.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { bookingRoutes } from './modules/bookings/routes.js';
+import { paymentRoutes } from './modules/payments/routes.js';
 import { profileRoutes } from './modules/users/profile-routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { ussdRoutes } from './modules/ussd/routes.js';
@@ -108,6 +109,7 @@ export function buildApp({
       bookingRoutes(api, ctx);
       adminRoutes(api, ctx);
       ussdRoutes(api, ctx, { webhookSecret });
+      paymentRoutes(api, ctx, { webhookSecret });
     }
   });
   extraRoutes?.(app);

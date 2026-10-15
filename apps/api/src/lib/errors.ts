@@ -34,6 +34,7 @@ export const ERROR_STATUS = {
   farmer_profile_required: 409,
   already_rated: 409,
   consent_required: 409,
+  payment_unavailable: 503,
 } as const;
 export type ErrorCode = keyof typeof ERROR_STATUS;
 

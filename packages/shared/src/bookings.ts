@@ -3,6 +3,7 @@ import type {
   BookingEvent,
   BookingStatus,
   Channel,
+  DepositState,
   ProblemType,
   Species,
   VetType,
@@ -101,6 +102,8 @@ export interface FarmerBookingView {
   ward: WardView;
   feeQuoted: number;
   depositKes: number;
+  /** Server-derived; `pending` means an M-Pesa prompt is out ("check your phone"). */
+  deposit: { status: DepositState; receipt: string | null; paymentId: number | null };
   createdAt: string;
   acceptedAt: string | null;
   completedAt: string | null;

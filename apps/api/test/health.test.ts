@@ -48,12 +48,14 @@ describe('health endpoints', () => {
   });
 
   it('GET /ready times out a hanging dependency instead of hanging the probe', async () => {
+    app = buildApp({
+      logLevel: 'silent',
+      deps: [dep('db', () => new Promise<void>(() => {}))],
+    });
+    // Load plugins on real timers; only the probe's own timeout runs on fake time.
+    await app.ready();
     vi.useFakeTimers();
     try {
-      app = buildApp({
-        logLevel: 'silent',
-        deps: [dep('db', () => new Promise<void>(() => {}))],
-      });
       const pending = app.inject({ method: 'GET', url: '/ready' });
       await vi.advanceTimersByTimeAsync(2500);
       const res = await pending;

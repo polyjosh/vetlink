@@ -1,7 +1,9 @@
 import type { Db } from './db/client.js';
 import type { Counters } from './lib/counters.js';
 import { fieldCrypto, secretHasher, type FieldCrypto } from './lib/crypto.js';
+import type { Jobs } from './jobs/types.js';
 import type { SmsSender } from './lib/sms.js';
+import type { PaymentsGateway } from './modules/payments/gateway.js';
 import { accessTokens, type AccessTokens } from './modules/auth/tokens.js';
 
 /** Services shared by route handlers. Built once at startup; tests build their own. */
@@ -9,6 +11,10 @@ export interface AppContext {
   db: Db;
   counters: Counters;
   sms: SmsSender;
+  /** M-Pesa STK push (Daraja or mock, by PAYMENTS_MODE). */
+  payments: PaymentsGateway;
+  /** Background jobs (BullMQ in the app; inline in tests). */
+  jobs: Jobs;
   crypto: FieldCrypto;
   tokens: AccessTokens;
   hashOtp: (code: string) => string;
@@ -23,6 +29,8 @@ export interface ContextOptions {
   db: Db;
   counters: Counters;
   sms: SmsSender;
+  payments: PaymentsGateway;
+  jobs: Jobs;
   dataEncryptionKey: string;
   jwtSecret: string;
   otpFixedCode?: string | undefined;
@@ -34,6 +42,8 @@ export function createContext(o: ContextOptions): AppContext {
     db: o.db,
     counters: o.counters,
     sms: o.sms,
+    payments: o.payments,
+    jobs: o.jobs,
     crypto: fieldCrypto(o.dataEncryptionKey),
     tokens: accessTokens(o.jwtSecret),
     hashOtp: secretHasher(o.dataEncryptionKey, 'otp'),

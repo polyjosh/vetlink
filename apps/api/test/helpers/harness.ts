@@ -10,9 +10,11 @@ import {
 import { buildApp, type AppOptions } from '../../src/app.js';
 import { createContext, type AppContext } from '../../src/context.js';
 import { adminProfiles, farmers, locations, users, vets } from '../../src/db/schema/index.js';
+import { inlineJobs } from '../../src/jobs/queue.js';
 import { memoryCounters } from '../../src/lib/counters.js';
 import { fieldContext } from '../../src/lib/crypto.js';
 import { base32Decode, hotp, totpStep } from '../../src/modules/auth/totp.js';
+import { FakeGateway } from './fake-gateway.js';
 import type { TestDatabase } from './test-db.js';
 
 export const TEST_KEY = Buffer.alloc(32, 5).toString('base64');
@@ -38,6 +40,8 @@ export class Harness {
   logs: string[] = [];
   ctx: AppContext;
   app: FastifyInstance;
+  gateway = new FakeGateway();
+  jobs: ReturnType<typeof inlineJobs>;
   private static phoneSeq = 0;
   private static wardSeq = 0;
 
@@ -45,8 +49,14 @@ export class Harness {
     readonly tdb: TestDatabase,
     options: Pick<AppOptions, 'extraRoutes' | 'trustProxy' | 'webhookSecret'> = {},
   ) {
+    this.jobs = inlineJobs(
+      () => this.ctx,
+      () => this.app.log,
+    );
     this.ctx = createContext({
       db: tdb.handle.db,
+      payments: this.gateway,
+      jobs: this.jobs,
       counters: memoryCounters(() => this.now),
       sms: {
         send: async (phone, text) => {

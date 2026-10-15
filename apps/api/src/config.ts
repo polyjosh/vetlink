@@ -46,6 +46,18 @@ const envSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().min(24, { message: 'must be at least 24 characters' }).optional(),
   ),
+  // Safaricom Daraja (PAYMENTS_MODE=sandbox|live). PUBLIC_BASE_URL is where callbacks arrive.
+  PUBLIC_BASE_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+  DARAJA_CONSUMER_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  DARAJA_CONSUMER_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  DARAJA_SHORTCODE: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z
+      .string()
+      .regex(/^\d{5,7}$/, { message: 'must be 5 to 7 digits' })
+      .optional(),
+  ),
+  DARAJA_PASSKEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   // HS256 key for access tokens: `openssl rand -base64 32`.
   JWT_SECRET: z.string().min(32, { message: 'must be at least 32 characters' }),
   // Dev shortcut: every OTP is this code. Empty means off.
@@ -96,6 +108,21 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new ConfigError(`Invalid environment:\n  ${fields.join('\n  ')}`);
   }
   const config = parsed.data;
+  if (config.PAYMENTS_MODE !== 'mock') {
+    const missing = (
+      [
+        'PUBLIC_BASE_URL',
+        'WEBHOOK_SECRET',
+        'DARAJA_CONSUMER_KEY',
+        'DARAJA_CONSUMER_SECRET',
+        'DARAJA_SHORTCODE',
+        'DARAJA_PASSKEY',
+      ] as const
+    ).filter((k) => !config[k]);
+    if (missing.length > 0) {
+      throw new ConfigError(`PAYMENTS_MODE=${config.PAYMENTS_MODE} needs: ${missing.join(', ')}`);
+    }
+  }
   if (config.APP_ENV === 'production' && !config.WEBHOOK_SECRET) {
     throw new ConfigError('WEBHOOK_SECRET is required with APP_ENV=production');
   }

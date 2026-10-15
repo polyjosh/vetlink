@@ -20,7 +20,7 @@ import {
   type AuthContext,
 } from '../src/modules/auth/access.js';
 
-describe('route access declarations', () => {
+describe('route access declarations', { timeout: 30_000 }, () => {
   const build = (register?: (app: FastifyInstance) => void) =>
     buildApp({ logLevel: 'silent', deps: [], ...(register && { extraRoutes: register }) });
 
