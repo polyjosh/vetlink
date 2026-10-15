@@ -16,7 +16,10 @@ Connects Kenyan smallholder farmers with nearby verified veterinarians and parav
 ```bash
 pnpm install
 cp .env.example .env          # dev placeholders; never commit .env
+echo "DATA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env   # field-encryption key
 docker compose up -d          # api, worker, db, redis, s3 (SeaweedFS)
+docker compose run --rm migrate
+pnpm --filter api db:seed     # demo users + Kiambu wards; safe to re-run
 curl http://localhost:4000/health
 curl http://localhost:4000/ready
 ```
@@ -30,6 +33,9 @@ curl http://localhost:4000/ready
 | Backend logs | `docker compose logs -f api` (or `worker`) |
 | Rebuild after dependency changes | `docker compose build api worker` |
 | Run migrations | `docker compose run --rm migrate` |
+| Generate a migration from schema changes | `pnpm --filter api db:generate` |
+| Seed dev data (idempotent) | `pnpm --filter api db:seed` |
+| Drizzle Studio (host) | `pnpm --filter api db:studio` |
 | DB viewer (Adminer) | `docker compose --profile tools up -d adminer` |
 | psql shell | `docker compose exec db psql -U $DB_USER -d $DB_NAME` |
 | Lint / typecheck / tests | `pnpm lint` / `pnpm typecheck` / `pnpm test` |
@@ -55,6 +61,12 @@ curl http://localhost:4000/ready
 
 Inside the Docker network the database host is `db`, Redis is `redis`, and storage is `s3:8333`.
 
+## Database
+
+- Schema: `apps/api/src/db/schema/`. Migrations (committed SQL): `apps/api/src/db/migrations/`. Change the schema, run `db:generate`, review the SQL, commit it, then run `migrate`. Migrations are forward-only: never edit one that has been applied.
+- `pnpm test` runs DB integration tests against `TEST_DATABASE_URL` (in `.env`). Each run creates and drops its own throwaway database, so your dev data is untouched. Without `TEST_DATABASE_URL` those tests are skipped.
+- The seed loads Kiambu's 60 wards (approximate sub-county coordinates, dev only), a demo farmer with a cow, an approved vet, a paravet with a submitted application, and a super admin. It prints the admin's TOTP secret for an authenticator app. Demo phone numbers are in `apps/api/src/db/seed/fixtures.ts`.
+
 ## Dev-only shortcuts
 
-`SMS_MODE=log` prints SMS and OTPs to the API logs, and `PAYMENTS_MODE=mock` simulates M-Pesa. The API **refuses to start** if either is on with `APP_ENV=production`.
+`SMS_MODE=log` prints SMS and OTPs to the API logs, and `PAYMENTS_MODE=mock` simulates M-Pesa. The API **refuses to start** if either is on with `APP_ENV=production`, or if any dev seed account (including the seeded admin) exists in a production database. The seed itself refuses to run unless `APP_ENV` is `development` or `test`.
