@@ -100,7 +100,9 @@ services:
     environment: *api-env
     depends_on:
       db: { condition: service_healthy }
-    command: ['pnpm', '--filter', 'api', 'db:migrate']
+    volumes: *api-volumes # current schema and migrations without rebuilding the image
+    working_dir: /app/apps/api
+    command: ['./node_modules/.bin/tsx', '--conditions=@vetlink/source', 'src/db/migrate.ts']
 
   adminer: # DB viewer: http://localhost:8080
     profiles: ['tools']
