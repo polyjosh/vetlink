@@ -1,0 +1,68 @@
+# M12 done-when (run on an Android emulator; not runnable in CI here):
+#   maestro test apps/mobile/.maestro/happy-path.yaml -e API_URL=http://localhost:4000 -e OTP=123456
+# Needs: the dev stack with seed data and OTP_FIXED_CODE, and the app built with
+# EXPO_PUBLIC_API_URL=http://10.0.2.2:4000 (preview APK or `expo run:android`).
+# The farmer (seed 0700000001) uses Swahili, the vet (seed 0700000002) English.
+appId: co.ke.vetlink.dev
+---
+- launchApp:
+    clearState: true
+
+# Farmer books and pays (mock M-Pesa succeeds for numbers ending in 1)
+- tapOn: { id: phone }
+- inputText: '0700000001'
+- tapOn: { id: send-code }
+- tapOn: { id: code }
+- inputText: ${OTP}
+- tapOn: { id: verify }
+- tapOn: { id: request-vet }
+- tapOn: 'Ng.ombe'
+- tapOn: 'Mgonjwa'
+- scrollUntilVisible: { element: { id: confirm-pay } }
+- tapOn: { id: confirm-pay }
+- extendedWaitUntil: { visible: 'Amana imelipwa', timeout: 30000 }
+
+# The vet accepts (through the API, one device)
+- runScript: scripts/accept-offer.js
+- extendedWaitUntil: { visible: 'Daktari anakuja', timeout: 30000 }
+
+# Switch to the vet
+- tapOn: 'Mipangilio'
+- tapOn: 'Toka'
+- tapOn: { id: phone }
+- inputText: '0700000002'
+- tapOn: { id: send-code }
+- tapOn: { id: code }
+- inputText: ${OTP}
+- tapOn: { id: verify }
+- tapOn: 'Vet coming'
+
+# Offline: the steps queue on the phone and sync when the connection returns
+- setAirplaneMode: enabled
+- tapOn: { id: on-my-way }
+- tapOn: { id: arrived }
+- tapOn: { id: diagnosis }
+- inputText: 'East Coast Fever'
+- hideKeyboard
+- scrollUntilVisible: { element: { id: complete } }
+- tapOn: { id: complete }
+- assertVisible: { id: pending-sync }
+- setAirplaneMode: disabled
+- extendedWaitUntil: { notVisible: { id: pending-sync }, timeout: 60000 }
+- assertVisible: 'Job completed. Thank you!'
+
+# Back to the farmer, who sees the treatment and rates
+- tapOn: 'Settings'
+- tapOn: 'Log out'
+- tapOn: { id: phone }
+- inputText: '0700000001'
+- tapOn: { id: send-code }
+- tapOn: { id: code }
+- inputText: ${OTP}
+- tapOn: { id: verify }
+- tapOn: 'Historia'
+- tapOn: 'Imekamilika'
+- assertVisible: 'East Coast Fever'
+- tapOn: '5★'
+- tapOn: 'Tuma tathmini'
+- assertVisible: 'Asante kwa tathmini!'
