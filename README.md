@@ -54,7 +54,7 @@ curl http://localhost:4000/ready
 | API | `http://localhost:4000` (health at `/health`, readiness at `/ready`, Swagger UI at `/docs`, OpenAPI JSON at `/docs/json`; not served in production) |
 | Web app (farmer, vet) | `http://localhost:3000` (`pnpm --filter web dev`) |
 | Admin console | `http://localhost:3000/admin` (2FA required; seeded admin `0700000009`, TOTP secret printed by `db:seed`) |
-| Mobile app | Expo dev server: scan the QR code (Expo Go or a dev build) or use an Android emulator (from M12) |
+| Mobile app | `pnpm --filter mobile start` (Expo), then an Android emulator or a dev build on a phone |
 | Database (from host tools) | `localhost:5432` |
 | Redis | `localhost:6379` |
 | S3-compatible storage (SeaweedFS) | S3 API `http://localhost:8333`, file browser `http://localhost:8888` |
@@ -75,6 +75,18 @@ Inside the Docker network the database host is `db`, Redis is `redis`, and stora
 - **Vet documents** are uploaded from the browser straight to storage with a presigned PUT. The production bucket needs a CORS rule allowing `PUT` from the web origin (local SeaweedFS allows it).
 
 `pnpm test:e2e` builds the web app and runs Playwright against a throwaway database (from `TEST_DATABASE_URL`), the API and worker on port 4100 (fixed OTP, mock M-Pesa, logged SMS and push) and Redis index 14 (cleared at the start of each run), then removes the database. It covers the M11 happy path (farmer books and pays, vet accepts, travels, completes, farmer rates) and first-run onboarding. Chromium needs system libraries: `pnpm --filter web exec playwright install --with-deps chromium` (needs sudo), as CI does.
+
+## Mobile app
+
+`apps/mobile` is one Expo app (SDK 58, expo-router, Hermes) for farmers, vets and admins, with the same routes as the web app (`/farmer`, `/vet`, `/admin`). Android package and iOS bundle ID are the placeholder `co.ke.vetlink.dev` until M13.
+
+- **Run it.** `docker compose up -d`, then `EXPO_PUBLIC_API_URL=http://10.0.2.2:4000 pnpm --filter mobile start` and press `a` for an Android emulator (`10.0.2.2` is the host from the emulator; use your machine's LAN IP for a phone). The app uses native modules (SQLite, SecureStore, notifications), so use `npx expo run:android` or an EAS preview build rather than Expo Go.
+- **Offline-first (vets).** "On my way", "Arrived", completion notes and document uploads go to a SQLite outbox and are sent in order when the connection returns (on reconnect, on app foreground, every 30 s). A "waiting to send" badge shows what is queued. The server state machine wins: if the farmer cancelled meanwhile, the step fails and is shown. A step whose response was lost is not sent twice: a 409 makes the app re-read the booking.
+- **Session.** The refresh token is in SecureStore (Keychain/Keystore); the access token is in memory. Refresh is single-flight; the app signs out only on a 401, not when offline.
+- **Push.** Android channels `offers` (loud) and `default` are created at start. The permission is asked in context: when a vet first goes online, or after a farmer's first request. Registering a push token needs an EAS project ID (`extra.eas.projectId`, set up in M13); without it the app runs on SMS fallback.
+- **Deep links.** `vetlink://booking/:id` opens the booking (as farmer or vet); tapped notifications use it too.
+- **Checks here.** `pnpm --filter mobile test` (outbox offline-sync and session tests), `pnpm --filter mobile typecheck`, `pnpm --filter mobile bundle:android` (full Metro + Hermes bundle, also run in CI).
+- **Device E2E (M12 done-when).** `apps/mobile/.maestro/happy-path.yaml` books as the seed farmer, accepts as the seed vet through the API, completes the job in airplane mode (outbox), then rates. Run it on an Android emulator: `maestro test apps/mobile/.maestro/happy-path.yaml -e API_URL=http://localhost:4000 -e OTP=123456` with the dev stack running and `OTP_FIXED_CODE=123456`.
 
 ## API and typed client
 
