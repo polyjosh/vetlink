@@ -604,6 +604,19 @@
         "finance": "Finance",
         "analyst": "Analyst"
       }
+    },
+    "mobile": {
+      "pendingSync": "{n} waiting to send",
+      "syncFailed": "{n} not sent",
+      "syncFailedTitle": "Not sent",
+      "syncFailedHint": "The request changed while you were offline (for example, the farmer cancelled). The server's version is shown.",
+      "dismiss": "OK",
+      "takePhoto": "Take photo",
+      "choosePhoto": "Choose file",
+      "savedOffline": "Saved. It will be sent when you are back online.",
+      "enableAlerts": "Turn on job alerts",
+      "alertsHint": "So you hear new job offers even when the app is closed. If alerts are off, offers still come by SMS.",
+      "alertsOn": "Job alerts are on"
     }
   }
 }

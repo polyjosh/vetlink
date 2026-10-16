@@ -2,16 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  APPLICATION_STEPS,
-  KVB_CATEGORIES,
-  PRACTICE_TYPES,
-  SPECIES,
-  SPOKEN_LANGUAGES,
-  VET_SERVICES,
-  VET_TYPES,
-  type ApplicationStep,
-} from '@vetlink/shared';
+import { APPLICATION_FIELDS, APPLICATION_STEPS, type ApplicationStep } from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { DocUpload } from '@/components/doc-upload';
 import { Shell } from '@/components/shell';
@@ -32,55 +23,6 @@ import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
 
 type App = Schemas['VetApplication'];
-type Kind =
-  'text' | 'textarea' | 'int' | 'date' | 'enum' | 'multi' | 'bool' | 'ward' | 'tel' | 'email';
-interface FieldDef {
-  name: string;
-  kind: Kind;
-  options?: readonly string[];
-  vetOnly?: boolean;
-}
-
-/** The 7 steps (§8.3); names match the API's step schemas. */
-const FIELDS: Record<ApplicationStep, FieldDef[]> = {
-  professional_type: [{ name: 'vetType', kind: 'enum', options: VET_TYPES }],
-  personal: [
-    { name: 'fullName', kind: 'text' },
-    { name: 'nationalId', kind: 'text' },
-    { name: 'email', kind: 'email' },
-  ],
-  credentials: [
-    { name: 'kvbRegNo', kind: 'text' },
-    { name: 'kvbCategory', kind: 'enum', options: KVB_CATEGORIES },
-    { name: 'licenceExpiry', kind: 'date', vetOnly: true },
-    { name: 'qualification', kind: 'text' },
-    { name: 'institution', kind: 'text' },
-    { name: 'yearQualified', kind: 'int' },
-    { name: 'supervisingVet', kind: 'text' },
-  ],
-  practice: [
-    { name: 'practiceType', kind: 'enum', options: PRACTICE_TYPES },
-    { name: 'practiceName', kind: 'text' },
-    { name: 'yearsExperience', kind: 'int' },
-    { name: 'species', kind: 'multi', options: SPECIES },
-    { name: 'services', kind: 'multi', options: VET_SERVICES },
-    { name: 'languages', kind: 'multi', options: SPOKEN_LANGUAGES },
-    { name: 'bio', kind: 'textarea' },
-  ],
-  service_area: [
-    { name: 'wardId', kind: 'ward' },
-    { name: 'serviceRadiusKm', kind: 'int' },
-    { name: 'baseCallOutFee', kind: 'int' },
-    { name: 'emergencyCallouts', kind: 'bool' },
-    { name: 'availabilityHours', kind: 'text' },
-  ],
-  payout: [{ name: 'payoutMpesaPhone', kind: 'tel' }],
-  declaration: [
-    { name: 'acceptTerms', kind: 'bool' },
-    { name: 'consentVerification', kind: 'bool' },
-    { name: 'declaration', kind: 'bool' },
-  ],
-};
 
 type Values = Record<string, unknown>;
 
@@ -118,7 +60,7 @@ export default function ApplicationWizard() {
 
   const vetType = (app?.steps.professional_type?.vetType as string | undefined) ?? 'vet';
   const fields = useMemo(
-    () => FIELDS[step].filter((f) => !f.vetOnly || vetType === 'vet'),
+    () => APPLICATION_FIELDS[step].filter((f) => !f.vetOnly || vetType === 'vet'),
     [step, vetType],
   );
 

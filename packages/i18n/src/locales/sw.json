@@ -604,6 +604,19 @@
         "finance": "Fedha",
         "analyst": "Mchambuzi"
       }
+    },
+    "mobile": {
+      "pendingSync": "{n} vinasubiri kutumwa",
+      "syncFailed": "{n} havikutumwa",
+      "syncFailedTitle": "Havikutumwa",
+      "syncFailedHint": "Ombi lilibadilika ulipokuwa nje ya mtandao (kwa mfano, mfugaji aliahirisha). Toleo la seva linaonyeshwa.",
+      "dismiss": "Sawa",
+      "takePhoto": "Piga picha",
+      "choosePhoto": "Chagua faili",
+      "savedOffline": "Imehifadhiwa. Itatumwa ukirudi mtandaoni.",
+      "enableAlerts": "Washa arifa za kazi",
+      "alertsHint": "Ili usikie kazi mpya hata programu ikiwa imefungwa. Arifa zikizimwa, kazi bado zinakuja kwa SMS.",
+      "alertsOn": "Arifa za kazi zimewashwa"
     }
   }
 }
