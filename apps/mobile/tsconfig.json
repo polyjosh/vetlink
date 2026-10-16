@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "types": ["jest"],
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "allowJs": false,
+    "declaration": false,
+    "sourceMap": false,
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["app", "src", "test", "expo-env.d.ts"]
+}

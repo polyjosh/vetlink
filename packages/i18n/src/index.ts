@@ -15,3 +15,14 @@ export function interpolate(template: string, params: Record<string, string | nu
     name in params ? String(params[name]) : match,
   );
 }
+
+/** An API error (`{ code, message_key }`) as text in the user's language. */
+export function errorMessage(
+  locale: Locale,
+  error: { code?: string; message_key?: string } | null | undefined,
+): string {
+  if (!error) return '';
+  const table = messages[locale].errors as Record<string, string>;
+  const key = (error.message_key ?? '').replace(/^errors\./, '');
+  return table[key] ?? table[error.code ?? ''] ?? messages[locale].web.common.somethingWrong;
+}

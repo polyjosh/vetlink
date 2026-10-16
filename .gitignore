@@ -32,3 +32,6 @@ Thumbs.db
 # Playwright
 test-results
 playwright-report
+
+# Expo
+dist-export

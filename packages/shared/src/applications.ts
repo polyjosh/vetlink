@@ -1,4 +1,11 @@
-import type { VetDocumentKind, VetType } from './domain.js';
+import {
+  PRACTICE_TYPES,
+  SPECIES,
+  VET_SERVICES,
+  VET_TYPES,
+  type VetDocumentKind,
+  type VetType,
+} from './domain.js';
 
 /** The vet application wizard (§8.3): the same 7 steps on mobile and web. */
 export const APPLICATION_STEPS = [
@@ -55,3 +62,56 @@ export const DOCUMENT_MAX_BYTES = 5 * 1024 * 1024;
 
 /** Target review time shown to applicants (placeholder; Open Question 21.16). */
 export const REVIEW_TARGET_HOURS = 48;
+
+/** How a wizard field is entered (the same on web and mobile). */
+export type ApplicationFieldKind =
+  'text' | 'textarea' | 'int' | 'date' | 'enum' | 'multi' | 'bool' | 'ward' | 'tel' | 'email';
+
+export interface ApplicationField {
+  name: string;
+  kind: ApplicationFieldKind;
+  options?: readonly string[];
+  /** Only asked of veterinary surgeons (not paravets). */
+  vetOnly?: boolean;
+}
+
+/** The wizard's fields per step (§8.3). Names match the API step schemas. */
+export const APPLICATION_FIELDS: Record<ApplicationStep, readonly ApplicationField[]> = {
+  professional_type: [{ name: 'vetType', kind: 'enum', options: VET_TYPES }],
+  personal: [
+    { name: 'fullName', kind: 'text' },
+    { name: 'nationalId', kind: 'text' },
+    { name: 'email', kind: 'email' },
+  ],
+  credentials: [
+    { name: 'kvbRegNo', kind: 'text' },
+    { name: 'kvbCategory', kind: 'enum', options: KVB_CATEGORIES },
+    { name: 'licenceExpiry', kind: 'date', vetOnly: true },
+    { name: 'qualification', kind: 'text' },
+    { name: 'institution', kind: 'text' },
+    { name: 'yearQualified', kind: 'int' },
+    { name: 'supervisingVet', kind: 'text' },
+  ],
+  practice: [
+    { name: 'practiceType', kind: 'enum', options: PRACTICE_TYPES },
+    { name: 'practiceName', kind: 'text' },
+    { name: 'yearsExperience', kind: 'int' },
+    { name: 'species', kind: 'multi', options: SPECIES },
+    { name: 'services', kind: 'multi', options: VET_SERVICES },
+    { name: 'languages', kind: 'multi', options: SPOKEN_LANGUAGES },
+    { name: 'bio', kind: 'textarea' },
+  ],
+  service_area: [
+    { name: 'wardId', kind: 'ward' },
+    { name: 'serviceRadiusKm', kind: 'int' },
+    { name: 'baseCallOutFee', kind: 'int' },
+    { name: 'emergencyCallouts', kind: 'bool' },
+    { name: 'availabilityHours', kind: 'text' },
+  ],
+  payout: [{ name: 'payoutMpesaPhone', kind: 'tel' }],
+  declaration: [
+    { name: 'acceptTerms', kind: 'bool' },
+    { name: 'consentVerification', kind: 'bool' },
+    { name: 'declaration', kind: 'bool' },
+  ],
+};
