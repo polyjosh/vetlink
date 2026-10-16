@@ -1,0 +1,5 @@
+{
+  "NSLocationWhenInUseUsageDescription": "VetLink uses your location to send a vet to your animal, or to send you nearby jobs.",
+  "NSCameraUsageDescription": "VetLink uses the camera to photograph your documents for verification.",
+  "NSPhotoLibraryUsageDescription": "VetLink uses your photos to attach documents for verification."
+}

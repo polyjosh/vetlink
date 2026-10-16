@@ -13,6 +13,10 @@ export default tseslint.config(
       '**/next-env.d.ts',
       '**/test-results/**',
       '**/playwright-report/**',
+      '**/.expo/**',
+      '**/dist-export/**',
+      'apps/mobile/.maestro/**', // Maestro's own JS runtime (http, json, output globals)
+      'apps/mobile/expo-env.d.ts',
       'packages/api-client/src/schema.ts', // generated
     ],
   },
@@ -26,7 +30,16 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/web/**/*.{ts,tsx}'],
+    files: ['apps/web/**/*.{ts,tsx}', 'apps/mobile/**/*.{ts,tsx}'],
     ...reactHooks.configs.flat['recommended-latest'],
+  },
+  {
+    // Metro loads its config as CommonJS.
+    files: ['apps/mobile/metro.config.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'writable', __dirname: 'readonly' },
+    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
 );

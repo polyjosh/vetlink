@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "VetLink",
+    "slug": "vetlink",
+    "scheme": "vetlink",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F5F7F6",
+    "primaryColor": "#1F7A4D",
+    "locales": {
+      "sw": "./locales/sw.json",
+      "en": "./locales/en.json"
+    },
+    "ios": {
+      "bundleIdentifier": "co.ke.vetlink.dev",
+      "supportsTablet": false,
+      "config": { "usesNonExemptEncryption": false }
+    },
+    "android": {
+      "package": "co.ke.vetlink.dev",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": ["ACCESS_BACKGROUND_LOCATION", "RECORD_AUDIO"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "vetlink", "host": "booking" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-sqlite",
+      ["expo-notifications", { "color": "#1F7A4D", "defaultChannel": "offers" }],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "VetLink uses your location to send a vet to your animal, or to send you nearby jobs.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "VetLink uses the camera to photograph your documents for verification.",
+          "photosPermission": "VetLink uses your photos to attach documents for verification.",
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "experiments": { "typedRoutes": false }
+  }
+}
