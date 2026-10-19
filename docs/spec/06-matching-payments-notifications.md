@@ -57,7 +57,7 @@ Every offer goes into `booking_offers` (wave, channel, sent, responded, response
   - Booking moves to `pending` (searching) only after a successful deposit record
 - In the app, the client never marks a payment successful. It only displays server state.
 - Normalize phone numbers to `2547XXXXXXXX` / `2541XXXXXXXX` internally.
-- Refund policy: deposit refunded if no vet accepts; forfeited to the vet if the farmer cancels after the vet is en route. Encode in one place: `payments/policy.ts`.
+- Refund policy: deposit refunded if no vet accepts; forfeited to the vet if the farmer cancels after the vet is en route. **Amended by §24.24:** VetLink keeps the deposit as its fee (it counts towards the vet's bill), and a forfeited deposit stays with VetLink. Encode in one place: `payments/policy.ts`.
 - **Amended by §24:** for `chosen` bookings the deposit STK push is sent when the vet accepts, with a 10-minute window (§24.6). Vets also show a displayed "from" price per service; VetLink still charges only the deposit (§24.3). Cancelling a scheduled `matched` booking more than 12 hours ahead refunds the deposit (§24.10).
 - Note: app store rules on in-app payments apply to digital goods. Payment for a real-world service (vet visit) is generally allowed via external methods like M-Pesa, but verify current Apple and Google policy before submission.
 
