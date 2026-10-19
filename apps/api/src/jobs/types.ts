@@ -36,6 +36,8 @@ export interface JobPayloads {
   'reminders.morning': Record<string, never>;
   /** Daily 18:00 EAT: vets' follow-ups tomorrow. */
   'reminders.evening': Record<string, never>;
+  /** Every minute: chosen-vet bookings whose clock ran out move on (§24.6). */
+  'bookings.deadlines': Record<string, never>;
   /** Nightly 02:00 EAT: recompute vet badges (§24.8). */
   'vets.badges': Record<string, never>;
 }

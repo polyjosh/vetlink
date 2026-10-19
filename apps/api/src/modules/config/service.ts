@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { PRICED_ITEMS, type PricedItem } from '@vetlink/shared';
+import { CHOOSE_FLOW_MINUTES, PRICED_ITEMS, type PricedItem } from '@vetlink/shared';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { appConfig } from '../../db/schema/index.js';
@@ -56,6 +56,12 @@ export const CONFIG_SCHEMAS = {
     fastResponderOffers: z.number().int().min(1),
     vaccinations: z.number().int().min(1),
   }),
+  /** The chosen-vet flow's clocks, minutes (§24.6): vet answer, booking fee, choosing again. */
+  'booking.chooseFlowMinutes': z.object({
+    request: z.number().int().min(1).max(120),
+    deposit: z.number().int().min(1).max(60),
+    abandon: z.number().int().min(1).max(240),
+  }),
   /** Largest service radius a vet may set, km. */
   'vets.maxServiceRadiusKm': z.number().int().min(1).max(200),
 } as const;
@@ -88,6 +94,7 @@ export const CONFIG_DEFAULTS: { [K in ConfigKey]: ConfigValue<K> } = {
     minor_surgery: { min: 0, max: 30_000 },
   },
   'payments.bookingFeeKes': 200,
+  'booking.chooseFlowMinutes': { ...CHOOSE_FLOW_MINUTES },
   'badges.thresholds': {
     topRatedMin: 4.5,
     topRatedRatings: 10,

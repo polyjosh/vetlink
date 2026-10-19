@@ -118,6 +118,10 @@ export const BOOKING_STATUSES = [
   'done',
   'cancelled',
   'expired',
+  // §24.6: the farmer chose a vet; waiting for them, or for the farmer to choose again or pay.
+  'requested',
+  'vet_unavailable',
+  'awaiting_deposit',
 ] as const;
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
@@ -133,6 +137,13 @@ export const BOOKING_EVENTS = [
   'farmer_cancelled',
   'no_vet_found',
   'admin_cancelled',
+  // §24.20: the chosen-vet flow.
+  'vet_declined_request',
+  'request_timed_out',
+  'farmer_rechose',
+  'farmer_switched_to_auto',
+  'deposit_timed_out',
+  'request_abandoned',
 ] as const;
 export type BookingEvent = (typeof BOOKING_EVENTS)[number];
 
@@ -210,3 +221,11 @@ export function ratingTagsFor(stars: number): readonly RatingTag[] {
   if (stars <= 2) return NEGATIVE_RATING_TAGS;
   return RATING_TAGS;
 }
+
+/** How a booking finds its vet (§24.5): waves (pay first), or the farmer's own choice. */
+export const DISPATCH_MODES = ['auto', 'chosen'] as const;
+export type DispatchMode = (typeof DISPATCH_MODES)[number];
+
+/** A wave offer (§8.5) or a direct request to the vet the farmer chose (§24.6). */
+export const OFFER_KINDS = ['wave', 'direct'] as const;
+export type OfferKind = (typeof OFFER_KINDS)[number];

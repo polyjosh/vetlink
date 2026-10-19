@@ -24,7 +24,9 @@
     "rateNone": "Hakuna ombi lililokamilika la kutathmini.",
     "tooMany": "Ujumbe mwingi mno. Tafadhali subiri dakika chache.",
     "error": "Samahani, hitilafu imetokea. Tafadhali jaribu tena.",
-    "practiceIncomplete": "VetLink: Weka ada ya ushauri na bei za huduma kwenye programu kabla ya kuingia mtandaoni."
+    "practiceIncomplete": "VetLink: Weka ada ya ushauri na bei za huduma kwenye programu kabla ya kuingia mtandaoni.",
+    "acceptedAwaitingFee": "Sawa, umekubali ombi {ref}. Tumemwomba mkulima alipe ada ya kuhifadhi; tutakutumia maelezo yake akilipa.",
+    "atCapacity": "Tayari una kazi inayosubiri. Imalize kabla ya kukubali ombi {ref}."
   },
   "errors": {
     "invalid_request": "Kuna kitu hakiko sawa katika ombi. Tafadhali angalia na ujaribu tena.",
@@ -61,7 +63,9 @@
     "upload_invalid": "Faili hiyo haiwezi kutumika. Pakia JPG, PNG au PDF iliyo wazi chini ya MB 5.",
     "photo_invalid": "Picha hiyo haiwezi kutumika. Chagua picha ya JPG au PNG iliyo chini ya KB 500.",
     "vet_photo_required": "Daktari anahitaji picha ya wasifu. Unaweza kuibadilisha, lakini si kuiondoa.",
-    "practice_incomplete": "Weka ada yako ya ushauri na bei ya kila huduma kabla ya kuingia mtandaoni."
+    "practice_incomplete": "Weka ada yako ya ushauri na bei ya kila huduma kabla ya kuingia mtandaoni.",
+    "vet_unavailable_now": "Daktari huyo hawezi kupokea maombi sasa. Tafadhali chagua daktari mwingine.",
+    "at_capacity": "Tayari una kazi inayosubiri. Imalize kabla ya kukubali nyingine."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -114,7 +118,10 @@
       "in_service": "Daktari yupo",
       "done": "Imekamilika",
       "cancelled": "Imeghairiwa",
-      "expired": "Imeisha muda"
+      "expired": "Imeisha muda",
+      "requested": "Inasubiri daktari",
+      "vet_unavailable": "Chagua daktari mwingine",
+      "awaiting_deposit": "Lipa ada ya kuhifadhi"
     },
     "reminderTypes": {
       "vaccine": "Chanjo",
@@ -230,6 +237,31 @@
       "title": "Ufuatiliaji leo",
       "body": "Ufuatiliaji wa kazi {ref} ({animal}, {ward}) ni leo.",
       "sms": "VetLink: ufuatiliaji wa kazi {ref} ({animal}, {ward}) ni leo."
+    },
+    "request": {
+      "title": "Mkulima amekuchagua",
+      "body": "{animal}, {problem} {ward}. Kubali ndani ya dakika 5.",
+      "sms": "VETLINK OMBI {ref}\n{animal}, {problem}, {ward}\nAda ya safari KES {fee}\nJibu Y{ref} kukubali, N{ref} kukataa (dakika 5)"
+    },
+    "vet_accepted_pay": {
+      "title": "{vet} amekubali",
+      "body": "Weka PIN ya M-Pesa kulipa ada ya kuhifadhi ya KES {deposit} ndani ya dakika 5.",
+      "sms": "VetLink: {vet} amekubali ombi {ref}. Weka PIN ya M-Pesa kulipa ada ya kuhifadhi ya KES {deposit} ndani ya dakika 5."
+    },
+    "request_declined": {
+      "title": "Chagua daktari mwingine",
+      "body": "Daktari hakuweza kuchukua ombi {ref}. Chagua daktari mwingine au aliye karibu zaidi.",
+      "sms": "VetLink: daktari hakuweza kuchukua ombi {ref}. Fungua programu au piga *123# kuchagua daktari mwingine. Hujalipa chochote."
+    },
+    "request_unpaid": {
+      "title": "Ombi {ref} limefungwa",
+      "body": "Mkulima hakulipa ada ya kuhifadhi kwa wakati. Uko huru kwa kazi nyingine.",
+      "sms": "VetLink: ombi {ref} limefungwa kwa sababu mkulima hakulipa kwa wakati. Uko huru kwa kazi nyingine."
+    },
+    "request_confirmed": {
+      "title": "Kazi {ref} imethibitishwa",
+      "body": "Mkulima amelipa. Fungua kazi kuona maelezo yake.",
+      "sms": "VetLink: kazi {ref} imethibitishwa. Mkulima {farmer}, {phone}, {ward}. Jibu OTW {ref} ukianza safari."
     }
   },
   "application": {
@@ -814,6 +846,41 @@
       "job": "Kutoka kazi {ref}",
       "today": "Leo",
       "tomorrow": "Kesho"
+    },
+    "choose": {
+      "title": "Chagua daktari",
+      "fastest": "Daktari wa haraka zaidi",
+      "fastestHint": "Tunawauliza madaktari wa karibu wote mara moja. Unalipa ada ya kuhifadhi kwanza.",
+      "sortBy": "Panga kwa",
+      "sort": {
+        "distance": "Wa karibu",
+        "rating": "Wanaopendwa",
+        "price": "Bei ya chini"
+      },
+      "newVet": "Mpya",
+      "km": "~km {km}",
+      "underKm": "< km 1",
+      "viewProfile": "Wasifu",
+      "selected": "Umechagua",
+      "empty": "Hakuna daktari wa karibu anayeweza kupokea ombi sasa. Jaribu daktari wa haraka zaidi.",
+      "feeAfterAccept": "Unalipa ada ya kuhifadhi baada tu ya daktari kukubali.",
+      "clinicsTitle": "Kliniki zilizo karibu",
+      "clinicsHint": "Unaweza pia kumpeleka mnyama kliniki.",
+      "directions": "Maelekezo",
+      "hours": "Saa za kufungua",
+      "waitingTitle": "Inasubiri {vet}",
+      "waitingHint": "Ana dakika chache kujibu. Hulipi chochote hadi akubali.",
+      "payTitle": "{vet} amekubali!",
+      "payHint": "Weka PIN ya M-Pesa kulipa ada ya kuhifadhi ya KES {amount} kabla muda haujaisha.",
+      "payNow": "Tuma tena ombi la M-Pesa",
+      "unavailableTitle": "Daktari huyo hawezi kuja",
+      "unavailableHint": "Chagua daktari mwingine, au acha daktari wa haraka zaidi achukue. Hujalipa chochote.",
+      "chooseAnother": "Chagua daktari huyu",
+      "switchToAuto": "Badala yake daktari wa haraka zaidi",
+      "tryFastest": "Madaktari kadhaa hawakuweza kuja. Daktari wa haraka zaidi kwa kawaida huwa mwepesi.",
+      "timeLeft": "{minutes}:{seconds} zimebaki",
+      "farmerChoseYou": "Mkulima amekuchagua",
+      "sendRequest": "Tuma ombi"
     }
   }
 }

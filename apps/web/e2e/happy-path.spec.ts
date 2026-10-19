@@ -33,6 +33,8 @@ test('farmer books and pays, vet accepts and completes, farmer rates (M11 done-w
   await farmer.getByRole('button', { name: sw.ussd.species.cattle, exact: true }).click();
   await farmer.getByRole('button', { name: sw.ussd.problems.sick, exact: true }).click();
   await farmer.getByLabel(sw.web.request.note).fill('Not eating since Monday');
+  // "Fastest available vet": pay first, then the offer goes out in waves (§24.5).
+  await farmer.getByRole('button', { name: new RegExp(sw.web.choose.fastest) }).click();
   const pay = farmer.getByRole('button', { name: /Thibitisha na ulipe/ });
   await expect(pay).toBeEnabled();
   await pay.click();
@@ -78,4 +80,28 @@ test('a new number onboards as a farmer (language, consent, role, farm)', async 
   await page.getByRole('button', { name: en.web.onboarding.finish }).click();
   await expect(page).toHaveURL(/\/farmer$/);
   await expect(page.getByRole('heading', { name: /Test Farmer/ })).toBeVisible();
+});
+
+test('the farmer chooses the vet; the booking fee is paid after the vet accepts', async ({
+  browser,
+}) => {
+  const vet = await signIn(browser, VET);
+  await expect(vet.getByTestId('online-state')).toHaveText(en.web.vet.online);
+  const farmer = await signIn(browser, FARMER);
+  await farmer.getByRole('link', { name: sw.web.farmer.requestVet }).click();
+  await farmer.getByRole('button', { name: sw.ussd.species.cattle, exact: true }).click();
+  await farmer.getByRole('button', { name: sw.ussd.problems.sick, exact: true }).click();
+  await farmer.getByRole('button', { name: /Dr\. Demo Vet/ }).click();
+  const send = farmer.getByRole('button', { name: sw.web.choose.sendRequest });
+  await expect(send).toBeEnabled();
+  await send.click();
+
+  await expect(farmer).toHaveURL(/\/farmer\/bookings\/\d+$/);
+  await expect(farmer.getByTestId('booking-status')).toHaveText(sw.ussd.statuses.requested);
+  const offer = vet.getByTestId('offer');
+  await expect(offer.getByText(en.web.choose.farmerChoseYou)).toBeVisible();
+  await offer.getByRole('button', { name: en.web.vet.accept }).click();
+  // Mock M-Pesa pays the prompt sent on acceptance; then the job is matched.
+  await expect(farmer.getByTestId('booking-status')).toHaveText(sw.ussd.statuses.matched);
+  await expect(farmer.getByTestId('deposit-status')).toHaveText(sw.web.tracking.depositStatus.paid);
 });

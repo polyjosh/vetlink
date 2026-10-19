@@ -11,7 +11,8 @@ import {
   type VetService,
 } from '@vetlink/shared';
 import { newIdempotencyKey } from '@vetlink/api-client';
-import { PriceRangeLines } from '../../src/components/prices';
+import { PriceLines, PriceRangeLines } from '../../src/components/prices';
+import { ClinicList, VetChooser, type VetSort } from '../../src/components/vet-chooser';
 import { Screen } from '../../src/components/screen';
 import {
   Badge,
@@ -48,6 +49,9 @@ export default function Request() {
   const [problem, setProblem] = useState<ProblemType | null>(emergency ? 'sick' : null);
   // Added to the consultation (§24.3); the problem pre-ticks the obvious one.
   const [services, setServices] = useState<VetService[]>([]);
+  // §24.6: a vet id, or 'auto' for fastest available (always auto in an emergency).
+  const [choice, setChoice] = useState<string | null>(emergency ? 'auto' : null);
+  const [sort, setSort] = useState<VetSort>('distance');
   const [note, setNote] = useState('');
   const [chosenPlace, setPlace] = useState<Place | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +92,26 @@ export default function Request() {
     { enabled: !!chosenSpecies && placeReady },
   );
 
+  const query = {
+    species: chosenSpecies ?? ('other' as const),
+    ...(wardId && { wardId }),
+    ...(place.kind === 'gps' && { lat: place.lat, lng: place.lng }),
+    ...(services.length && { services: services.join(',') }),
+  };
+  const vets = useApi(
+    ['choose', JSON.stringify(query), sort],
+    () => api.GET('/v1/vets/choose', { params: { query: { ...query, sort } } }),
+    { enabled: !emergency && !!chosenSpecies && placeReady },
+  );
+  const clinics = useApi(
+    ['clinics'],
+    () => api.GET('/v1/vets/clinics', { params: { query: {} } }),
+    {
+      enabled: !emergency && !!farm.data?.ward,
+    },
+  );
+  const chosenVet = vets.data?.find((v) => v.vetId === choice) ?? null;
+
   async function pickGps() {
     // Asked here, in context; without it the farmer picks a ward (§11).
     const perm = await Location.requestForegroundPermissionsAsync();
@@ -117,10 +141,17 @@ export default function Request() {
           ...(note.trim() && { note: note.trim() }),
           ...(wardId && { wardId }),
           ...(place.kind === 'gps' && { lat: place.lat, lng: place.lng }),
+          ...(chosenVet && { dispatchMode: 'chosen' as const, vetId: chosenVet.vetId }),
         },
       });
       if (!data) {
         setError(err(e));
+        return;
+      }
+      if (chosenVet) {
+        // The booking fee is asked for only once the vet accepts (§24.6).
+        void enablePush();
+        router.replace(`/farmer/bookings/${data.id}`);
         return;
       }
       // The tracking screen offers "pay again" if this fails.
@@ -227,9 +258,27 @@ export default function Request() {
           />
         )}
       </Card>
+      {!emergency && (
+        <Card>
+          <H2>{t.web.choose.title}</H2>
+          <VetChooser
+            vets={vets.data}
+            value={choice}
+            onChange={setChoice}
+            sort={sort}
+            onSort={setSort}
+          />
+          <ClinicList clinics={clinics.data} />
+        </Card>
+      )}
       <Card>
         <H2>{r.review}</H2>
-        {quote.data ? (
+        {chosenVet ? (
+          <>
+            <P>{chosenVet.name ?? ''}</P>
+            <PriceLines price={chosenVet.price} />
+          </>
+        ) : quote.data ? (
           <PriceRangeLines range={quote.data.priceRange} bookingFee={quote.data.depositKes} />
         ) : (
           <P>…</P>
@@ -240,8 +289,19 @@ export default function Request() {
       <Button
         big
         variant={emergency ? 'danger' : 'primary'}
-        title={fmt(r.confirmPay, { amount: quote.data?.depositKes ?? '…' })}
-        disabled={busy || !chosenSpecies || !problem || !placeReady || !quote.data}
+        title={
+          chosenVet
+            ? t.web.choose.sendRequest
+            : fmt(r.confirmPay, { amount: quote.data?.depositKes ?? '…' })
+        }
+        disabled={
+          busy ||
+          !chosenSpecies ||
+          !problem ||
+          !placeReady ||
+          !quote.data ||
+          !(choice === 'auto' || chosenVet)
+        }
         onPress={() => void submit()}
         testID="confirm-pay"
       />

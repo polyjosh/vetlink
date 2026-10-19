@@ -4,6 +4,8 @@ import {
   CANCEL_REASONS,
   CHANNELS,
   DEPOSIT_STATES,
+  DISPATCH_MODES,
+  OFFER_KINDS,
   OFFER_CHANNELS,
   OFFER_RESPONSES,
   PROBLEM_TYPES,
@@ -64,6 +66,16 @@ export const farmerBooking = named(
     services: z.array(z.enum(VET_SERVICES)).describe('Added to the consultation'),
     priceRange: priceRange.nullable().describe('Before a vet accepts'),
     price: priceBreakdown.nullable().describe("The accepting vet's price, fixed at acceptance"),
+    dispatchMode: z.enum(DISPATCH_MODES),
+    requestedVet: z
+      .object({ id: z.string(), name: z.string().nullable(), photoUrl: z.string().nullable() })
+      .nullable()
+      .describe('The vet the farmer chose (§24.6)'),
+    statusDeadlineAt: z
+      .string()
+      .nullable()
+      .describe('When the booking moves on by itself: vet answer, booking fee, choosing again'),
+    directChoices: z.number().int(),
     deposit: z.object({
       status: z.enum(DEPOSIT_STATES),
       receipt: z.string().nullable(),
@@ -144,6 +156,7 @@ export const offer = named(
     feeQuoted: z.number().int(),
     services: z.array(z.enum(VET_SERVICES)),
     price: priceBreakdown.nullable().describe('What this job pays at my current prices'),
+    kind: z.enum(OFFER_KINDS).describe('direct: the farmer chose you'),
     wave: z.number().int(),
     sentAt: z.string(),
     expiresAt: z.string(),
@@ -187,6 +200,11 @@ export const createBookingBody = z.object({
     .max(VET_SERVICES.length)
     .optional()
     .describe('Services added to the consultation (§24.3); none means consultation only'),
+  dispatchMode: z
+    .enum(DISPATCH_MODES)
+    .default('auto')
+    .describe('chosen: only vetId is asked, and the booking fee follows acceptance (§24.6)'),
+  vetId: z.uuid().optional(),
 });
 export const idempotencyHeaders = z.object({
   'idempotency-key': z

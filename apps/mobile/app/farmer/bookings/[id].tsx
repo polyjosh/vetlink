@@ -24,6 +24,9 @@ import { PersonAvatar } from '../../../src/components/pictures';
 import { PriceLines, PriceRangeLines } from '../../../src/components/prices';
 import { BadgeChips, TagChips } from '../../../src/components/ratings';
 import { ratingTagsFor, type RatingTag } from '@vetlink/shared';
+import { Countdown } from '../../../src/components/countdown';
+import { VetChooser, type VetSort } from '../../../src/components/vet-chooser';
+import { CHOICES_BEFORE_AUTO_HINT } from '@vetlink/shared';
 
 /** Tracking (§8.2 step 7): progress, vet contact once matched, cancel with policy, rating. */
 export default function Tracking() {
@@ -46,6 +49,14 @@ export default function Tracking() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const tr = t.web.tracking;
+  // §24.6: vets to choose from again, after the chosen one could not come.
+  const [sort, setSort] = useState<VetSort>('distance');
+  const [again, setAgain] = useState<string | null>(null);
+  const vets = useApi(
+    ['choose-again', id, sort],
+    () => api.GET('/v1/bookings/{id}/vets', { params: { path: { id }, query: { sort } } }),
+    { enabled: b?.status === 'vet_unavailable' },
+  );
 
   if (!b)
     return (
@@ -96,6 +107,71 @@ export default function Tracking() {
         )}
         <P testID="deposit-status">{tr.depositStatus[b.deposit.status]}</P>
       </Card>
+      {b.status === 'requested' && (
+        <Card>
+          <View style={s.row}>
+            <PersonAvatar url={b.requestedVet?.photoUrl} name={b.requestedVet?.name} size={48} />
+            <View style={{ flex: 1 }}>
+              <H2>{fmt(t.web.choose.waitingTitle, { vet: b.requestedVet?.name ?? '' })}</H2>
+            </View>
+            {b.statusDeadlineAt && <Countdown until={b.statusDeadlineAt} />}
+          </View>
+          <P muted>{t.web.choose.waitingHint}</P>
+        </Card>
+      )}
+      {b.status === 'awaiting_deposit' && (
+        <Card>
+          <View style={s.row}>
+            <View style={{ flex: 1 }}>
+              <H2>{fmt(t.web.choose.payTitle, { vet: b.vet?.name ?? '' })}</H2>
+            </View>
+            {b.statusDeadlineAt && <Countdown until={b.statusDeadlineAt} />}
+          </View>
+          <P>{fmt(t.web.choose.payHint, { amount: b.depositKes })}</P>
+          <Button
+            title={t.web.choose.payNow}
+            disabled={busy || b.deposit.status === 'pending'}
+            onPress={() =>
+              void act(() => api.POST('/v1/payments/stk', { body: { bookingId: b.id } }))
+            }
+          />
+        </Card>
+      )}
+      {b.status === 'vet_unavailable' && (
+        <Card>
+          <H2>{t.web.choose.unavailableTitle}</H2>
+          <P muted>{t.web.choose.unavailableHint}</P>
+          {b.directChoices >= CHOICES_BEFORE_AUTO_HINT && (
+            <Notice tone="warning">{t.web.choose.tryFastest}</Notice>
+          )}
+          <VetChooser
+            vets={vets.data}
+            value={again}
+            onChange={setAgain}
+            sort={sort}
+            onSort={setSort}
+          />
+          <Button
+            title={again === 'auto' ? t.web.choose.switchToAuto : t.web.choose.sendRequest}
+            disabled={busy || !again}
+            onPress={() =>
+              void act(async () => {
+                if (again === 'auto') {
+                  const r = await api.POST('/v1/bookings/{id}/switch-to-auto', {
+                    params: { path: { id: b.id } },
+                  });
+                  if (r.error) return r;
+                  return api.POST('/v1/payments/stk', { body: { bookingId: b.id } });
+                }
+                return api.POST('/v1/bookings/{id}/rechoose', {
+                  params: { path: { id: b.id } },
+                  body: { vetId: again ?? '' },
+                });
+              })
+            }
+          />
+        </Card>
+      )}
       {b.status === 'pending_payment' && b.deposit.status === 'pending' && (
         <Notice tone="warning">{`${t.web.request.checkPhone}. ${fmt(t.web.request.checkPhoneHint, { amount: b.depositKes })}`}</Notice>
       )}

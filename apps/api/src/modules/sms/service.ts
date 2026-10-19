@@ -84,6 +84,8 @@ export async function handleInboundSms(
     if (err instanceof DomainError) {
       if (err.code === 'vet_not_approved') return t(lang).notVerified;
       if (err.code === 'practice_incomplete') return t(lang).practiceIncomplete;
+      if (err.code === 'at_capacity')
+        return interpolate(t(lang).atCapacity, { ref: refOf(command) });
       if (err.code === 'already_rated') return interpolate(t(lang).rated, { ref: refOf(command) });
       if (err.code === 'offer_taken') return interpolate(t(lang).taken, { ref: refOf(command) });
       if (err.code === 'not_found') return interpolate(t(lang).noJob, { ref: refOf(command) });
@@ -112,7 +114,7 @@ async function impliedJob(
       .where(
         and(
           eq(bookingOffers.vetId, vetId),
-          eq(bookings.status, 'pending'),
+          inArray(bookings.status, ['pending', 'requested']),
           isNull(bookingOffers.response),
         ),
       )
@@ -163,10 +165,19 @@ async function vetCommand(
         .limit(1);
       if (!offer) return interpolate(t(lang).noJob, { ref });
       if (command.kind === 'decline') {
-        await declineOffer(ctx, { offerId: offer.id, bookingId: ref, vetId });
+        await declineOffer(ctx, { offerId: offer.id, bookingId: ref, vetId, channel: 'sms' });
         return interpolate(t(lang).declined, { ref });
       }
-      await acceptOffer(ctx, { offerId: offer.id, bookingId: ref, vetId, channel: 'sms' });
+      const booking = await acceptOffer(ctx, {
+        offerId: offer.id,
+        bookingId: ref,
+        vetId,
+        channel: 'sms',
+      });
+      // A chosen request is confirmed only once the farmer pays the booking fee (§24.6).
+      if (booking.status === 'awaiting_deposit') {
+        return interpolate(t(lang).acceptedAwaitingFee, { ref });
+      }
       return acceptedReply(ctx, ref, lang);
     }
     case 'en_route':

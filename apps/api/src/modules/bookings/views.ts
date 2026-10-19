@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray } from 'drizzle-orm';
 import {
   CONTACT_VISIBLE_STATUSES,
   OFFER_TIMEOUT_S,
@@ -112,6 +112,36 @@ export async function farmerViews(
     ctx,
     vetRows.map((v) => v.avatarMediaId),
   );
+  // §24.6: the vet the farmer chose (before they accept), and how many were asked directly.
+  const requestedIds = [
+    ...new Set(rows.map((b) => b.requestedVetId).filter((v): v is string => v !== null)),
+  ];
+  const [requestedRows, choiceRows] = await Promise.all([
+    requestedIds.length
+      ? db
+          .select({ id: users.id, name: users.name, avatar: users.avatarMediaId })
+          .from(users)
+          .where(inArray(users.id, requestedIds))
+      : Promise.resolve([]),
+    ids.length
+      ? db
+          .select({ bookingId: bookingOffers.bookingId, n: count() })
+          .from(bookingOffers)
+          .where(and(inArray(bookingOffers.bookingId, ids), eq(bookingOffers.kind, 'direct')))
+          .groupBy(bookingOffers.bookingId)
+      : Promise.resolve([]),
+  ]);
+  const requestedPhotos = await photoUrls(
+    ctx,
+    requestedRows.map((r) => r.avatar),
+  );
+  const requested = new Map(
+    requestedRows.map((r) => [
+      r.id,
+      { name: r.name, photoUrl: (r.avatar && requestedPhotos.get(r.avatar)) ?? null },
+    ]),
+  );
+  const choices = new Map(choiceRows.map((c) => [c.bookingId, Number(c.n)]));
   const treatmentByBooking = new Map(treatmentRows.map((t) => [t.bookingId, t]));
   const ratingByBooking = new Map(ratingRows.map((r) => [r.bookingId, r]));
 
@@ -134,6 +164,16 @@ export async function farmerViews(
       services: b.services,
       priceRange: b.priceRange ?? null,
       price: b.vetPrice ?? null,
+      dispatchMode: b.dispatchMode,
+      requestedVet: b.requestedVetId
+        ? {
+            id: b.requestedVetId,
+            name: requested.get(b.requestedVetId)?.name ?? null,
+            photoUrl: requested.get(b.requestedVetId)?.photoUrl ?? null,
+          }
+        : null,
+      statusDeadlineAt: iso(b.statusDeadlineAt),
+      directChoices: choices.get(b.id) ?? 0,
       deposit: deposits.get(b.id) ?? { status: 'none', receipt: null, paymentId: null },
       createdAt: b.createdAt.toISOString(),
       acceptedAt: iso(b.acceptedAt),
@@ -242,10 +282,15 @@ export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferVie
     .innerJoin(bookings, eq(bookings.id, bookingOffers.bookingId))
     .where(eq(bookingOffers.vetId, vetUserId))
     .orderBy(asc(bookingOffers.sentAt));
-  const open = rows.filter(
-    (r) =>
-      r.booking.status === 'pending' &&
-      (r.offer.response === null || r.offer.response === 'timeout'),
+  // Wave offers stay acceptable while the booking is searching; a direct request only while
+  // it waits for this vet (§24.6), and only until its clock runs out.
+  const open = rows.filter((r) =>
+    r.offer.kind === 'direct'
+      ? r.booking.status === 'requested' &&
+        r.booking.requestedVetId === vetUserId &&
+        r.offer.response === null
+      : r.booking.status === 'pending' &&
+        (r.offer.response === null || r.offer.response === 'timeout'),
   );
   const wards = await wardsById(
     db,
@@ -267,9 +312,13 @@ export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferVie
       feeQuoted: booking.feeQuoted,
       services: booking.services,
       price: prices[i] ?? null,
+      kind: offer.kind,
       wave: offer.wave,
       sentAt: offer.sentAt.toISOString(),
-      expiresAt: new Date(offer.sentAt.getTime() + timeoutS * 1000).toISOString(),
+      expiresAt:
+        offer.kind === 'direct' && booking.statusDeadlineAt
+          ? booking.statusDeadlineAt.toISOString()
+          : new Date(offer.sentAt.getTime() + timeoutS * 1000).toISOString(),
     };
   });
 }

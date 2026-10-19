@@ -50,7 +50,8 @@ export async function requestDeposit(
     .orderBy(desc(payments.id))
     .limit(1);
   if (existing[0]) return existing[0]; // in flight, or already paid
-  if (b.booking.status !== 'pending_payment') {
+  // Auto: pay first. Chosen: pay once the vet accepted (§24.6).
+  if (b.booking.status !== 'pending_payment' && b.booking.status !== 'awaiting_deposit') {
     throw new DomainError('invalid_transition', { event: 'pay', status: b.booking.status });
   }
 
@@ -200,7 +201,7 @@ export async function handleStkResult(
       .select({ status: bookings.status })
       .from(bookings)
       .where(eq(bookings.id, settled.bookingId));
-    if (booking?.status === 'pending_payment') {
+    if (booking?.status === 'pending_payment' || booking?.status === 'awaiting_deposit') {
       return transition(tx, settled.bookingId, 'deposit_confirmed', { kind: 'system' }, now, {
         reason: source,
       });

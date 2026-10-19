@@ -13,7 +13,8 @@ import {
 } from '@vetlink/shared';
 import { newIdempotencyKey, type Schemas } from '@vetlink/api-client';
 import { FarmerNav } from '@/components/farmer-nav';
-import { PriceRangeLines } from '@/components/prices';
+import { PriceLines, PriceRangeLines } from '@/components/prices';
+import { ClinicList, VetChooser, type VetSort } from '@/components/vet-chooser';
 import { Shell } from '@/components/shell';
 import {
   Badge,
@@ -48,6 +49,10 @@ function RequestFlow() {
   const [problem, setProblem] = useState<ProblemType | null>(isEmergency ? 'sick' : null);
   // Added to the consultation (§24.3); the problem pre-ticks the obvious one.
   const [services, setServices] = useState<VetService[]>([]);
+  // §24.6: a vet id, or 'auto' for fastest available (always auto in an emergency).
+  const [choice, setChoice] = useState<string | null>(isEmergency ? 'auto' : null);
+  const [sort, setSort] = useState<VetSort>('distance');
+  const [clinics, setClinics] = useState<Schemas['Clinic'][]>([]);
   const [note, setNote] = useState('');
   const [location, setLocation] = useState<Location>({ kind: 'saved' });
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +65,10 @@ function RequestFlow() {
     void api.GET('/v1/farmers/me').then(({ data }) => {
       setFarm(data ?? null);
       if (!data?.ward) setLocation({ kind: 'ward', wardId: null });
+      else
+        void api
+          .GET('/v1/vets/clinics', { params: { query: {} } })
+          .then((c) => setClinics(c.data ?? []));
     });
   }, [api]);
 
@@ -95,6 +104,19 @@ function RequestFlow() {
     });
   }, [api, quoteKey]);
 
+  // The vets to choose from, for the same request (§24.6). Not for emergencies.
+  const listKey = !isEmergency && quoteKey ? `${quoteKey}|${sort}` : null;
+  const [list, setList] = useState<{ key: string; vets: Schemas['ChoosableVet'][] } | null>(null);
+  const vets = list && list.key === listKey ? list.vets : null;
+  useEffect(() => {
+    if (!listKey || !quoteKey) return;
+    const query = { ...(JSON.parse(quoteKey) as { species: Species }), sort };
+    void api.GET('/v1/vets/choose', { params: { query } }).then(({ data }) => {
+      if (data) setList({ key: listKey, vets: data });
+    });
+  }, [api, listKey, quoteKey, sort]);
+  const chosenVet = vets?.find((v) => v.vetId === choice) ?? null;
+
   async function submit() {
     if (!chosenSpecies || !problem) return;
     key.current ??= newIdempotencyKey();
@@ -107,6 +129,7 @@ function RequestFlow() {
         problemType: problem,
         isEmergency,
         ...(services.length && { services }),
+        ...(chosenVet && { dispatchMode: 'chosen' as const, vetId: chosenVet.vetId }),
         ...(animalId && { animalId }),
         ...(note.trim() && { note: note.trim() }),
         ...(location.kind === 'ward' && location.wardId && { wardId: location.wardId }),
@@ -116,6 +139,12 @@ function RequestFlow() {
     if (e || !data) {
       setBusy(false);
       setError(errorText(lang, e));
+      return;
+    }
+    if (chosenVet) {
+      // The booking fee is asked for only once the vet accepts (§24.6).
+      setBusy(false);
+      router.replace(`/farmer/bookings/${data.id}`);
       return;
     }
     const pay = await api.POST('/v1/payments/stk', { body: { bookingId: data.id } });
@@ -128,7 +157,11 @@ function RequestFlow() {
   }
 
   const ready =
-    chosenSpecies && problem && current !== null && (location.kind !== 'ward' || location.wardId);
+    chosenSpecies &&
+    problem &&
+    current !== null &&
+    (choice === 'auto' || !!chosenVet) &&
+    (location.kind !== 'ward' || location.wardId);
 
   return (
     <Shell
@@ -254,9 +287,28 @@ function RequestFlow() {
             />
           )}
         </Card>
+        {!isEmergency && (
+          <Card className="space-y-3">
+            <h2 className="text-lg font-bold">{t.web.choose.title}</h2>
+            <VetChooser
+              vets={vets}
+              value={choice}
+              onChange={setChoice}
+              sort={sort}
+              onSort={setSort}
+            />
+            <ClinicList clinics={clinics} />
+          </Card>
+        )}
         <Card className="space-y-2">
           <h2 className="text-lg font-bold">{t.web.request.review}</h2>
-          {current ? (
+          {chosenVet ? (
+            <>
+              <p className="font-semibold">{chosenVet.name}</p>
+              <PriceLines price={chosenVet.price} />
+              <Notice>{t.web.choose.feeAfterAccept}</Notice>
+            </>
+          ) : current ? (
             <PriceRangeLines range={current.priceRange} bookingFee={current.depositKes} />
           ) : (
             <p>…</p>
@@ -270,7 +322,9 @@ function RequestFlow() {
           disabled={!ready || busy}
           onClick={() => void submit()}
         >
-          {fmt(t.web.request.confirmPay, { amount: current?.depositKes ?? '…' })}
+          {chosenVet
+            ? t.web.choose.sendRequest
+            : fmt(t.web.request.confirmPay, { amount: current?.depositKes ?? '…' })}
         </Button>
       </div>
     </Shell>

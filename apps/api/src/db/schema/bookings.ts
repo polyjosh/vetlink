@@ -19,6 +19,8 @@ import {
   BOOKING_EVENTS,
   BOOKING_STATUSES,
   CHANNELS,
+  DISPATCH_MODES,
+  OFFER_KINDS,
   MEDIA_KINDS,
   MEDIA_REVIEW_STATUSES,
   PHOTO_REJECT_REASONS,
@@ -89,6 +91,11 @@ export const bookings = pgTable(
     bookingFeeKes: integer('booking_fee_kes').notNull().default(200),
     priceRange: jsonb('price_range').$type<PriceRange>(),
     vetPrice: jsonb('vet_price').$type<PriceBreakdown>(),
+    // §24.5, §24.6: how the vet is found; the vet the farmer chose; when the system moves the
+    // booking on if nobody acts (vet answer, booking fee, or choosing again).
+    dispatchMode: text('dispatch_mode', { enum: DISPATCH_MODES }).notNull().default('auto'),
+    requestedVetId: uuid('requested_vet_id').references(() => vets.userId),
+    statusDeadlineAt: timestamptz('status_deadline_at'),
     idempotencyKey: text('idempotency_key').unique(), // from client, prevents double booking
     createdAt: createdAt(),
     acceptedAt: timestamptz('accepted_at'),
@@ -102,6 +109,10 @@ export const bookings = pgTable(
     check('bookings_fee_quoted_check', sql`${t.feeQuoted} >= 0`),
     check('bookings_services_check', subsetOf(t.services, VET_SERVICES)),
     check('bookings_booking_fee_check', sql`${t.bookingFeeKes} > 0`),
+    check('bookings_dispatch_mode_check', oneOf(t.dispatchMode, DISPATCH_MODES)),
+    index('bookings_status_deadline_idx')
+      .on(t.statusDeadlineAt)
+      .where(sql`${t.statusDeadlineAt} is not null`),
     index('bookings_status_created_at_idx').on(t.status, t.createdAt),
     index('bookings_farmer_id_idx').on(t.farmerId),
     index('bookings_vet_id_idx').on(t.vetId),
@@ -148,7 +159,8 @@ export const bookingOffers = pgTable(
     vetId: uuid('vet_id')
       .notNull()
       .references(() => vets.userId),
-    wave: integer('wave').notNull(),
+    wave: integer('wave').notNull(), // 0 for a direct request (§24.6)
+    kind: text('kind', { enum: OFFER_KINDS }).notNull().default('wave'),
     channel: text('channel', { enum: OFFER_CHANNELS }).notNull(),
     sentAt: timestamptz('sent_at').notNull().defaultNow(),
     respondedAt: timestamptz('responded_at'),
@@ -157,6 +169,7 @@ export const bookingOffers = pgTable(
   (t) => [
     check('booking_offers_channel_check', oneOf(t.channel, OFFER_CHANNELS)),
     check('booking_offers_response_check', oneOf(t.response, OFFER_RESPONSES)),
+    check('booking_offers_kind_check', oneOf(t.kind, OFFER_KINDS)),
     // One offer per vet per booking; also serves lookups by booking_id.
     uniqueIndex('booking_offers_booking_id_vet_id_key').on(t.bookingId, t.vetId),
     index('booking_offers_vet_id_idx').on(t.vetId),

@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { TERMINAL_BOOKING_STATUSES } from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
+import { Countdown } from '@/components/countdown';
 import { Shell } from '@/components/shell';
 import { Badge, Button, Card, ErrorBox, Notice } from '@/components/ui';
 import { VetNav } from '@/components/vet-nav';
@@ -14,21 +15,6 @@ import { useSession } from '@/lib/session';
 import { EmptyState } from '@/components/pictures';
 import { PriceLines } from '@/components/prices';
 import { FollowUpList } from '@/components/follow-ups';
-
-function Countdown({ until }: { until: string }) {
-  const { t, fmt } = useT();
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const s = Math.max(0, Math.round((new Date(until).getTime() - now) / 1000));
-  return (
-    <Badge tone={s > 0 ? 'warning' : 'danger'}>
-      {s > 0 ? fmt(t.web.vet.timeLeft, { seconds: s }) : t.web.vet.expired}
-    </Badge>
-  );
-}
 
 /** Vet home (§8.3): online toggle, live offers with countdown, active jobs. */
 export default function VetHome() {
@@ -140,6 +126,7 @@ export default function VetHome() {
             >
               <div className="flex flex-wrap items-center gap-2">
                 {o.isEmergency && <Badge tone="danger">{t.web.request.emergencyBadge}</Badge>}
+                {o.kind === 'direct' && <Badge tone="success">{t.web.choose.farmerChoseYou}</Badge>}
                 <strong>
                   {t.ussd.species[o.species]}, {t.ussd.problems[o.problemType]}
                 </strong>

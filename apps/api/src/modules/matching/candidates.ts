@@ -1,5 +1,5 @@
 import { and, count, eq, gte, inArray, isNotNull, isNull, max, sql } from 'drizzle-orm';
-import { ACTIVE_JOB_STATUSES, type Species, type VetService } from '@vetlink/shared';
+import { VET_BUSY_STATUSES, type Species, type VetService } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import { bookingOffers, bookings, locations, users, vets } from '../../db/schema/index.js';
 import { distanceKm } from '../../lib/geo.js';
@@ -60,7 +60,12 @@ export async function bookingPosition(
 export async function rankCandidates(
   ctx: Pick<AppContext, 'db' | 'clock'>,
   target: BookingTarget,
-  options: { radiusKm: number; excludeVetIds?: readonly string[] },
+  options: {
+    radiusKm: number;
+    excludeVetIds?: readonly string[];
+    /** False for lists farmers see: distance from the base or clinic, never live location. */
+    useLiveLocation?: boolean;
+  },
 ): Promise<Candidate[]> {
   const now = ctx.clock();
   const farm = await bookingPosition(ctx, target);
@@ -96,6 +101,7 @@ export async function rankCandidates(
     .filter((r) => !exclude.has(r.vet.userId))
     .map((r) => {
       const liveFresh =
+        options.useLiveLocation !== false &&
         r.vet.shareLiveLocation &&
         r.vet.liveLat !== null &&
         r.vet.liveLng !== null &&
@@ -118,7 +124,7 @@ export async function rankCandidates(
     ctx.db
       .select({ vetId: bookings.vetId, n: count() })
       .from(bookings)
-      .where(and(inArray(bookings.vetId, ids), inArray(bookings.status, ACTIVE_JOB_STATUSES)))
+      .where(and(inArray(bookings.vetId, ids), inArray(bookings.status, VET_BUSY_STATUSES)))
       .groupBy(bookings.vetId),
     ctx.db
       .select({

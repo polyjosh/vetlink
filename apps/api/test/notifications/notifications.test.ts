@@ -37,6 +37,7 @@ describe('notification templates', () => {
     days: 30,
     name: 'Kipusa wa Mama Njeri',
     reminder: 'Ufuatiliaji wa matibabu',
+    farmer: 'Mama Wanjiku Kamau',
   };
   it.each(
     (['sw', 'en'] as Locale[]).flatMap((lang) =>

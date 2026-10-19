@@ -7,6 +7,8 @@ import type {
   DepositState,
   ProblemType,
   Species,
+  DispatchMode,
+  OfferKind,
   RatingTag,
   VetBadge,
   VetService,
@@ -17,44 +19,104 @@ import type {
  * The booking state machine (§9). The API applies it in one place (`bookings/transitions.ts`);
  * clients use it only to decide which buttons to show. The server always re-checks.
  *
- * pending_payment ─deposit_confirmed→ pending ─vet_accepted→ matched ─vet_en_route→ en_route
- *   ─vet_arrived→ in_service ─vet_completed→ done
+ * auto:   pending_payment ─deposit_confirmed→ pending ─vet_accepted→ matched
+ * chosen: requested ─vet_accepted→ awaiting_deposit ─deposit_confirmed→ matched (§24.20)
+ * then:   matched ─vet_en_route→ en_route ─vet_arrived→ in_service ─vet_completed→ done
  */
 export interface TransitionRule {
   from: readonly BookingStatus[];
   to: BookingStatus;
+  /** Where the event leads from these statuses instead of `to` (one event, two flows). */
+  toFrom?: Partial<Record<BookingStatus, BookingStatus>>;
   /** Who may trigger it. Farmer and vet events also require owning / being assigned the booking. */
   actors: readonly BookingActorKind[];
 }
 
 export const BOOKING_TRANSITIONS: Record<BookingEvent, TransitionRule> = {
-  deposit_confirmed: { from: ['pending_payment'], to: 'pending', actors: ['system'] },
+  deposit_confirmed: {
+    from: ['pending_payment', 'awaiting_deposit'],
+    to: 'pending',
+    // Chosen vet: the booking fee is paid after they accepted, so it is matched at once.
+    toFrom: { awaiting_deposit: 'matched' },
+    actors: ['system'],
+  },
   payment_failed: { from: ['pending_payment'], to: 'expired', actors: ['system'] },
-  vet_accepted: { from: ['pending'], to: 'matched', actors: ['vet'] },
+  vet_accepted: {
+    from: ['pending', 'requested'],
+    to: 'matched',
+    toFrom: { requested: 'awaiting_deposit' },
+    actors: ['vet'],
+  },
   // The assigned vet hands the job back before setting off; the booking is dispatched again.
   vet_released: { from: ['matched'], to: 'pending', actors: ['vet'] },
   vet_en_route: { from: ['matched'], to: 'en_route', actors: ['vet'] },
   vet_arrived: { from: ['en_route'], to: 'in_service', actors: ['vet'] },
   // From en_route/matched too: SMS vets often skip ARR, and offline outboxes may batch steps.
   vet_completed: { from: ['matched', 'en_route', 'in_service'], to: 'done', actors: ['vet'] },
-  // Not once the vet is with the animal. After en_route the deposit is forfeited (§8.6).
+  // Not once the vet is with the animal. After en_route the booking fee is kept (§8.6, §24.24).
   farmer_cancelled: {
-    from: ['pending_payment', 'pending', 'matched', 'en_route'],
+    from: [
+      'pending_payment',
+      'pending',
+      'matched',
+      'en_route',
+      'requested',
+      'vet_unavailable',
+      'awaiting_deposit',
+    ],
     to: 'cancelled',
     actors: ['farmer'],
   },
   no_vet_found: { from: ['pending'], to: 'cancelled', actors: ['system'] },
   admin_cancelled: {
-    from: ['pending_payment', 'pending', 'matched', 'en_route', 'in_service'],
+    from: [
+      'pending_payment',
+      'pending',
+      'matched',
+      'en_route',
+      'in_service',
+      'requested',
+      'vet_unavailable',
+      'awaiting_deposit',
+    ],
     to: 'cancelled',
     actors: ['admin'],
   },
+  // §24.20: the chosen vet says no or does not answer; the farmer chooses again or goes auto.
+  vet_declined_request: { from: ['requested'], to: 'vet_unavailable', actors: ['vet'] },
+  request_timed_out: { from: ['requested'], to: 'vet_unavailable', actors: ['system'] },
+  farmer_rechose: { from: ['vet_unavailable'], to: 'requested', actors: ['farmer'] },
+  farmer_switched_to_auto: {
+    from: ['vet_unavailable'],
+    to: 'pending_payment',
+    actors: ['farmer'],
+  },
+  deposit_timed_out: { from: ['awaiting_deposit'], to: 'expired', actors: ['system'] },
+  request_abandoned: { from: ['vet_unavailable'], to: 'expired', actors: ['system'] },
 };
+
+/** Where `event` takes a booking that is in `status`. */
+export function transitionTarget(event: BookingEvent, status: BookingStatus): BookingStatus {
+  const rule = BOOKING_TRANSITIONS[event];
+  return rule.toFrom?.[status] ?? rule.to;
+}
 
 export const TERMINAL_BOOKING_STATUSES: readonly BookingStatus[] = ['done', 'cancelled', 'expired'];
 
 /** Statuses in which an assigned vet is on the job (counts against the vet's concurrency). */
 export const ACTIVE_JOB_STATUSES: readonly BookingStatus[] = ['matched', 'en_route', 'in_service'];
+
+/** Statuses that hold a vet: active jobs, plus a chosen job waiting for its booking fee. */
+export const VET_BUSY_STATUSES: readonly BookingStatus[] = [
+  ...ACTIVE_JOB_STATUSES,
+  'awaiting_deposit',
+];
+
+/** The chosen-vet flow's clocks (§24.6, owner decision 2026-10-19); admins can change them. */
+export const CHOOSE_FLOW_MINUTES = { request: 5, deposit: 5, abandon: 10 } as const;
+
+/** After this many declined or unanswered choices the app suggests "fastest available". */
+export const CHOICES_BEFORE_AUTO_HINT = 3;
 
 export function canTransition(
   status: BookingStatus,
@@ -117,6 +179,12 @@ export interface FarmerBookingView {
   priceRange: PriceRange | null;
   /** Once matched: the accepting vet's price, fixed when they accepted. */
   price: PriceBreakdown | null;
+  /** §24.5, §24.6: how the vet is found, the vet asked, and when the booking moves on. */
+  dispatchMode: DispatchMode;
+  requestedVet: { id: string; name: string | null; photoUrl: string | null } | null;
+  statusDeadlineAt: string | null;
+  /** How many vets were asked directly (suggest "fastest available" from 3). */
+  directChoices: number;
   /** Server-derived; `pending` means an M-Pesa prompt is out ("check your phone"). */
   deposit: { status: DepositState; receipt: string | null; paymentId: number | null };
   createdAt: string;
@@ -187,6 +255,8 @@ export interface OfferView {
   services: VetService[];
   /** What this job pays at my current prices (§24.3). */
   price: PriceBreakdown | null;
+  /** `direct`: the farmer chose me; it has the longer window (§24.6). */
+  kind: OfferKind;
   wave: number;
   sentAt: string;
   expiresAt: string;

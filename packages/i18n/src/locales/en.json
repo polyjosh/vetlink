@@ -24,7 +24,9 @@
     "rateNone": "There is no finished request to rate.",
     "tooMany": "Too many messages. Please wait a few minutes.",
     "error": "Sorry, something went wrong. Please try again.",
-    "practiceIncomplete": "VetLink: Set your consultation fee and service prices in the app before going online."
+    "practiceIncomplete": "VetLink: Set your consultation fee and service prices in the app before going online.",
+    "acceptedAwaitingFee": "OK, you accepted request {ref}. We asked the farmer to pay the booking fee and will SMS you their details when paid.",
+    "atCapacity": "You already have a job waiting. Finish it before accepting request {ref}."
   },
   "errors": {
     "invalid_request": "Something in the request was not right. Please check and try again.",
@@ -61,7 +63,9 @@
     "upload_invalid": "That file cannot be used. Upload a clear JPG, PNG or PDF under 5 MB.",
     "photo_invalid": "That photo cannot be used. Choose a JPG or PNG photo under 500 KB.",
     "vet_photo_required": "Vets need a profile photo. You can replace yours, but not remove it.",
-    "practice_incomplete": "Set your consultation fee and a price for each service before going online."
+    "practice_incomplete": "Set your consultation fee and a price for each service before going online.",
+    "vet_unavailable_now": "That vet cannot take requests right now. Please choose another vet.",
+    "at_capacity": "You already have a job waiting. Finish it before accepting another."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -114,7 +118,10 @@
       "in_service": "Vet with you",
       "done": "Done",
       "cancelled": "Cancelled",
-      "expired": "Expired"
+      "expired": "Expired",
+      "requested": "Waiting for the vet",
+      "vet_unavailable": "Choose another vet",
+      "awaiting_deposit": "Pay the booking fee"
     },
     "reminderTypes": {
       "vaccine": "Vaccine",
@@ -230,6 +237,31 @@
       "title": "Follow-up today",
       "body": "Follow-up for job {ref} ({animal}, {ward}) is today.",
       "sms": "VetLink: follow-up for job {ref} ({animal}, {ward}) is today."
+    },
+    "request": {
+      "title": "Farmer chose you",
+      "body": "{animal}, {problem} in {ward}. Accept within 5 minutes.",
+      "sms": "VETLINK REQUEST {ref}\n{animal}, {problem}, {ward}\nCall-out KES {fee}\nReply Y{ref} to accept, N{ref} to decline (5 min)"
+    },
+    "vet_accepted_pay": {
+      "title": "{vet} accepted",
+      "body": "Enter your M-Pesa PIN to pay the KES {deposit} booking fee within 5 minutes.",
+      "sms": "VetLink: {vet} accepted request {ref}. Enter your M-Pesa PIN to pay the KES {deposit} booking fee within 5 minutes."
+    },
+    "request_declined": {
+      "title": "Choose another vet",
+      "body": "The vet could not take request {ref}. Choose another vet or the fastest available.",
+      "sms": "VetLink: the vet could not take request {ref}. Open the app or dial *123# to choose another vet. You have not paid anything."
+    },
+    "request_unpaid": {
+      "title": "Request {ref} closed",
+      "body": "The farmer did not pay the booking fee in time. You are free for other jobs.",
+      "sms": "VetLink: request {ref} closed because the farmer did not pay in time. You are free for other jobs."
+    },
+    "request_confirmed": {
+      "title": "Job {ref} confirmed",
+      "body": "The farmer paid. Open the job for their details.",
+      "sms": "VetLink: job {ref} confirmed. Farmer {farmer}, {phone}, {ward}. Reply OTW {ref} when you set off."
     }
   },
   "application": {
@@ -814,6 +846,41 @@
       "job": "From job {ref}",
       "today": "Today",
       "tomorrow": "Tomorrow"
+    },
+    "choose": {
+      "title": "Choose a vet",
+      "fastest": "Fastest available vet",
+      "fastestHint": "We ask the nearest vets at once. You pay the booking fee first.",
+      "sortBy": "Sort by",
+      "sort": {
+        "distance": "Nearest",
+        "rating": "Top rated",
+        "price": "Lowest price"
+      },
+      "newVet": "New",
+      "km": "~{km} km",
+      "underKm": "< 1 km",
+      "viewProfile": "Profile",
+      "selected": "Selected",
+      "empty": "No vet near you can take a request right now. Try the fastest available vet.",
+      "feeAfterAccept": "You pay the booking fee only after the vet accepts.",
+      "clinicsTitle": "Clinics near you",
+      "clinicsHint": "You can also take the animal to a clinic.",
+      "directions": "Directions",
+      "hours": "Opening hours",
+      "waitingTitle": "Waiting for {vet}",
+      "waitingHint": "They have a few minutes to answer. You pay nothing until they accept.",
+      "payTitle": "{vet} accepted!",
+      "payHint": "Enter your M-Pesa PIN to pay the KES {amount} booking fee before the time runs out.",
+      "payNow": "Send the M-Pesa prompt again",
+      "unavailableTitle": "That vet cannot come",
+      "unavailableHint": "Choose another vet, or let the fastest available vet take it. You have not paid anything.",
+      "chooseAnother": "Choose this vet",
+      "switchToAuto": "Fastest available vet instead",
+      "tryFastest": "Several vets could not come. The fastest available vet is usually quickest.",
+      "timeLeft": "{minutes}:{seconds} left",
+      "farmerChoseYou": "The farmer chose you",
+      "sendRequest": "Send request"
     }
   }
 }

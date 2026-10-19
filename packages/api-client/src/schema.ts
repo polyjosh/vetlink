@@ -3929,6 +3929,815 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vets/choose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vets I can choose for a request (up to 20), with their price for it
+         * @description Access: role `farmer`.
+         *
+         *     The same rules as matching: approved, online, call-outs, every added service, room for another job. Distance is rounded and never from live location (§24.6, §17).
+         */
+        get: {
+            parameters: {
+                query: {
+                    species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+                    /** @description Comma-separated services added to the consultation */
+                    services?: string;
+                    wardId?: number;
+                    lat?: number;
+                    lng?: number;
+                    sort?: "distance" | "rating" | "price";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChoosableVet"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{id}/vets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vets I can choose again for this request (vets already asked are left out)
+         * @description Access: role `farmer`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    sort?: "distance" | "rating" | "price";
+                };
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChoosableVet"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{id}/rechoose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask another vet after the last one declined or did not answer
+         * @description Access: role `farmer`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        vetId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FarmerBooking"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{id}/switch-to-auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop choosing: pay the booking fee and let the fastest available vet take it
+         * @description Access: role `farmer`.
+         *
+         *     Then pay with POST /v1/payments/stk, as for any automatic booking.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FarmerBooking"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vets/{vetId}/card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A vet's profile as farmers see it (approved vets only)
+         * @description Access: role `farmer`.
+         *
+         *     Only what §8.3 "What farmers see" allows: never IDs, documents or payout.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vetId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VetCard"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vets/clinics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clinics and agrovets near the farm that farmers can visit (§24.3)
+         * @description Access: role `farmer`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    wardId?: number;
+                    lat?: number;
+                    lng?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Clinic"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/bookings": {
         parameters: {
             query?: never;
@@ -4091,6 +4900,14 @@ export interface paths {
                         lng?: number;
                         /** @description Services added to the consultation (§24.3); none means consultation only */
                         services?: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+                        /**
+                         * @description chosen: only vetId is asked, and the booking fee follows acceptance (§24.6)
+                         * @default auto
+                         * @enum {string}
+                         */
+                        dispatchMode?: "auto" | "chosen";
+                        /** Format: uuid */
+                        vetId?: string;
                     };
                 };
             };
@@ -11548,7 +12365,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    status?: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                    status?: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                     limit?: number;
                     before?: number;
                 };
@@ -12748,7 +13565,7 @@ export interface components {
     schemas: {
         ErrorInput: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required" | "practice_incomplete";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required" | "practice_incomplete" | "vet_unavailable_now" | "at_capacity";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -12823,7 +13640,7 @@ export interface components {
             visits: {
                 bookingId: number;
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 /** @enum {string} */
                 problemType: "sick" | "injury" | "breeding" | "vaccination" | "other";
                 createdAt: string;
@@ -12860,7 +13677,7 @@ export interface components {
         FarmerBookingInput: {
             id: number;
             /** @enum {string} */
-            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
             /** @enum {string} */
             species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
             /** @enum {string} */
@@ -12880,6 +13697,17 @@ export interface components {
             priceRange: components["schemas"]["PriceRangeInput"] | null;
             /** @description The accepting vet's price, fixed at acceptance */
             price: components["schemas"]["PriceBreakdownInput"] | null;
+            /** @enum {string} */
+            dispatchMode: "auto" | "chosen";
+            /** @description The vet the farmer chose (§24.6) */
+            requestedVet: {
+                id: string;
+                name: string | null;
+                photoUrl: string | null;
+            } | null;
+            /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
+            statusDeadlineAt: string | null;
+            directChoices: number;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -12891,9 +13719,9 @@ export interface components {
             completedAt: string | null;
             timeline: {
                 /** @enum {string} */
-                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled";
+                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned";
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 at: string;
             }[];
             vet: {
@@ -12920,12 +13748,12 @@ export interface components {
                 tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
-            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
+            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned")[];
         };
         VetJobInput: {
             id: number;
             /** @enum {string} */
-            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
             /** @enum {string} */
             species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
             /** @enum {string} */
@@ -12946,9 +13774,9 @@ export interface components {
             completedAt: string | null;
             timeline: {
                 /** @enum {string} */
-                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled";
+                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned";
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 at: string;
             }[];
             farmer: {
@@ -12961,7 +13789,7 @@ export interface components {
                 farmNotes: string | null;
             };
             /** @description Events the vet can trigger now */
-            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
+            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned")[];
         };
         OfferInput: {
             offerId: number;
@@ -12976,6 +13804,11 @@ export interface components {
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             /** @description What this job pays at my current prices */
             price: components["schemas"]["PriceBreakdownInput"] | null;
+            /**
+             * @description direct: the farmer chose you
+             * @enum {string}
+             */
+            kind: "wave" | "direct";
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -12983,7 +13816,7 @@ export interface components {
         AdminBookingInput: {
             id: number;
             /** @enum {string} */
-            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
             /** @enum {string} */
             species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
             /** @enum {string} */
@@ -13003,6 +13836,17 @@ export interface components {
             priceRange: components["schemas"]["PriceRangeInput"] | null;
             /** @description The accepting vet's price, fixed at acceptance */
             price: components["schemas"]["PriceBreakdownInput"] | null;
+            /** @enum {string} */
+            dispatchMode: "auto" | "chosen";
+            /** @description The vet the farmer chose (§24.6) */
+            requestedVet: {
+                id: string;
+                name: string | null;
+                photoUrl: string | null;
+            } | null;
+            /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
+            statusDeadlineAt: string | null;
+            directChoices: number;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -13014,9 +13858,9 @@ export interface components {
             completedAt: string | null;
             timeline: {
                 /** @enum {string} */
-                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled";
+                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned";
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 at: string;
             }[];
             vet: {
@@ -13043,7 +13887,7 @@ export interface components {
                 tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
-            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
+            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned")[];
             farmer: {
                 name: string | null;
                 phone: string | null;
@@ -13205,7 +14049,7 @@ export interface components {
         NotificationInput: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed";
             title: string;
             body: string;
             data: {
@@ -13243,6 +14087,62 @@ export interface components {
             updatedAt: string;
             resultCode: number | null;
             resultDesc: string | null;
+        };
+        ChoosableVetInput: {
+            vetId: string;
+            /** @description Verified legal name */
+            name: string | null;
+            displayName: string | null;
+            photoUrl: string | null;
+            /** @enum {string} */
+            type: "vet" | "paravet";
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
+            /** @description null: new vet, no ratings yet */
+            rating: number | null;
+            /** @description Whole km from the base or clinic, 0 = under 1 km; never live location */
+            distanceKm: number;
+            price: components["schemas"]["PriceBreakdownInput"];
+            languages: string[];
+            yearsExperience: number | null;
+        };
+        VetCardInput: {
+            vetId: string;
+            name: string | null;
+            displayName: string | null;
+            photoUrl: string | null;
+            /** @enum {string} */
+            type: "vet" | "paravet";
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
+            rating: number | null;
+            species: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
+            consultationFee: number | null;
+            callOutFee: number | null;
+            serviceFees: {
+                [key: string]: number;
+            };
+            yearsExperience: number | null;
+            languages: ("sw" | "en" | "ki" | "luo" | "kam" | "kln" | "other")[];
+            bio: string | null;
+            premises: {
+                ward: string;
+                directions: string | null;
+                hours: string | null;
+            } | null;
+        };
+        ClinicInput: {
+            vetId: string;
+            name: string | null;
+            photoUrl: string | null;
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
+            rating: number | null;
+            distanceKm: number;
+            ward: string;
+            directions: string | null;
+            hours: string | null;
+            location: {
+                lat: number;
+                lng: number;
+            };
         };
         PresignedUploadInput: {
             uploadUrl: string;
@@ -13397,7 +14297,7 @@ export interface components {
         };
         Error: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required" | "practice_incomplete";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required" | "practice_incomplete" | "vet_unavailable_now" | "at_capacity";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -13472,7 +14372,7 @@ export interface components {
             visits: {
                 bookingId: number;
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 /** @enum {string} */
                 problemType: "sick" | "injury" | "breeding" | "vaccination" | "other";
                 createdAt: string;
@@ -13509,7 +14409,7 @@ export interface components {
         FarmerBooking: {
             id: number;
             /** @enum {string} */
-            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
             /** @enum {string} */
             species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
             /** @enum {string} */
@@ -13529,6 +14429,17 @@ export interface components {
             priceRange: components["schemas"]["PriceRange"] | null;
             /** @description The accepting vet's price, fixed at acceptance */
             price: components["schemas"]["PriceBreakdown"] | null;
+            /** @enum {string} */
+            dispatchMode: "auto" | "chosen";
+            /** @description The vet the farmer chose (§24.6) */
+            requestedVet: {
+                id: string;
+                name: string | null;
+                photoUrl: string | null;
+            } | null;
+            /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
+            statusDeadlineAt: string | null;
+            directChoices: number;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -13540,9 +14451,9 @@ export interface components {
             completedAt: string | null;
             timeline: {
                 /** @enum {string} */
-                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled";
+                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned";
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 at: string;
             }[];
             vet: {
@@ -13569,12 +14480,12 @@ export interface components {
                 tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
-            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
+            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned")[];
         };
         VetJob: {
             id: number;
             /** @enum {string} */
-            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
             /** @enum {string} */
             species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
             /** @enum {string} */
@@ -13595,9 +14506,9 @@ export interface components {
             completedAt: string | null;
             timeline: {
                 /** @enum {string} */
-                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled";
+                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned";
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 at: string;
             }[];
             farmer: {
@@ -13610,7 +14521,7 @@ export interface components {
                 farmNotes: string | null;
             };
             /** @description Events the vet can trigger now */
-            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
+            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned")[];
         };
         Offer: {
             offerId: number;
@@ -13625,6 +14536,11 @@ export interface components {
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             /** @description What this job pays at my current prices */
             price: components["schemas"]["PriceBreakdown"] | null;
+            /**
+             * @description direct: the farmer chose you
+             * @enum {string}
+             */
+            kind: "wave" | "direct";
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -13632,7 +14548,7 @@ export interface components {
         AdminBooking: {
             id: number;
             /** @enum {string} */
-            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+            status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
             /** @enum {string} */
             species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
             /** @enum {string} */
@@ -13652,6 +14568,17 @@ export interface components {
             priceRange: components["schemas"]["PriceRange"] | null;
             /** @description The accepting vet's price, fixed at acceptance */
             price: components["schemas"]["PriceBreakdown"] | null;
+            /** @enum {string} */
+            dispatchMode: "auto" | "chosen";
+            /** @description The vet the farmer chose (§24.6) */
+            requestedVet: {
+                id: string;
+                name: string | null;
+                photoUrl: string | null;
+            } | null;
+            /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
+            statusDeadlineAt: string | null;
+            directChoices: number;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -13663,9 +14590,9 @@ export interface components {
             completedAt: string | null;
             timeline: {
                 /** @enum {string} */
-                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled";
+                event: "deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned";
                 /** @enum {string} */
-                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired";
+                status: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
                 at: string;
             }[];
             vet: {
@@ -13692,7 +14619,7 @@ export interface components {
                 tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
-            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
+            actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled" | "vet_declined_request" | "request_timed_out" | "farmer_rechose" | "farmer_switched_to_auto" | "deposit_timed_out" | "request_abandoned")[];
             farmer: {
                 name: string | null;
                 phone: string | null;
@@ -13854,7 +14781,7 @@ export interface components {
         Notification: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed";
             title: string;
             body: string;
             data: {
@@ -13892,6 +14819,62 @@ export interface components {
             updatedAt: string;
             resultCode: number | null;
             resultDesc: string | null;
+        };
+        ChoosableVet: {
+            vetId: string;
+            /** @description Verified legal name */
+            name: string | null;
+            displayName: string | null;
+            photoUrl: string | null;
+            /** @enum {string} */
+            type: "vet" | "paravet";
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
+            /** @description null: new vet, no ratings yet */
+            rating: number | null;
+            /** @description Whole km from the base or clinic, 0 = under 1 km; never live location */
+            distanceKm: number;
+            price: components["schemas"]["PriceBreakdown"];
+            languages: string[];
+            yearsExperience: number | null;
+        };
+        VetCard: {
+            vetId: string;
+            name: string | null;
+            displayName: string | null;
+            photoUrl: string | null;
+            /** @enum {string} */
+            type: "vet" | "paravet";
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
+            rating: number | null;
+            species: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
+            consultationFee: number | null;
+            callOutFee: number | null;
+            serviceFees: {
+                [key: string]: number;
+            };
+            yearsExperience: number | null;
+            languages: ("sw" | "en" | "ki" | "luo" | "kam" | "kln" | "other")[];
+            bio: string | null;
+            premises: {
+                ward: string;
+                directions: string | null;
+                hours: string | null;
+            } | null;
+        };
+        Clinic: {
+            vetId: string;
+            name: string | null;
+            photoUrl: string | null;
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
+            rating: number | null;
+            distanceKm: number;
+            ward: string;
+            directions: string | null;
+            hours: string | null;
+            location: {
+                lat: number;
+                lng: number;
+            };
         };
         PresignedUpload: {
             uploadUrl: string;

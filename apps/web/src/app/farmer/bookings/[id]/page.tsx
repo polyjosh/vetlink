@@ -1,10 +1,11 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   CANCEL_REASONS,
   TERMINAL_BOOKING_STATUSES,
+  CHOICES_BEFORE_AUTO_HINT,
   ratingTagsFor,
   type CancelReason,
   type RatingTag,
@@ -27,7 +28,9 @@ import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
+import { Countdown } from '@/components/countdown';
 import { PersonAvatar } from '@/components/pictures';
+import { VetChooser, type VetSort } from '@/components/vet-chooser';
 import { PriceLines, PriceRangeLines } from '@/components/prices';
 import { BadgeChips, TagChips } from '@/components/ratings';
 
@@ -44,6 +47,17 @@ export default function Tracking() {
   const [tags, setTags] = useState<RatingTag[]>([]);
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
+  // §24.6: vets to choose from again, after the chosen one could not come.
+  const [sort, setSort] = useState<VetSort>('distance');
+  const [again, setAgain] = useState<string | null>(null);
+  const [vets, setVets] = useState<Schemas['ChoosableVet'][] | null>(null);
+  const unavailable = b?.status === 'vet_unavailable';
+  useEffect(() => {
+    if (!unavailable) return;
+    void api
+      .GET('/v1/bookings/{id}/vets', { params: { path: { id: Number(id) }, query: { sort } } })
+      .then(({ data }) => setVets(data ?? []));
+  }, [api, id, unavailable, sort]);
 
   const load = useCallback(async () => {
     const { data, error: e } = await api.GET('/v1/bookings/{id}', {
@@ -55,7 +69,8 @@ export default function Tracking() {
   const live =
     !b || !TERMINAL_BOOKING_STATUSES.includes(b.status) || b.deposit.status === 'pending';
   // Server state only: the app never decides a payment succeeded (invariant 4).
-  usePoll(load, b?.deposit.status === 'pending' ? 3_000 : 10_000, live);
+  const waiting = b?.status === 'requested' || b?.status === 'awaiting_deposit';
+  usePoll(load, b?.deposit.status === 'pending' || waiting ? 3_000 : 10_000, live);
 
   if (!b)
     return (
@@ -98,6 +113,75 @@ export default function Tracking() {
           <p data-testid="deposit-status">{t.web.tracking.depositStatus[b.deposit.status]}</p>
         </Card>
 
+        {b.status === 'requested' && (
+          <Card className="space-y-2 border-warning">
+            <div className="flex items-center gap-3">
+              <PersonAvatar url={b.requestedVet?.photoUrl} name={b.requestedVet?.name} size={48} />
+              <p className="flex-1 font-bold">
+                {fmt(t.web.choose.waitingTitle, { vet: b.requestedVet?.name ?? '' })}
+              </p>
+              {b.statusDeadlineAt && <Countdown until={b.statusDeadlineAt} />}
+            </div>
+            <p className="text-muted">{t.web.choose.waitingHint}</p>
+          </Card>
+        )}
+        {b.status === 'awaiting_deposit' && (
+          <Card className="space-y-2 border-brand">
+            <div className="flex items-center gap-3">
+              <p className="flex-1 text-lg font-bold">
+                {fmt(t.web.choose.payTitle, { vet: b.vet?.name ?? '' })}
+              </p>
+              {b.statusDeadlineAt && <Countdown until={b.statusDeadlineAt} />}
+            </div>
+            <p>{fmt(t.web.choose.payHint, { amount: b.depositKes })}</p>
+            <Button
+              className="w-full"
+              disabled={busy || b.deposit.status === 'pending'}
+              onClick={() =>
+                void act(() => api.POST('/v1/payments/stk', { body: { bookingId: b.id } }))
+              }
+            >
+              {t.web.choose.payNow}
+            </Button>
+          </Card>
+        )}
+        {b.status === 'vet_unavailable' && (
+          <Card className="space-y-3">
+            <h2 className="text-lg font-bold">{t.web.choose.unavailableTitle}</h2>
+            <p className="text-muted">{t.web.choose.unavailableHint}</p>
+            {b.directChoices >= CHOICES_BEFORE_AUTO_HINT && (
+              <Notice tone="warning">{t.web.choose.tryFastest}</Notice>
+            )}
+            <VetChooser
+              vets={vets}
+              value={again}
+              onChange={setAgain}
+              sort={sort}
+              onSort={setSort}
+            />
+            <Button
+              className="w-full"
+              disabled={busy || !again}
+              onClick={() =>
+                void act(async () => {
+                  if (again === 'auto') {
+                    const r = await api.POST('/v1/bookings/{id}/switch-to-auto', {
+                      params: { path: { id: b.id } },
+                    });
+                    if (r.error) return r;
+                    return api.POST('/v1/payments/stk', { body: { bookingId: b.id } });
+                  }
+                  return api.POST('/v1/bookings/{id}/rechoose', {
+                    params: { path: { id: b.id } },
+                    body: { vetId: again ?? '' },
+                  });
+                })
+              }
+            >
+              {again === 'auto' ? t.web.choose.switchToAuto : t.web.choose.sendRequest}
+            </Button>
+          </Card>
+        )}
         {b.status === 'pending_payment' && b.deposit.status === 'pending' && (
           <Notice tone="warning">
             <strong>{t.web.request.checkPhone}. </strong>
