@@ -143,8 +143,8 @@ Thresholds live in config. A suspended vet shows no badges anywhere.
 - For non-emergency `chosen` bookings, the farmer picks **"As soon as possible"** or a **date (next 14 days) and part of day**: morning (08:00 to 12:00), afternoon (12:00 to 16:00), evening (16:00 to 19:00). Parts of day are easier to understand than exact times. Stored as a start time (UTC) plus the part of day.
 - Only vets whose working hours overlap the slot are listed. Scheduled bookings count against the vet's concurrency only on the day.
 - Reminders to both farmer and vet: the evening before and 1 hour before the slot start.
-- **Deposit timing:** the STK push is sent when the vet accepts, as in 24.6 step 6. The cancellation and forfeit rules of §8.6 apply from `matched`; cancelling a scheduled `matched` booking more than 12 hours before the slot refunds the deposit (owner decision may change this; it is in `payments/policy.ts`).
-- A scheduled `matched` booking where the vet has not set off 1 hour after the slot start raises an admin alert.
+- **Booking fee:** the STK push (or wallet payment) happens when the vet accepts, as in 24.6 step 6. Cancelling before the vet sets off credits the wallet; the 12-hour rule was dropped (§24.25).
+- A scheduled `matched` booking where the vet has not set off 1 hour after the slot start is flagged `overdue` on the admin board; the vet is nudged and the farmer offered a one-tap cancel (credited). It is never cancelled automatically.
 - Not on USSD (USSD bookings are "as soon as possible").
 
 ### 24.11 Seasonal and outbreak alerts (farmers, by ward)

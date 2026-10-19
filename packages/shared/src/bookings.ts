@@ -1,4 +1,5 @@
 import type { PriceBreakdown, PriceRange } from './pricing.js';
+import type { SchedulePart } from './schedule.js';
 import type {
   BookingActorKind,
   BookingEvent,
@@ -187,6 +188,11 @@ export interface FarmerBookingView {
   directChoices: number;
   /** Short-lived links to the farmer's photos of the animal (§24.15). */
   photos: string[];
+  /** §24.10: the slot start (UTC) and part of the day; null = as soon as possible. */
+  scheduledFor: string | null;
+  scheduledPart: SchedulePart | null;
+  /** A scheduled visit the vet has not set off for, an hour into the slot (§24.10). */
+  overdue: boolean;
   /** Server-derived; `pending` means an M-Pesa prompt is out ("check your phone"). */
   deposit: { status: DepositState; receipt: string | null; paymentId: number | null };
   createdAt: string;
@@ -236,6 +242,8 @@ export interface VetJobView {
   /** My price for this job, fixed when I accepted; `payVet` is what I collect on the farm. */
   price: PriceBreakdown | null;
   photos: string[];
+  scheduledFor: string | null;
+  scheduledPart: SchedulePart | null;
   acceptedAt: string | null;
   completedAt: string | null;
   timeline: TimelineEntry[];
@@ -266,6 +274,8 @@ export interface OfferView {
   kind: OfferKind;
   /** The animal's photos, visible before accepting so I can bring the right things (§24.15). */
   photos: string[];
+  scheduledFor: string | null;
+  scheduledPart: SchedulePart | null;
   wave: number;
   sentAt: string;
   expiresAt: string;

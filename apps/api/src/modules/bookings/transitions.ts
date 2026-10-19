@@ -1,6 +1,7 @@
-import { and, desc, eq, inArray, type SQL } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, type SQL } from 'drizzle-orm';
 import {
   BOOKING_TRANSITIONS,
+  scheduledAnswerDeadline,
   transitionTarget,
   type BookingEvent,
   type BookingStatus,
@@ -130,7 +131,10 @@ export async function transition(
   const set: Partial<typeof bookings.$inferInsert> = { status: to };
   // Entering a waiting status starts its clock; leaving one stops it (§24.6).
   const deadlineKey = DEADLINE_MINUTES_KEY[to as keyof typeof DEADLINE_MINUTES_KEY];
-  if (deadlineKey) {
+  if (to === 'requested' && current.scheduledFor) {
+    // A scheduled visit: the vet has up to 2 h, ending 1 h before the slot (§24.10).
+    set.statusDeadlineAt = scheduledAnswerDeadline(now, current.scheduledFor);
+  } else if (deadlineKey) {
     const minutes = (await getConfig({ db: tx as unknown as Db }, 'booking.chooseFlowMinutes'))[
       deadlineKey
     ];
@@ -196,4 +200,26 @@ export async function transition(
     })
     .returning({ id: bookingEvents.id });
   return { booking: updated, changed: true, from, eventId: logged?.id ?? null };
+}
+
+/** Columns other than status that jobs may set once (reminders sent, no-show flag; §24.10). */
+type OnceFlag = 'reminderEveningSentAt' | 'reminderHourSentAt' | 'overdueFlaggedAt';
+
+/**
+ * Claim a once-only flag on a booking: set it to `now` if still empty. Returns false when
+ * someone already set it, so a rerun of a job never sends twice. Status is never touched here.
+ */
+export async function claimBookingFlag(
+  db: Db | Tx,
+  bookingId: number,
+  flag: OnceFlag,
+  now: Date,
+): Promise<boolean> {
+  const column = bookings[flag];
+  const rows = await db
+    .update(bookings)
+    .set({ [flag]: now })
+    .where(and(eq(bookings.id, bookingId), isNull(column)))
+    .returning({ id: bookings.id });
+  return rows.length > 0;
 }

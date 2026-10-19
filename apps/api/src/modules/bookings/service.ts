@@ -12,7 +12,13 @@ import {
   lte,
   type SQL,
 } from 'drizzle-orm';
-import { servicesForProblem } from '@vetlink/shared';
+import {
+  scheduledAnswerDeadline,
+  servicesForProblem,
+  slotProblem,
+  slotWindow,
+  type SchedulePart,
+} from '@vetlink/shared';
 import type {
   CancelReason,
   Channel,
@@ -75,6 +81,8 @@ export interface CreateBookingInput {
   vetId?: string | undefined;
   /** §24.9: this request rebooks the follow-up of one of my treatments (its alerts stop). */
   followUpOfTreatmentId?: number | undefined;
+  /** §24.10: a scheduled visit (chosen vet only): a Nairobi date and part of the day. */
+  schedule?: { date: string; part: SchedulePart } | undefined;
 }
 
 /** Keys are scoped per farmer, so one farmer's key can never return another farmer's booking. */
@@ -88,6 +96,10 @@ function sameRequest(b: BookingRow, input: CreateBookingInput, wardId: number): 
     b.wardId === wardId &&
     (b.animalId ?? undefined) === input.animalId &&
     b.dispatchMode === (input.dispatchMode ?? 'auto') &&
+    (b.scheduledFor?.getTime() ?? null) ===
+      (input.schedule
+        ? slotWindow(input.schedule.date, input.schedule.part).start.getTime()
+        : null) &&
     (b.dispatchMode === 'auto' || (b.requestedVetId ?? undefined) === input.vetId) &&
     [...b.services].sort().join() === [...(input.services ?? [])].sort().join()
   );
@@ -150,6 +162,7 @@ export async function createBooking(
     lat: input.lat ?? null,
     lng: input.lng ?? null,
     services,
+    slot: input.schedule ?? null,
   };
   const bookingFeeKes = await currentBookingFee(ctx);
   // §24.5: emergencies always go to everyone; a chosen vet must be choosable right now.
@@ -157,6 +170,15 @@ export async function createBooking(
   if (chosen && (input.isEmergency || !input.vetId)) {
     throw new DomainError('invalid_request', { fields: ['dispatchMode', 'vetId'] });
   }
+  // §24.10: only a chosen, non-emergency request can be booked ahead, inside the window.
+  const schedule = input.schedule ?? null;
+  if (schedule) {
+    if (!chosen) throw new DomainError('invalid_request', { fields: ['schedule', 'dispatchMode'] });
+    const problem = slotProblem(schedule.date, schedule.part, now);
+    if (problem)
+      throw new DomainError('invalid_request', { fields: ['schedule'], reason: problem });
+  }
+  const slot = schedule ? slotWindow(schedule.date, schedule.part) : null;
   if (chosen && input.vetId) {
     await assertChoosable(ctx, target, input.vetId, bookingFeeKes);
   }
@@ -182,7 +204,10 @@ export async function createBooking(
         dispatchMode: 'chosen' as const,
         status: 'requested' as const, // created waiting for the chosen vet (§24.20)
         requestedVetId: input.vetId ?? null,
-        statusDeadlineAt: new Date(now.getTime() + requestMinutes * 60_000),
+        statusDeadlineAt: slot
+          ? scheduledAnswerDeadline(now, slot.start)
+          : new Date(now.getTime() + requestMinutes * 60_000),
+        ...(slot && schedule && { scheduledFor: slot.start, scheduledPart: schedule.part }),
       }),
       idempotencyKey: key,
       createdAt: now,
@@ -611,13 +636,16 @@ export async function acceptOffer(
     if (offer.response === 'declined') {
       throw new DomainError('invalid_transition', { event: 'vet_accepted', offer: 'declined' });
     }
-    // A direct request holds the vet until the booking fee is paid: they need room for it.
-    if (
-      offer.kind === 'direct' &&
-      offer.response !== 'accepted' &&
-      !(await vetHasRoom(ctx, input.vetId))
-    ) {
-      throw new DomainError('at_capacity');
+    // A direct request holds the vet until the booking fee is paid: they need room for it
+    // (in that slot, for a scheduled visit).
+    if (offer.kind === 'direct' && offer.response !== 'accepted') {
+      const [b] = await tx
+        .select({ scheduledFor: bookings.scheduledFor })
+        .from(bookings)
+        .where(eq(bookings.id, input.bookingId));
+      if (!(await vetHasRoom(ctx, input.vetId, b?.scheduledFor ?? null))) {
+        throw new DomainError('at_capacity');
+      }
     }
     let result;
     try {

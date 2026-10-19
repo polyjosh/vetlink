@@ -28,6 +28,7 @@ import { Countdown } from '../../../src/components/countdown';
 import { VetChooser, type VetSort } from '../../../src/components/vet-chooser';
 import { CHOICES_BEFORE_AUTO_HINT } from '@vetlink/shared';
 import { PhotoStrip } from '../../../src/components/photo-strip';
+import { AppointmentLine } from '../../../src/components/when-picker';
 
 /** Tracking (§8.2 step 7): progress, vet contact once matched, cancel with policy, rating. */
 export default function Tracking() {
@@ -101,6 +102,8 @@ export default function Tracking() {
         {b.services.length > 0 && (
           <P>{`${t.web.prices.consultation} + ${b.services.map((x) => t.web.application.services[x]).join(', ')}`}</P>
         )}
+        <AppointmentLine scheduledFor={b.scheduledFor} part={b.scheduledPart} />
+        {b.overdue && <Notice tone="warning">{t.web.schedule.overdue}</Notice>}
         <PhotoStrip urls={b.photos} />
         {b.price ? (
           <PriceLines price={b.price} />

@@ -23,6 +23,7 @@ import { useSession } from '@/lib/session';
 import { PersonAvatar } from '@/components/pictures';
 import { PriceLines } from '@/components/prices';
 import { PhotoStrip } from '@/components/photo-strip';
+import { AppointmentLine } from '@/components/when-picker';
 
 /** Directions open in the phone's own maps app (no map SDK yet: owner decision). */
 function directionsUrl(job: Schemas['VetJob']): string {
@@ -87,6 +88,7 @@ export default function Job() {
             {t.ussd.species[job.species]}, {t.ussd.problems[job.problemType]}
           </p>
           {job.note && <p className="italic">“{job.note}”</p>}
+          <AppointmentLine scheduledFor={job.scheduledFor} part={job.scheduledPart} />
           <PhotoStrip urls={job.photos} />
           {job.price ? (
             <PriceLines price={job.price} forVet />

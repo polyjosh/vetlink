@@ -34,6 +34,7 @@ import { useApi } from '../../src/lib/query';
 import { api } from '../../src/lib/session';
 import { pickPhoto, uploadPhoto } from '../../src/lib/photo';
 import { BOOKING_PHOTOS_MAX } from '@vetlink/shared';
+import { WhenPicker, type When } from '../../src/components/when-picker';
 
 type Place =
   | { kind: 'saved' }
@@ -65,6 +66,7 @@ export default function Request() {
   // §24.6: a vet id, or 'auto' for fastest available (always auto in an emergency).
   const [choice, setChoice] = useState<string | null>(emergency ? 'auto' : (params.vet ?? null));
   const [sort, setSort] = useState<VetSort>('distance');
+  const [when, setWhen] = useState<When>({ kind: 'asap' });
   const [note, setNote] = useState('');
   const [chosenPlace, setPlace] = useState<Place | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,9 +113,10 @@ export default function Request() {
     ...(place.kind === 'gps' && { lat: place.lat, lng: place.lng }),
     ...(services.length && { services: services.join(',') }),
   };
+  const slot = when.kind === 'later' ? { date: when.date, part: when.part } : {};
   const vets = useApi(
-    ['choose', JSON.stringify(query), sort],
-    () => api.GET('/v1/vets/choose', { params: { query: { ...query, sort } } }),
+    ['choose', JSON.stringify(query), sort, JSON.stringify(slot)],
+    () => api.GET('/v1/vets/choose', { params: { query: { ...query, sort, ...slot } } }),
     { enabled: !emergency && !!chosenSpecies && placeReady },
   );
   const clinics = useApi(
@@ -156,6 +159,8 @@ export default function Request() {
           ...(place.kind === 'gps' && { lat: place.lat, lng: place.lng }),
           ...(chosenVet && { dispatchMode: 'chosen' as const, vetId: chosenVet.vetId }),
           ...(followUp && { followUpOfTreatmentId: followUp }),
+          ...(chosenVet &&
+            when.kind === 'later' && { schedule: { date: when.date, part: when.part } }),
         },
       });
       if (!data) {
@@ -306,6 +311,15 @@ export default function Request() {
       </Card>
       {!emergency && (
         <Card>
+          <H2>{t.web.schedule.title}</H2>
+          <WhenPicker
+            value={when}
+            onChange={(w) => {
+              setWhen(w);
+              // Booking ahead means choosing a vet; "fastest available" is now only.
+              if (w.kind === 'later' && choice === 'auto') setChoice(null);
+            }}
+          />
           <H2>{t.web.choose.title}</H2>
           <VetChooser
             vets={vets.data}
@@ -313,6 +327,7 @@ export default function Request() {
             onChange={setChoice}
             sort={sort}
             onSort={setSort}
+            showFastest={when.kind === 'asap'}
           />
           <ClinicList clinics={clinics.data} />
         </Card>

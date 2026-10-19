@@ -1,5 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import type { AppContext } from '../context.js';
+import { appointmentSweep, eveningAppointmentReminders } from '../modules/bookings/appointments.js';
 import { sweepDeadlines } from '../modules/bookings/choose.js';
 import { runBookingEffects } from '../modules/bookings/effects.js';
 import { dispatchWave, giveUp, waveTimedOut } from '../modules/matching/dispatch.js';
@@ -30,9 +31,15 @@ export const jobHandlers: { [N in JobName]: Handler<N> } = {
   'notifications.sms-fallback': (ctx, data, log) => smsFallback(ctx, data.notificationId, log),
   'vets.licence-check': (ctx, _data, log) => checkLicences(ctx, log),
   'reminders.morning': (ctx, _data, log) => morningReminders(ctx, log),
-  'reminders.evening': (ctx, _data, log) => sendVetFollowUpAlerts(ctx, 'evening', log),
+  'reminders.evening': async (ctx, _data, log) => {
+    await sendVetFollowUpAlerts(ctx, 'evening', log);
+    await eveningAppointmentReminders(ctx, log);
+  },
   'vets.badges': (ctx, _data, log) => updateBadges(ctx, log),
-  'bookings.deadlines': (ctx, _data, log) => sweepDeadlines(ctx, log),
+  'bookings.deadlines': async (ctx, _data, log) => {
+    await sweepDeadlines(ctx, log);
+    await appointmentSweep(ctx, log);
+  },
   'wallet.expire': (ctx, _data, log) => expireCredit(ctx, log),
 };
 

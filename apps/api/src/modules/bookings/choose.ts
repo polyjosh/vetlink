@@ -1,7 +1,7 @@
 import { and, asc, count, eq, inArray, isNotNull, lte } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import {
-  VET_BUSY_STATUSES,
+  eatDateOf,
   type BookingEvent,
   type PriceBreakdown,
   type Species,
@@ -13,7 +13,7 @@ import type { AppContext } from '../../context.js';
 import { bookingOffers, bookings, locations, users, vets } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { getConfig } from '../config/service.js';
-import { rankCandidates, type BookingTarget } from '../matching/candidates.js';
+import { busyWhere, rankCandidates, type BookingTarget } from '../matching/candidates.js';
 import { bookingPhotoCount, photoUrls } from '../media/service.js';
 import { afterCommit } from './effects.js';
 import { vetPrices } from './pricing.js';
@@ -155,6 +155,10 @@ const targetOf = (b: BookingRow) => ({
   lat: b.lat,
   lng: b.lng,
   services: b.services,
+  slot:
+    b.scheduledFor && b.scheduledPart
+      ? { date: eatDateOf(b.scheduledFor), part: b.scheduledPart }
+      : null,
 });
 
 async function offeredVets(ctx: AppContext, bookingId: number): Promise<string[]> {
@@ -250,12 +254,19 @@ export async function directChoices(ctx: AppContext, bookingIds: number[]) {
   return new Map(rows.map((r) => [r.bookingId, Number(r.n)]));
 }
 
-/** Is the vet free for one more job (counting one waiting for its booking fee)? */
-export async function vetHasRoom(ctx: AppContext, vetId: string): Promise<boolean> {
+/**
+ * Is the vet free for one more job (counting one waiting for its booking fee)? For a scheduled
+ * visit, free in that slot; otherwise free today (§24.10).
+ */
+export async function vetHasRoom(
+  ctx: AppContext,
+  vetId: string,
+  slotStart: Date | null = null,
+): Promise<boolean> {
   const [busy] = await ctx.db
     .select({ n: count() })
     .from(bookings)
-    .where(and(eq(bookings.vetId, vetId), inArray(bookings.status, VET_BUSY_STATUSES)));
+    .where(and(eq(bookings.vetId, vetId), busyWhere(ctx.clock(), slotStart)));
   return Number(busy?.n ?? 0) < (await getConfig(ctx, 'matching.maxActiveJobs'));
 }
 

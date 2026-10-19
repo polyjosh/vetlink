@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/pictures';
 import { PriceLines } from '@/components/prices';
 import { FollowUpList } from '@/components/follow-ups';
 import { PhotoStrip } from '@/components/photo-strip';
+import { AppointmentLine } from '@/components/when-picker';
 
 /** Vet home (§8.3): online toggle, live offers with countdown, active jobs. */
 export default function VetHome() {
@@ -50,6 +51,12 @@ export default function VetHome() {
     setFollowUps(data ?? []);
   }, [api]);
   usePoll(loadFollowUps, 60_000);
+
+  // §24.10: booked visits the vet has not set off for yet, soonest first; the rest is today's work.
+  const upcoming = jobs
+    .filter((j) => j.scheduledFor && j.status === 'matched')
+    .sort((x, y) => (x.scheduledFor ?? '').localeCompare(y.scheduledFor ?? ''));
+  const current = jobs.filter((j) => !upcoming.includes(j));
 
   const act = async (fn: () => Promise<{ error?: unknown }>) => {
     setBusy(true);
@@ -136,6 +143,7 @@ export default function VetHome() {
               <p>
                 {o.ward.ward} ({o.ward.subCounty})
               </p>
+              <AppointmentLine scheduledFor={o.scheduledFor} part={o.scheduledPart} />
               <PhotoStrip urls={o.photos} />
               {o.price ? (
                 <PriceLines price={o.price} forVet />
@@ -183,11 +191,33 @@ export default function VetHome() {
           </Card>
         )}
 
+        {upcoming.length > 0 && (
+          <Card className="space-y-2">
+            <h2 className="text-lg font-bold">{t.web.schedule.upcomingTitle}</h2>
+            <ul className="space-y-2">
+              {upcoming.map((j) => (
+                <li key={j.id}>
+                  <Link
+                    href={`/vet/jobs/${j.id}`}
+                    className="block rounded-control bg-canvas px-3 py-2"
+                  >
+                    <AppointmentLine scheduledFor={j.scheduledFor} part={j.scheduledPart} />
+                    <span>
+                      {fmt(t.web.tracking.title, { ref: j.id })}: {t.ussd.species[j.species]} ·{' '}
+                      {j.ward.ward}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
         <Card>
           <h2 className="mb-2 text-lg font-bold">{t.web.vet.activeJobs}</h2>
-          {jobs.length === 0 && <p className="text-muted">{t.web.vet.noJobs}</p>}
+          {current.length === 0 && <p className="text-muted">{t.web.vet.noJobs}</p>}
           <ul className="space-y-2">
-            {jobs.map((j) => (
+            {current.map((j) => (
               <li key={j.id}>
                 <Link
                   href={`/vet/jobs/${j.id}`}

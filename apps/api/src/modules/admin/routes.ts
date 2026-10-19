@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, type SQL } from 'drizzle-orm';
+import { and, desc, eq, lt, type SQL, isNotNull } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { BOOKING_STATUSES } from '@vetlink/shared';
@@ -47,6 +47,10 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
         summary: 'Booking queue, newest first',
         querystring: z.object({
           status: z.enum(BOOKING_STATUSES).optional(),
+          overdue: z
+            .enum(['true'])
+            .optional()
+            .describe('Scheduled visits the vet has not set off for, an hour in (§24.10)'),
           limit: z.coerce.number().int().min(1).max(100).default(50),
           before: intId.optional(),
         }),
@@ -57,6 +61,9 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
       const q = req.query;
       const conditions: SQL[] = [];
       if (q.status) conditions.push(eq(bookings.status, q.status));
+      if (q.overdue) {
+        conditions.push(isNotNull(bookings.overdueFlaggedAt), eq(bookings.status, 'matched'));
+      }
       if (q.before) conditions.push(lt(bookings.id, q.before));
       const rows = await ctx.db
         .select()

@@ -278,6 +278,26 @@
       "title": "KES {amount} imeongezwa kwenye salio lako la VetLink",
       "body": "Ombi {ref} limefungwa, kwa hivyo ada yake ya kuhifadhi sasa ni salio la ombi lijalo.",
       "sms": "VetLink: KES {amount} za ombi {ref} sasa ni salio la ombi lako lijalo. Litatumika moja kwa moja."
+    },
+    "appointment_tomorrow": {
+      "title": "Ziara kesho ({part})",
+      "body": "Ombi {ref} limepangwa kesho {part} {ward}.",
+      "sms": "VetLink: ombi {ref} limepangwa kesho {part} {ward}."
+    },
+    "appointment_soon": {
+      "title": "Ziara baada ya saa moja",
+      "body": "Ombi {ref}: ziara ya {part} {ward} inaanza hivi karibuni.",
+      "sms": "VetLink: ombi {ref}, ziara ya {part} {ward}, inaanza baada ya saa moja hivi."
+    },
+    "appointment_overdue": {
+      "title": "Umechelewa kwa kazi {ref}",
+      "body": "Ziara ilianza saa moja iliyopita. Anza safari sasa au rudisha kazi.",
+      "sms": "VetLink: kazi {ref} ilianza saa moja iliyopita. Jibu OTW {ref} ukianza safari, au mpigie mkulima."
+    },
+    "appointment_late": {
+      "title": "Daktari amechelewa",
+      "body": "Daktari hajaanza safari kwa ombi {ref}. Ghairi kwenye programu na ada ya kuhifadhi inakuwa salio la VetLink.",
+      "sms": "VetLink: daktari hajaanza safari kwa ombi {ref}. Unaweza kughairi kwenye programu; ada yako inakuwa salio la VetLink."
     }
   },
   "application": {
@@ -924,6 +944,27 @@
       "adjust": "Rekebisha salio",
       "adjustAmount": "Kiasi (KES, minus kuondoa)",
       "adjustNote": "Sababu"
+    },
+    "schedule": {
+      "title": "Lini?",
+      "asap": "Haraka iwezekanavyo",
+      "later": "Panga baadaye",
+      "date": "Siku",
+      "part": "Wakati wa siku",
+      "parts": {
+        "morning": "asubuhi",
+        "afternoon": "mchana",
+        "evening": "jioni"
+      },
+      "partLabels": {
+        "morning": "Asubuhi (saa 2 – saa 6)",
+        "afternoon": "Mchana (saa 6 – saa 10)",
+        "evening": "Jioni (saa 10 – saa 1)"
+      },
+      "appointment": "Miadi: {date}, {part}",
+      "upcomingTitle": "Miadi ijayo",
+      "laterHint": "Ni madaktari wanaofanya kazi wakati huo tu wanaoonyeshwa. Wana hadi saa 2 kujibu.",
+      "overdue": "Daktari amechelewa"
     }
   }
 }
