@@ -22,12 +22,15 @@ export type PhotoContentType = (typeof PHOTO_CONTENT_TYPES)[number];
 export const PHOTO_MAX_BYTES = 500 * 1024;
 
 /** Longest edge after on-device resizing, in pixels. */
-export const PHOTO_SIZE_PX = { avatar: 512, animal_photo: 1024 } as const;
+export const PHOTO_SIZE_PX = { avatar: 512, animal_photo: 1024, booking_photo: 1024 } as const;
 export const PHOTO_JPEG_QUALITY = 0.7;
 
 /** Photos a user can upload through `POST /v1/uploads/presign` with `purpose: media`. */
-export const PHOTO_KINDS = ['avatar', 'animal_photo'] as const;
+export const PHOTO_KINDS = ['avatar', 'animal_photo', 'booking_photo'] as const;
 export type PhotoKind = (typeof PHOTO_KINDS)[number];
+
+/** Photos a farmer can attach to one request (§8.2 step 3, §24.15). */
+export const BOOKING_PHOTOS_MAX = 3;
 
 /** Why a verifier turned down a vet's new photo (localized under `profile.photoReasons`). */
 export const PHOTO_REJECT_REASONS = [

@@ -22,6 +22,7 @@ import {
   Field,
   Input,
   Notice,
+  LinkButton,
   Spinner,
 } from '@/components/ui';
 import { errorText } from '@/lib/errors';
@@ -33,6 +34,7 @@ import { PersonAvatar } from '@/components/pictures';
 import { VetChooser, type VetSort } from '@/components/vet-chooser';
 import { PriceLines, PriceRangeLines } from '@/components/prices';
 import { BadgeChips, TagChips } from '@/components/ratings';
+import { PhotoStrip } from '@/components/photo-strip';
 
 /** Tracking (§8.2 step 7): timeline, vet contact once matched, cancel with policy, then rating. */
 export default function Tracking() {
@@ -110,6 +112,7 @@ export default function Tracking() {
           ) : (
             <PriceRangeLines range={b.priceRange} bookingFee={b.depositKes} />
           )}
+          <PhotoStrip urls={b.photos} />
           <p data-testid="deposit-status">{t.web.tracking.depositStatus[b.deposit.status]}</p>
         </Card>
 
@@ -258,6 +261,14 @@ export default function Tracking() {
               <p>
                 {t.web.tracking.followUp}: {b.treatment.followUpDate}
               </p>
+            )}
+            {b.treatment.followUpDate && !b.treatment.followUpBookingId && b.vet && (
+              <LinkButton
+                variant="secondary"
+                href={`/farmer/request?vet=${b.vet.id}&followUp=${b.treatment.id}`}
+              >
+                {fmt(t.web.bookAgain.followUp, { vet: b.vet.name ?? '' })}
+              </LinkButton>
             )}
           </Card>
         )}

@@ -1,8 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import {
+  BOOKING_PHOTOS_MAX,
   PHOTO_CONTENT_TYPES,
+  TERMINAL_BOOKING_STATUSES,
   PHOTO_MAX_BYTES,
   type MeResponse,
   type PhotoContentType,
@@ -11,7 +13,7 @@ import {
 } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import type { Tx } from '../../db/client.js';
-import { animals, media, users, vetDocuments, vets } from '../../db/schema/index.js';
+import { animals, bookings, media, users, vetDocuments, vets } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { audit } from '../admin/audit.js';
 import type { AuthContext } from '../auth/access.js';
@@ -27,6 +29,79 @@ const keyPrefix = (userId: string, kind: PhotoKind) => `media/${userId}/${kind}-
 
 export function photoUrl(ctx: Pick<AppContext, 'storage'>, storageKey: string): Promise<string> {
   return ctx.storage.presignGet(storageKey, PHOTO_URL_TTL_S);
+}
+
+/**
+ * Attach a photo to my open request (§24.15): at most 3; vets see them before accepting.
+ * Safe to retry.
+ */
+export async function addBookingPhoto(
+  ctx: AppContext,
+  farmerId: string,
+  bookingId: number,
+  storageKey: string,
+): Promise<void> {
+  const upload = await checkUpload(ctx, farmerId, 'booking_photo', storageKey);
+  await ctx.db.transaction(async (tx) => {
+    const [b] = await tx
+      .select({ status: bookings.status })
+      .from(bookings)
+      .where(and(eq(bookings.id, bookingId), eq(bookings.farmerId, farmerId)))
+      .for('update');
+    if (!b) throw new DomainError('not_found');
+    if ('existing' in upload) {
+      if (upload.existing.bookingId !== bookingId) throw new DomainError('photo_invalid');
+      return;
+    }
+    if (TERMINAL_BOOKING_STATUSES.includes(b.status)) {
+      throw new DomainError('invalid_transition', { event: 'photo', status: b.status });
+    }
+    const [{ n } = { n: 0 }] = await tx
+      .select({ n: count() })
+      .from(media)
+      .where(and(eq(media.bookingId, bookingId), eq(media.kind, 'booking_photo')));
+    if (Number(n) >= BOOKING_PHOTOS_MAX) {
+      throw new DomainError('photo_invalid', { reason: 'too_many', max: BOOKING_PHOTOS_MAX });
+    }
+    await tx.insert(media).values({
+      ownerUserId: farmerId,
+      storageKey,
+      kind: 'booking_photo',
+      bookingId,
+      contentType: upload.contentType,
+      sizeBytes: upload.size,
+      createdAt: ctx.clock(),
+    });
+  });
+}
+
+export async function bookingPhotoCount(ctx: Pick<AppContext, 'db'>, bookingId: number) {
+  const [row] = await ctx.db
+    .select({ n: count() })
+    .from(media)
+    .where(and(eq(media.bookingId, bookingId), eq(media.kind, 'booking_photo')));
+  return Number(row?.n ?? 0);
+}
+
+/** Signed links to each booking's photos, oldest first. */
+export async function bookingPhotoUrls(
+  ctx: Pick<AppContext, 'db' | 'storage'>,
+  bookingIds: number[],
+): Promise<Map<number, string[]>> {
+  const out = new Map<number, string[]>();
+  if (bookingIds.length === 0) return out;
+  const rows = await ctx.db
+    .select({ bookingId: media.bookingId, storageKey: media.storageKey })
+    .from(media)
+    .where(and(inArray(media.bookingId, bookingIds), eq(media.kind, 'booking_photo')))
+    .orderBy(asc(media.createdAt));
+  for (const r of rows) {
+    if (r.bookingId === null) continue;
+    const list = out.get(r.bookingId) ?? [];
+    list.push(await photoUrl(ctx, r.storageKey));
+    out.set(r.bookingId, list);
+  }
+  return out;
 }
 
 /** Signed URLs for a set of media ids (missing or null ids map to nothing). */
@@ -51,7 +126,7 @@ export async function presignPhoto(
   auth: AuthContext,
   input: { kind: PhotoKind; contentType: PhotoContentType; size: number },
 ) {
-  if (input.kind === 'animal_photo' && !auth.roles.includes('farmer')) {
+  if (input.kind !== 'avatar' && !auth.roles.includes('farmer')) {
     throw new DomainError('forbidden');
   }
   if (input.size <= 0 || input.size > PHOTO_MAX_BYTES) {

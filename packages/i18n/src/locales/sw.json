@@ -26,7 +26,8 @@
     "error": "Samahani, hitilafu imetokea. Tafadhali jaribu tena.",
     "practiceIncomplete": "VetLink: Weka ada ya ushauri na bei za huduma kwenye programu kabla ya kuingia mtandaoni.",
     "acceptedAwaitingFee": "Sawa, umekubali ombi {ref}. Tumemwomba mkulima alipe ada ya kuhifadhi; tutakutumia maelezo yake akilipa.",
-    "atCapacity": "Tayari una kazi inayosubiri. Imalize kabla ya kukubali ombi {ref}."
+    "atCapacity": "Tayari una kazi inayosubiri. Imalize kabla ya kukubali ombi {ref}.",
+    "photoNote": ". picha {n} kwenye programu"
   },
   "errors": {
     "invalid_request": "Kuna kitu hakiko sawa katika ombi. Tafadhali angalia na ujaribu tena.",
@@ -71,7 +72,7 @@
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
     "consent": "VetLink inahifadhi namba yako ya simu na maelezo ya shamba ili kukuunganisha na madaktari.\n1. Nakubali\n2. Sikubali",
     "consentDeclined": "Bila idhini yako hatuwezi kukusaidia. Piga tena wakati wowote.",
-    "mainMenu": "VetLink\n1. Omba daktari\n2. Mifugo yangu\n3. Vikumbusho\n4. Historia",
+    "mainMenu": "VetLink\n1. Omba daktari\n2. Mifugo yangu\n3. Vikumbusho\n4. Historia\n5. Daktari wangu",
     "chooseAnimal": "Mnyama gani?\n1. Ng'ombe wa maziwa\n2. Mbuzi/Kondoo\n3. Kuku\n4. Mwingine",
     "chooseProblem": "Tatizo ni nini?\n1. Mgonjwa/hali\n2. Jeraha\n3. Uzazi/AI\n4. Chanjo\n5. DHARURA SASA",
     "chooseLocation": "Mnyama yuko wapi?\n1. {ward} (iliyohifadhiwa)\n2. Wadi nyingine",
@@ -130,18 +131,26 @@
       "follow_up": "Ufuatiliaji"
     },
     "requestedNoStk": "Ombi {ref} limehifadhiwa, lakini M-Pesa haipatikani sasa. Piga tena kulipa ada ya kuhifadhi ya KES {deposit}, au tumia programu ya VetLink.",
-    "priceUnknown": "(daktari atathibitisha)"
+    "priceUnknown": "(daktari atathibitisha)",
+    "chooseVet": "Chagua daktari:",
+    "fastestVet": "Haraka zaidi (yeyote)",
+    "newVet": "Mpya",
+    "confirmChosen": "{vet}: jumla kuanzia KES {price}\nLipa KES {deposit} daktari akikubali\n1. Tuma ombi\n2. Ghairi",
+    "requestedChosen": "Ombi {ref} limetumwa kwa {vet}. Tutakutumia SMS akikubali, kisha ombi la M-Pesa.",
+    "vetUnavailable": "Daktari huyo hawezi kupokea maombi sasa. Piga tena uchague daktari mwingine.",
+    "noLastVet": "Bado huna ziara iliyokamilika. Chagua 1 kuomba daktari.",
+    "lastVetUnavailable": "{vet} hawezi kupokea maombi sasa. Piga tena uchague 1 kuomba daktari mwingine."
   },
   "notify": {
     "offer": {
       "title": "Kazi mpya {ref}: {animal}",
       "body": "{animal}, {problem}, {ward} (~km {km}). Ada KES {fee}. Gusa kukubali.",
-      "sms": "VETLINK KAZI {ref}\n{animal}, {problem}, {ward} (~km {km})\nAda KES {fee}\nJibu Y{ref} kukubali, N{ref} kukataa"
+      "sms": "VETLINK KAZI {ref}\n{animal}, {problem}, {ward} (~km {km})\nAda KES {fee}{photos}\nJibu Y{ref} kukubali, N{ref} kukataa"
     },
     "offerEmergency": {
       "title": "DHARURA kazi {ref}",
       "body": "DHARURA: {animal}, {ward} (~km {km}). Ada KES {fee}. Gusa kukubali sasa.",
-      "sms": "VETLINK DHARURA {ref}\n{animal}, {ward} (~km {km})\nAda KES {fee}\nJibu Y{ref} kukubali, N{ref} kukataa"
+      "sms": "VETLINK DHARURA {ref}\n{animal}, {ward} (~km {km})\nAda KES {fee}{photos}\nJibu Y{ref} kukubali, N{ref} kukataa"
     },
     "booking_matched": {
       "title": "Daktari anakuja",
@@ -241,7 +250,7 @@
     "request": {
       "title": "Mkulima amekuchagua",
       "body": "{animal}, {problem} {ward}. Kubali ndani ya dakika 5.",
-      "sms": "VETLINK OMBI {ref}\n{animal}, {problem}, {ward}\nAda ya safari KES {fee}\nJibu Y{ref} kukubali, N{ref} kukataa (dakika 5)"
+      "sms": "VETLINK OMBI {ref}\n{animal}, {problem}, {ward}\nAda ya safari KES {fee}{photos}\nJibu Y{ref} kukubali, N{ref} kukataa (dakika 5)"
     },
     "vet_accepted_pay": {
       "title": "{vet} amekubali",
@@ -393,7 +402,8 @@
       "paymentFailed": "Malipo hayakufanikiwa.",
       "payAgain": "Lipa tena",
       "searching": "Tunatafuta daktari karibu nawe…",
-      "emergencyBadge": "DHARURA"
+      "emergencyBadge": "DHARURA",
+      "photos": "Picha za mnyama (si lazima, hadi 3)"
     },
     "tracking": {
       "title": "Ombi {ref}",
@@ -881,6 +891,12 @@
       "timeLeft": "{minutes}:{seconds} zimebaki",
       "farmerChoseYou": "Mkulima amekuchagua",
       "sendRequest": "Tuma ombi"
+    },
+    "bookAgain": {
+      "title": "Agiza tena",
+      "button": "Mwite {vet} tena",
+      "unavailable": "Hapatikani sasa hivi",
+      "followUp": "Mwite {vet} kwa ufuatiliaji"
     }
   }
 }

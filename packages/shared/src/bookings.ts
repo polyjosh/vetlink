@@ -185,6 +185,8 @@ export interface FarmerBookingView {
   statusDeadlineAt: string | null;
   /** How many vets were asked directly (suggest "fastest available" from 3). */
   directChoices: number;
+  /** Short-lived links to the farmer's photos of the animal (§24.15). */
+  photos: string[];
   /** Server-derived; `pending` means an M-Pesa prompt is out ("check your phone"). */
   deposit: { status: DepositState; receipt: string | null; paymentId: number | null };
   createdAt: string;
@@ -196,6 +198,7 @@ export interface FarmerBookingView {
    * rating; phone only while the job is active.
    */
   vet: {
+    id: string;
     name: string | null;
     displayName: string | null;
     photoUrl: string | null;
@@ -205,9 +208,12 @@ export interface FarmerBookingView {
     phone: string | null;
   } | null;
   treatment: {
+    id: number;
     diagnosis: string | null;
     drugsUsed: string | null;
     followUpDate: string | null;
+    /** Set once the follow-up was rebooked (§24.9). */
+    followUpBookingId: number | null;
   } | null;
   rating: { stars: number; comment: string | null; tags: RatingTag[] } | null;
   /** Events the farmer can trigger now (e.g. `farmer_cancelled`). */
@@ -229,6 +235,7 @@ export interface VetJobView {
   services: VetService[];
   /** My price for this job, fixed when I accepted; `payVet` is what I collect on the farm. */
   price: PriceBreakdown | null;
+  photos: string[];
   acceptedAt: string | null;
   completedAt: string | null;
   timeline: TimelineEntry[];
@@ -257,6 +264,8 @@ export interface OfferView {
   price: PriceBreakdown | null;
   /** `direct`: the farmer chose me; it has the longer window (§24.6). */
   kind: OfferKind;
+  /** The animal's photos, visible before accepting so I can bring the right things (§24.15). */
+  photos: string[];
   wave: number;
   sentAt: string;
   expiresAt: string;

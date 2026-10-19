@@ -8,11 +8,15 @@ import { Button, Card, H2, P, s } from '../../src/components/ui';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
+import { PersonAvatar } from '../../src/components/pictures';
 
 /** Farmer home (§8.2): a big Request button, a red Emergency button, the active request. */
 export default function FarmerHome() {
   const { t, fmt } = useT();
   const { me } = useSession();
+  const recent = useApi(['recent-vets'], () => api.GET('/v1/farmers/me/recent-vets'), {
+    cache: 'farmer:recent-vets',
+  });
   const list = useApi(
     ['bookings', 'farmer'],
     () => api.GET('/v1/bookings', { params: { query: { as: 'farmer', limit: 20 } } }),
@@ -63,6 +67,29 @@ export default function FarmerHome() {
           </Pressable>
         ))}
       </Card>
+      {(recent.data ?? []).length > 0 && (
+        <Card>
+          <H2>{t.web.bookAgain.title}</H2>
+          {(recent.data ?? []).map((v) => (
+            <View key={v.vetId} style={s.row}>
+              <PersonAvatar url={v.photoUrl} name={v.name} size={40} />
+              {v.available ? (
+                <Button
+                  variant="secondary"
+                  title={fmt(t.web.bookAgain.button, { vet: v.name ?? '' })}
+                  onPress={() =>
+                    router.push(
+                      `/farmer/request?vet=${v.vetId}${v.animalId ? `&animal=${v.animalId}` : ''}`,
+                    )
+                  }
+                />
+              ) : (
+                <P muted>{`${v.name ?? ''} · ${t.web.bookAgain.unavailable}`}</P>
+              )}
+            </View>
+          ))}
+        </Card>
+      )}
       <View style={s.row}>
         <Button
           variant="secondary"

@@ -2,6 +2,7 @@ import { and, eq, isNotNull } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
+  PROBLEM_TYPES,
   SPECIES,
   SPOKEN_LANGUAGES,
   VET_BADGES,
@@ -22,6 +23,7 @@ import { bookingPosition } from '../matching/candidates.js';
 import { loadPractice } from '../vets/practice.js';
 import { choosableForBooking, choosableVets, rechoose, switchToAuto } from './choose.js';
 import { currentBookingFee } from './pricing.js';
+import { recentVets } from './service.js';
 import { farmerBooking, priceBreakdown } from './schemas.js';
 import { farmerViews } from './views.js';
 
@@ -339,5 +341,34 @@ export function chooseRoutes(app: FastifyInstance, ctx: AppContext): void {
         .sort((a, b) => a.distanceKm - b.distanceKm)
         .slice(0, 20);
     },
+  );
+
+  r.get(
+    '/v1/farmers/me/recent-vets',
+    {
+      config: farmerOnly,
+      schema: {
+        tags,
+        summary: 'Vets I finished jobs with, most recent first, for "Book again" (§24.9)',
+        response: responses({
+          200: z.array(
+            named(
+              z.object({
+                vetId: z.string(),
+                name: z.string().nullable(),
+                photoUrl: z.string().nullable(),
+                lastBookingId: z.number().int(),
+                animalId: z.string().nullable(),
+                species: z.enum(SPECIES),
+                problemType: z.enum(PROBLEM_TYPES),
+                available: z.boolean().describe('Can be asked right now'),
+              }),
+              'RecentVet',
+            ),
+          ),
+        }),
+      },
+    },
+    async (req) => recentVets(ctx, authOf(req).userId),
   );
 }

@@ -16,6 +16,7 @@ import { Countdown } from '../../src/components/countdown';
 import { EmptyState } from '../../src/components/pictures';
 import { PriceLines } from '../../src/components/prices';
 import { FollowUpList } from '../../src/components/follow-ups';
+import { PhotoStrip } from '../../src/components/photo-strip';
 
 /** Vet home (§8.3): online toggle, live offers with countdown, active jobs. */
 export default function VetHome() {
@@ -123,6 +124,7 @@ export default function VetHome() {
               {o.kind === 'direct' && <Badge tone="success">{t.web.choose.farmerChoseYou}</Badge>}
             </View>
             <P>{`${o.ward.ward} (${o.ward.subCounty})`}</P>
+            <PhotoStrip urls={o.photos} />
             {o.price ? (
               <PriceLines price={o.price} forVet />
             ) : (

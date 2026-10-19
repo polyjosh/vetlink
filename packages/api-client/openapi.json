@@ -795,6 +795,13 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Short-lived links"
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -907,6 +914,9 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "string"
+                  },
                   "name": {
                     "description": "Verified legal name",
                     "type": [
@@ -964,6 +974,7 @@
                   }
                 },
                 "required": [
+                  "id",
                   "name",
                   "displayName",
                   "photoUrl",
@@ -983,6 +994,11 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
                   "diagnosis": {
                     "type": [
                       "string",
@@ -1000,12 +1016,27 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "followUpBookingId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "The follow-up was rebooked"
                   }
                 },
                 "required": [
+                  "id",
                   "diagnosis",
                   "drugsUsed",
-                  "followUpDate"
+                  "followUpDate",
+                  "followUpBookingId"
                 ]
               },
               {
@@ -1102,6 +1133,7 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "photos",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -1226,6 +1258,12 @@
               }
             ],
             "description": "My price for this job; payVet is what I collect"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "acceptedAt": {
             "type": [
@@ -1374,6 +1412,7 @@
           "feeQuoted",
           "services",
           "price",
+          "photos",
           "acceptedAt",
           "completedAt",
           "timeline",
@@ -1460,6 +1499,13 @@
             ],
             "description": "direct: the farmer chose you"
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Visible before accepting (§24.15)"
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -1483,6 +1529,7 @@
           "services",
           "price",
           "kind",
+          "photos",
           "wave",
           "sentAt",
           "expiresAt"
@@ -1657,6 +1704,13 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Short-lived links"
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -1769,6 +1823,9 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "string"
+                  },
                   "name": {
                     "description": "Verified legal name",
                     "type": [
@@ -1826,6 +1883,7 @@
                   }
                 },
                 "required": [
+                  "id",
                   "name",
                   "displayName",
                   "photoUrl",
@@ -1845,6 +1903,11 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
                   "diagnosis": {
                     "type": [
                       "string",
@@ -1862,12 +1925,27 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "followUpBookingId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "The follow-up was rebooked"
                   }
                 },
                 "required": [
+                  "id",
                   "diagnosis",
                   "drugsUsed",
-                  "followUpDate"
+                  "followUpDate",
+                  "followUpBookingId"
                 ]
               },
               {
@@ -2054,6 +2132,7 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "photos",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -4041,6 +4120,73 @@
           "minVersion"
         ]
       },
+      "RecentVetInput": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastBookingId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "animalId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "species": {
+            "type": "string",
+            "enum": [
+              "cattle",
+              "goat",
+              "sheep",
+              "pig",
+              "poultry",
+              "dog",
+              "other"
+            ]
+          },
+          "problemType": {
+            "type": "string",
+            "enum": [
+              "sick",
+              "injury",
+              "breeding",
+              "vaccination",
+              "other"
+            ]
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Can be asked right now"
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "photoUrl",
+          "lastBookingId",
+          "animalId",
+          "species",
+          "problemType",
+          "available"
+        ]
+      },
       "QuoteInput": {
         "type": "object",
         "properties": {
@@ -5176,6 +5322,13 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Short-lived links"
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -5290,6 +5443,9 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "string"
+                  },
                   "name": {
                     "description": "Verified legal name",
                     "type": [
@@ -5347,6 +5503,7 @@
                   }
                 },
                 "required": [
+                  "id",
                   "name",
                   "displayName",
                   "photoUrl",
@@ -5367,6 +5524,11 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
                   "diagnosis": {
                     "type": [
                       "string",
@@ -5384,12 +5546,27 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "followUpBookingId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "The follow-up was rebooked"
                   }
                 },
                 "required": [
+                  "id",
                   "diagnosis",
                   "drugsUsed",
-                  "followUpDate"
+                  "followUpDate",
+                  "followUpBookingId"
                 ],
                 "additionalProperties": false
               },
@@ -5488,6 +5665,7 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "photos",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -5614,6 +5792,12 @@
               }
             ],
             "description": "My price for this job; payVet is what I collect"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "acceptedAt": {
             "type": [
@@ -5764,6 +5948,7 @@
           "feeQuoted",
           "services",
           "price",
+          "photos",
           "acceptedAt",
           "completedAt",
           "timeline",
@@ -5851,6 +6036,13 @@
             ],
             "description": "direct: the farmer chose you"
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Visible before accepting (§24.15)"
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -5874,6 +6066,7 @@
           "services",
           "price",
           "kind",
+          "photos",
           "wave",
           "sentAt",
           "expiresAt"
@@ -6050,6 +6243,13 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Short-lived links"
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -6164,6 +6364,9 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "string"
+                  },
                   "name": {
                     "description": "Verified legal name",
                     "type": [
@@ -6221,6 +6424,7 @@
                   }
                 },
                 "required": [
+                  "id",
                   "name",
                   "displayName",
                   "photoUrl",
@@ -6241,6 +6445,11 @@
               {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
                   "diagnosis": {
                     "type": [
                       "string",
@@ -6258,12 +6467,27 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "followUpBookingId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "The follow-up was rebooked"
                   }
                 },
                 "required": [
+                  "id",
                   "diagnosis",
                   "drugsUsed",
-                  "followUpDate"
+                  "followUpDate",
+                  "followUpBookingId"
                 ],
                 "additionalProperties": false
               },
@@ -6454,6 +6678,7 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "photos",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -8474,6 +8699,74 @@
         },
         "required": [
           "minVersion"
+        ],
+        "additionalProperties": false
+      },
+      "RecentVet": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastBookingId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "animalId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "species": {
+            "type": "string",
+            "enum": [
+              "cattle",
+              "goat",
+              "sheep",
+              "pig",
+              "poultry",
+              "dog",
+              "other"
+            ]
+          },
+          "problemType": {
+            "type": "string",
+            "enum": [
+              "sick",
+              "injury",
+              "breeding",
+              "vaccination",
+              "other"
+            ]
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Can be asked right now"
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "photoUrl",
+          "lastBookingId",
+          "animalId",
+          "species",
+          "problemType",
+          "available"
         ],
         "additionalProperties": false
       },
@@ -12187,7 +12480,8 @@
                         "type": "string",
                         "enum": [
                           "avatar",
-                          "animal_photo"
+                          "animal_photo",
+                          "booking_photo"
                         ]
                       },
                       "contentType": {
@@ -12794,6 +13088,157 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bookings/{id}/photos": {
+      "put": {
+        "summary": "Add a photo to my open request (up to 3; vets see them before accepting)",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "storageKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  }
+                },
+                "required": [
+                  "storageKey"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
           },
           "400": {
             "description": "Default Response",
@@ -14156,6 +14601,135 @@
         }
       }
     },
+    "/v1/farmers/me/recent-vets": {
+      "get": {
+        "summary": "Vets I finished jobs with, most recent first, for \"Book again\" (§24.9)",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecentVet"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/bookings": {
       "post": {
         "summary": "Request a vet (created in pending_payment)",
@@ -14250,6 +14824,12 @@
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "followUpOfTreatmentId": {
+                    "description": "This request rebooks the follow-up of one of my treatments (§24.9)",
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
                   }
                 },
                 "required": [

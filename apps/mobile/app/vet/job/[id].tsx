@@ -23,6 +23,7 @@ import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
 import { PersonAvatar } from '../../../src/components/pictures';
 import { PriceLines } from '../../../src/components/prices';
+import { PhotoStrip } from '../../../src/components/photo-strip';
 
 /** Directions open in the phone's maps app (no map SDK yet: owner decision). */
 function directions(job: Schemas['VetJob']): string {
@@ -103,6 +104,7 @@ export default function Job() {
         </View>
         <P>{`${t.ussd.species[job.species]}, ${t.ussd.problems[job.problemType]}`}</P>
         {job.note && <P>{`“${job.note}”`}</P>}
+        <PhotoStrip urls={job.photos} />
         {job.price ? (
           <PriceLines price={job.price} forVet />
         ) : (
