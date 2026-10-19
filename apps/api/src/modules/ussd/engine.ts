@@ -1,7 +1,12 @@
-import { and, asc, desc, eq, gte, ilike, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import { interpolate, messages, type Locale } from '@vetlink/i18n';
-import { servicesForProblem, type ProblemType, type Species } from '@vetlink/shared';
+import {
+  servicesForProblem,
+  type ProblemType,
+  type Species,
+  type VetService,
+} from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import {
   animals,
@@ -14,6 +19,7 @@ import {
 } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { maskPhone } from '../../lib/phone.js';
+import { choosableVets } from '../bookings/choose.js';
 import { currentBookingFee, quotePriceRange } from '../bookings/pricing.js';
 import { createBooking } from '../bookings/service.js';
 import { requestDeposit } from '../payments/service.js';
@@ -53,7 +59,22 @@ interface Snapshot {
   onboarding: boolean;
   lang: Locale;
   savedWard: { id: number; name: string } | null;
+  /** The vets shown on the choose screen, kept so every replay sees the same list (§24.6). */
+  vetChoices?: UssdVet[];
 }
+
+interface UssdVet {
+  id: string;
+  name: string;
+  km: number;
+  rating: number | null;
+  total: number;
+}
+
+/** Vets offered on USSD after "fastest available": the 3 nearest (§24.6). */
+const USSD_VET_CHOICES = 3;
+const USSD_NAME_MAX = 16;
+const short = (s: string) => (s.length > USSD_NAME_MAX ? `${s.slice(0, USSD_NAME_MAX - 1)}.` : s);
 
 // Menu option → value. USSD offers a short list; "Goat/Sheep" books as goat (§8.1).
 const REQUEST_SPECIES: readonly Species[] = ['cattle', 'goat', 'poultry', 'other'];
@@ -194,9 +215,10 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
   // ---- Main menu ----
   const choice = ask(
     () => t().mainMenu,
-    pick(['request', 'animals', 'reminders', 'history'] as const),
+    pick(['request', 'animals', 'reminders', 'history', 'lastVet'] as const),
   );
   if (choice === 'request') return requestVet();
+  if (choice === 'lastVet') return myLastVet();
   if (choice === 'animals') return myAnimals();
   if (choice === 'reminders') return myReminders();
   return myHistory();
@@ -242,6 +264,35 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
           : `${kes(range.min)}-${kes(range.max)}`,
       deposit: bookingFee,
     };
+    // §24.6: not in an emergency, the farmer may pick one of the nearest vets.
+    if (!isEmergency) {
+      const vetsShown =
+        snap.vetChoices ??
+        (await rememberVetChoices(
+          await choosableVets(
+            ctx,
+            { species, wardId: chosenWard.id, lat: null, lng: null, services },
+            { bookingFee },
+          ),
+        ));
+      if (vetsShown.length > 0) {
+        const picked = ask(
+          () =>
+            [
+              t().chooseVet,
+              `1. ${t().fastestVet}`,
+              ...vetsShown.map(
+                (v, i) =>
+                  `${i + 2}. ${short(v.name)} ~${v.km}km ${v.rating === null ? t().newVet : `${v.rating.toFixed(1)}*`}`,
+              ),
+            ].join('\n'),
+          pick<UssdVet | 'auto'>(['auto', ...vetsShown]),
+        );
+        if (picked !== 'auto') {
+          return requestChosen(picked, { species, problemType, services, ward: chosenWard });
+        }
+      }
+    }
     const confirmed = ask(
       () => interpolate(isEmergency ? t().confirmEmergency : t().confirm, vars),
       pick([true, false]),
@@ -277,6 +328,119 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
       );
     }
     return end(interpolate(t().requested, { ref: booking.id, deposit: booking.bookingFeeKes }));
+  }
+
+  /** Keep the shown list in the session so replays parse the farmer's answer against it. */
+  async function rememberVetChoices(list: Awaited<ReturnType<typeof choosableVets>>) {
+    const shown: UssdVet[] = list.slice(0, USSD_VET_CHOICES).map((v) => ({
+      id: v.vetId,
+      name: v.name ?? '-',
+      km: Math.max(1, v.distanceKm),
+      rating: v.rating,
+      total: v.price.total,
+    }));
+    snap.vetChoices = shown;
+    await markSession(ctx, req.sessionId, 'choosing', { vetChoices: shown });
+    return shown;
+  }
+
+  /** A chosen-vet request: confirm the price, send it; the M-Pesa prompt follows acceptance. */
+  async function requestChosen(
+    vet: UssdVet,
+    r: {
+      species: Species;
+      problemType: ProblemType;
+      services: VetService[];
+      ward: { id: number; name: string };
+      animalId?: string | null;
+    },
+  ): Promise<never> {
+    const bookingFee = await currentBookingFee(ctx);
+    const ok = ask(
+      () =>
+        interpolate(t().confirmChosen, {
+          vet: short(vet.name),
+          price: vet.total.toLocaleString('en-KE'),
+          deposit: bookingFee,
+        }),
+      pick([true, false]),
+    );
+    if (!ok) return end(t().cancelled);
+    let booking;
+    try {
+      ({ booking } = await createBooking(ctx, {
+        farmerId: userId,
+        channel: 'ussd',
+        idempotencyKey: `ussd-${req.sessionId}`,
+        species: r.species,
+        problemType: r.problemType,
+        isEmergency: false,
+        wardId: r.ward.id,
+        services: r.services,
+        dispatchMode: 'chosen',
+        vetId: vet.id,
+        ...(r.animalId && { animalId: r.animalId }),
+      }));
+    } catch (err) {
+      if (err instanceof DomainError && err.code === 'vet_unavailable_now') {
+        return end(t().vetUnavailable);
+      }
+      throw err;
+    }
+    if (!snap.savedWard) {
+      await ctx.db
+        .update(farmers)
+        .set({ wardId: r.ward.id })
+        .where(and(eq(farmers.userId, userId), isNull(farmers.wardId)));
+    }
+    await markSession(ctx, req.sessionId, 'booked', { bookingId: booking.id });
+    return end(interpolate(t().requestedChosen, { ref: booking.id, vet: short(vet.name) }));
+  }
+
+  /** "My last vet" (§24.9): ask the vet of the farmer's last finished job again, in one step. */
+  async function myLastVet(): Promise<never> {
+    const [last] = await ctx.db
+      .select()
+      .from(bookings)
+      .where(
+        and(eq(bookings.farmerId, userId), eq(bookings.status, 'done'), isNotNull(bookings.vetId)),
+      )
+      .orderBy(desc(bookings.completedAt))
+      .limit(1);
+    if (!last?.vetId) return end(t().noLastVet);
+    const [vetRow] = await ctx.db
+      .select({ name: users.name })
+      .from(users)
+      .where(eq(users.id, last.vetId));
+    const [ward] = await ctx.db
+      .select({ id: locations.id, name: locations.ward })
+      .from(locations)
+      .where(eq(locations.id, last.wardId));
+    if (!ward) return end(t().error);
+    const services = servicesForProblem(last.problemType);
+    const list = await choosableVets(
+      ctx,
+      { species: last.species, wardId: ward.id, lat: null, lng: null, services },
+      { bookingFee: await currentBookingFee(ctx) },
+    );
+    const now = list.find((v) => v.vetId === last.vetId);
+    if (!now) return end(interpolate(t().lastVetUnavailable, { vet: short(vetRow?.name ?? '-') }));
+    return requestChosen(
+      {
+        id: now.vetId,
+        name: vetRow?.name ?? '-',
+        km: now.distanceKm,
+        rating: now.rating,
+        total: now.price.total,
+      },
+      {
+        species: last.species,
+        problemType: last.problemType,
+        services,
+        ward,
+        animalId: last.animalId,
+      },
+    );
   }
 
   /** Search wards by name until the farmer picks one. */

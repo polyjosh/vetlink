@@ -22,7 +22,7 @@ import {
   users,
   vets,
 } from '../../db/schema/index.js';
-import { photoUrls } from '../media/service.js';
+import { bookingPhotoUrls, photoUrls } from '../media/service.js';
 import { depositStates } from '../payments/service.js';
 import { vetPrice } from './pricing.js';
 import type { BookingRow } from './transitions.js';
@@ -142,6 +142,7 @@ export async function farmerViews(
     ]),
   );
   const choices = new Map(choiceRows.map((c) => [c.bookingId, Number(c.n)]));
+  const photosByBooking = await bookingPhotoUrls(ctx, ids);
   const treatmentByBooking = new Map(treatmentRows.map((t) => [t.bookingId, t]));
   const ratingByBooking = new Map(ratingRows.map((r) => [r.bookingId, r]));
 
@@ -174,6 +175,7 @@ export async function farmerViews(
         : null,
       statusDeadlineAt: iso(b.statusDeadlineAt),
       directChoices: choices.get(b.id) ?? 0,
+      photos: photosByBooking.get(b.id) ?? [],
       deposit: deposits.get(b.id) ?? { status: 'none', receipt: null, paymentId: null },
       createdAt: b.createdAt.toISOString(),
       acceptedAt: iso(b.acceptedAt),
@@ -181,6 +183,7 @@ export async function farmerViews(
       timeline: times.get(b.id) ?? [],
       vet: vet
         ? {
+            id: vet.userId,
             name: vet.name,
             displayName: vet.displayName,
             photoUrl: (vet.avatarMediaId && photos.get(vet.avatarMediaId)) ?? null,
@@ -193,9 +196,11 @@ export async function farmerViews(
         : null,
       treatment: treatment
         ? {
+            id: treatment.id,
             diagnosis: treatment.diagnosis,
             drugsUsed: treatment.drugsUsed,
             followUpDate: treatment.followUpDate,
+            followUpBookingId: treatment.followUpBookingId,
           }
         : null,
       rating: rating ? { stars: rating.stars, comment: rating.comment, tags: rating.tags } : null,
@@ -234,6 +239,7 @@ export async function vetJobViews(
       : Promise.resolve([]),
   ]);
   const farmerById = new Map(farmerRows.map((f) => [f.userId, f]));
+  const jobPhotos = await bookingPhotoUrls(ctx, ids);
   const photos = await photoUrls(
     ctx,
     farmerRows.map((f) => f.avatarMediaId),
@@ -259,6 +265,7 @@ export async function vetJobViews(
       feeQuoted: b.feeQuoted,
       services: b.services,
       price: b.vetPrice ?? null,
+      photos: jobPhotos.get(b.id) ?? [],
       acceptedAt: iso(b.acceptedAt),
       completedAt: iso(b.completedAt),
       timeline: times.get(b.id) ?? [],
@@ -275,7 +282,12 @@ export async function vetJobViews(
 }
 
 /** Open offers for a vet: still unanswered (or timed out) on bookings that are still pending. */
-export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferView[]> {
+export async function openOffersFor(
+  ctx: Pick<AppContext, 'db' | 'storage'>,
+  vetUserId: string,
+): Promise<OfferView[]> {
+  const db = ctx.db;
+  const storage = ctx;
   const rows = await db
     .select({ offer: bookingOffers, booking: bookings })
     .from(bookingOffers)
@@ -296,6 +308,10 @@ export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferVie
     db,
     open.map((r) => r.booking.wardId),
   );
+  const offerPhotos = await bookingPhotoUrls(
+    storage,
+    open.map((r) => r.booking.id),
+  );
   // What each job pays at the vet's current prices (§24.3); fixed when they accept.
   const prices = await Promise.all(
     open.map((r) => vetPrice(db, vetUserId, r.booking.services, r.booking.bookingFeeKes)),
@@ -313,6 +329,7 @@ export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferVie
       services: booking.services,
       price: prices[i] ?? null,
       kind: offer.kind,
+      photos: offerPhotos.get(booking.id) ?? [],
       wave: offer.wave,
       sentAt: offer.sentAt.toISOString(),
       expiresAt:

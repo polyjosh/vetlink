@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { router, useLocalSearchParams } from 'expo-router';
+import { View } from 'react-native';
 import { useRef, useState } from 'react';
 import {
   PROBLEM_TYPES,
@@ -24,12 +25,15 @@ import {
   H2,
   Notice,
   P,
+  s,
 } from '../../src/components/ui';
 import { WardPicker } from '../../src/components/ward-picker';
 import { enablePush } from '../../src/lib/push';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api } from '../../src/lib/session';
+import { pickPhoto, uploadPhoto } from '../../src/lib/photo';
+import { BOOKING_PHOTOS_MAX } from '@vetlink/shared';
 
 type Place =
   | { kind: 'saved' }
@@ -39,18 +43,27 @@ type Place =
 /** Request flow (§8.2): animal, problem, place, fee and deposit, pay. Same rules as USSD and web. */
 export default function Request() {
   const { t, fmt, err } = useT();
-  const emergency = useLocalSearchParams<{ emergency?: string }>().emergency === '1';
+  const params = useLocalSearchParams<{
+    emergency?: string;
+    vet?: string;
+    animal?: string;
+    followUp?: string;
+  }>();
+  const emergency = params.emergency === '1';
+  // "Book again" and follow-up links prefill the vet and animal (§24.9).
+  const followUp = Number(params.followUp) || null;
+  const [photos, setPhotos] = useState<{ uri: string; size: number }[]>([]);
   const animals = useApi(['animals'], () => api.GET('/v1/animals'), { cache: 'animals' });
   const farm = useApi(['farmer-profile'], () => api.GET('/v1/farmers/me'), {
     cache: 'farmer:profile',
   });
-  const [animalId, setAnimalId] = useState<string | null>(null);
+  const [animalId, setAnimalId] = useState<string | null>(params.animal ?? null);
   const [species, setSpecies] = useState<Species | null>(null);
   const [problem, setProblem] = useState<ProblemType | null>(emergency ? 'sick' : null);
   // Added to the consultation (§24.3); the problem pre-ticks the obvious one.
   const [services, setServices] = useState<VetService[]>([]);
   // §24.6: a vet id, or 'auto' for fastest available (always auto in an emergency).
-  const [choice, setChoice] = useState<string | null>(emergency ? 'auto' : null);
+  const [choice, setChoice] = useState<string | null>(emergency ? 'auto' : (params.vet ?? null));
   const [sort, setSort] = useState<VetSort>('distance');
   const [note, setNote] = useState('');
   const [chosenPlace, setPlace] = useState<Place | null>(null);
@@ -142,11 +155,23 @@ export default function Request() {
           ...(wardId && { wardId }),
           ...(place.kind === 'gps' && { lat: place.lat, lng: place.lng }),
           ...(chosenVet && { dispatchMode: 'chosen' as const, vetId: chosenVet.vetId }),
+          ...(followUp && { followUpOfTreatmentId: followUp }),
         },
       });
       if (!data) {
         setError(err(e));
         return;
+      }
+      // Optional photos go up once the request exists (§24.15); a failure keeps the request.
+      for (const photo of photos) {
+        const up = await uploadPhoto('booking_photo', photo).catch(() => null);
+        if (!up || !('storageKey' in up)) break;
+        await api
+          .PUT('/v1/bookings/{id}/photos', {
+            params: { path: { id: data.id } },
+            body: { storageKey: up.storageKey },
+          })
+          .catch(() => undefined);
       }
       if (chosenVet) {
         // The booking fee is asked for only once the vet accepts (§24.6).
@@ -221,6 +246,27 @@ export default function Request() {
         </Card>
       )}
       <Card>
+        <P>{r.photos}</P>
+        <View style={s.row}>
+          {photos.map((x, i) => (
+            <Button
+              key={x.uri}
+              title={`📷 ${i + 1} ✕`}
+              variant="secondary"
+              onPress={() => setPhotos(photos.filter((_, j) => j !== i))}
+            />
+          ))}
+          {photos.length < BOOKING_PHOTOS_MAX && (
+            <Button
+              title="+ 📷"
+              variant="secondary"
+              onPress={async () => {
+                const picked = await pickPhoto('camera', 'booking_photo').catch(() => null);
+                if (picked) setPhotos([...photos, picked]);
+              }}
+            />
+          )}
+        </View>
         <Field
           label={r.note}
           placeholder={r.noteHint}

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import {
+  BOOKING_PHOTOS_MAX,
   PROBLEM_TYPES,
   SPECIES,
   VET_SERVICES,
@@ -27,6 +28,7 @@ import {
   TextArea,
 } from '@/components/ui';
 import { WardPicker } from '@/components/ward-picker';
+import { preparePhoto } from '@/lib/photo';
 import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
@@ -41,16 +43,21 @@ function RequestFlow() {
   const { t, fmt, lang } = useT();
   const { api } = useSession();
   const router = useRouter();
-  const isEmergency = useSearchParams().get('emergency') === '1';
+  const params = useSearchParams();
+  const isEmergency = params.get('emergency') === '1';
+  // "Book again" and follow-up links prefill the vet and animal (§24.9).
+  const againVet = params.get('vet');
+  const followUp = Number(params.get('followUp')) || null;
   const [animals, setAnimals] = useState<Schemas['Animal'][]>([]);
   const [farm, setFarm] = useState<Schemas['FarmerProfile'] | null>(null);
-  const [animalId, setAnimalId] = useState<string | null>(null);
+  const [animalId, setAnimalId] = useState<string | null>(params.get('animal'));
+  const [photos, setPhotos] = useState<File[]>([]);
   const [species, setSpecies] = useState<Species | null>(null);
   const [problem, setProblem] = useState<ProblemType | null>(isEmergency ? 'sick' : null);
   // Added to the consultation (§24.3); the problem pre-ticks the obvious one.
   const [services, setServices] = useState<VetService[]>([]);
   // §24.6: a vet id, or 'auto' for fastest available (always auto in an emergency).
-  const [choice, setChoice] = useState<string | null>(isEmergency ? 'auto' : null);
+  const [choice, setChoice] = useState<string | null>(isEmergency ? 'auto' : againVet);
   const [sort, setSort] = useState<VetSort>('distance');
   const [clinics, setClinics] = useState<Schemas['Clinic'][]>([]);
   const [note, setNote] = useState('');
@@ -130,6 +137,7 @@ function RequestFlow() {
         isEmergency,
         ...(services.length && { services }),
         ...(chosenVet && { dispatchMode: 'chosen' as const, vetId: chosenVet.vetId }),
+        ...(followUp && { followUpOfTreatmentId: followUp }),
         ...(animalId && { animalId }),
         ...(note.trim() && { note: note.trim() }),
         ...(location.kind === 'ward' && location.wardId && { wardId: location.wardId }),
@@ -140,6 +148,33 @@ function RequestFlow() {
       setBusy(false);
       setError(errorText(lang, e));
       return;
+    }
+    // Photos are optional and go up once the request exists (§24.15); a failure keeps the request.
+    for (const file of photos) {
+      try {
+        const blob = await preparePhoto(file, 'booking_photo');
+        const p = await api.POST('/v1/uploads/presign', {
+          body: {
+            purpose: 'photo',
+            photoKind: 'booking_photo',
+            contentType: 'image/jpeg',
+            size: blob.size,
+          },
+        });
+        if (!p.data) break;
+        const put = await fetch(p.data.uploadUrl, {
+          method: 'PUT',
+          headers: p.data.headers,
+          body: blob,
+        });
+        if (!put.ok) break;
+        await api.PUT('/v1/bookings/{id}/photos', {
+          params: { path: { id: data.id } },
+          body: { storageKey: p.data.storageKey },
+        });
+      } catch {
+        break;
+      }
     }
     if (chosenVet) {
       // The booking fee is asked for only once the vet accepts (§24.6).
@@ -235,6 +270,35 @@ function RequestFlow() {
           </Card>
         )}
         <Card className="space-y-3">
+          <Field label={t.web.request.photos}>
+            <div className="flex flex-wrap items-center gap-2">
+              {photos.map((f, i) => (
+                <Button
+                  key={i}
+                  variant="secondary"
+                  onClick={() => setPhotos(photos.filter((_, j) => j !== i))}
+                >
+                  📷 {i + 1} ✕
+                </Button>
+              ))}
+              {photos.length < BOOKING_PHOTOS_MAX && (
+                <label className="inline-flex min-h-touch cursor-pointer items-center rounded-control border border-line px-4 font-semibold">
+                  + 📷
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) setPhotos([...photos, f]);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+          </Field>
           <Field label={t.web.request.note}>
             <TextArea
               rows={2}

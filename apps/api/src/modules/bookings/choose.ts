@@ -14,7 +14,7 @@ import { bookingOffers, bookings, locations, users, vets } from '../../db/schema
 import { DomainError } from '../../lib/errors.js';
 import { getConfig } from '../config/service.js';
 import { rankCandidates, type BookingTarget } from '../matching/candidates.js';
-import { photoUrls } from '../media/service.js';
+import { bookingPhotoCount, photoUrls } from '../media/service.js';
 import { afterCommit } from './effects.js';
 import { vetPrices } from './pricing.js';
 import { createOffer } from './service.js';
@@ -138,7 +138,11 @@ export async function sendDirectRequest(ctx: AppContext, booking: BookingRow, ve
       userId: vetId,
       kind: 'request',
       params: { ref: booking.id, ward: ward?.name ?? '', fee: booking.feeQuoted },
-      localized: { animal: booking.species, problem: booking.problemType },
+      localized: {
+        animal: booking.species,
+        problem: booking.problemType,
+        photos: await bookingPhotoCount(ctx, booking.id),
+      },
       data: { bookingId: booking.id, offerId },
     },
     { jobId: `request-${booking.id}-${vetId}` },

@@ -255,7 +255,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         response: responses({ 200: z.array(offer) }),
       },
     },
-    async (req) => openOffersFor(ctx.db, authOf(req).userId),
+    async (req) => openOffersFor(ctx, authOf(req).userId),
   );
 
   r.post(

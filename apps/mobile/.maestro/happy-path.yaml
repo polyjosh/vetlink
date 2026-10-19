@@ -18,16 +18,19 @@ appId: co.ke.vetlink.dev
 - tapOn: { id: request-vet }
 - tapOn: 'Ng.ombe'
 - tapOn: 'Mgonjwa'
+# §24.5: "fastest available vet" pays first and goes out in waves.
+- scrollUntilVisible: { element: { text: '.*Daktari wa haraka zaidi.*' } }
+- tapOn: { text: '.*Daktari wa haraka zaidi.*' }
 - scrollUntilVisible: { element: { id: confirm-pay } }
 - tapOn: { id: confirm-pay }
-- extendedWaitUntil: { visible: 'Amana imelipwa', timeout: 30000 }
+- extendedWaitUntil: { visible: 'Ada ya kuhifadhi imelipwa', timeout: 30000 }
 
 # The vet accepts (through the API, one device)
 - runScript: scripts/accept-offer.js
 - extendedWaitUntil: { visible: 'Daktari anakuja', timeout: 30000 }
 
 # Switch to the vet
-- tapOn: 'Mipangilio'
+- tapOn: 'Wasifu wangu' # the header's profile link (§24.1)
 - tapOn: 'Toka'
 - tapOn: { id: phone }
 - inputText: '0700000002'
@@ -52,7 +55,7 @@ appId: co.ke.vetlink.dev
 - assertVisible: 'Job completed. Thank you!'
 
 # Back to the farmer, who sees the treatment and rates
-- tapOn: 'Settings'
+- tapOn: 'My profile' # the header's profile link (§24.1)
 - tapOn: 'Log out'
 - tapOn: { id: phone }
 - inputText: '0700000001'

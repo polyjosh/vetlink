@@ -10,6 +10,7 @@ import {
   locations,
   reminders,
   users,
+  vets,
 } from '../../src/db/schema/index.js';
 import { USSD_RATE_LIMIT } from '../../src/modules/ussd/routes.js';
 import { Harness } from '../helpers/harness.js';
@@ -170,6 +171,89 @@ describe.skipIf(!testServerUrl)('USSD (database)', { timeout: 60_000 }, () => {
         .from(farmers)
         .where(eq(farmers.userId, user?.id ?? ''));
       expect(farm?.wardId).toBe(await wardId('Githunguri'));
+    });
+  });
+
+  describe.each<Locale>(['sw', 'en'])('choosing a vet (§24.6), %s', (lang) => {
+    // These vets share the file's database: take them offline so later tests see none.
+    afterEach(async () => {
+      await h.db.update(vets).set({ isAvailable: false });
+    });
+
+    async function vetsNearby() {
+      const ward = await wardId('Githunguri');
+      const near = await h.vet(ward);
+      const far = await h.vet(ward, 'approved', { consultationFee: 900 });
+      await h.db
+        .update(users)
+        .set({ name: 'Dr. Wanjiru Kamau-Njoroge Odhiambo' })
+        .where(eq(users.id, near.userId));
+      await h.db.update(users).set({ name: 'Dr. Otieno' }).where(eq(users.id, far.userId));
+      return { near, far };
+    }
+
+    it('lists the nearest vets after "fastest"; a chosen request asks that vet only', async () => {
+      const f = await returningFarmer(lang);
+      const { near } = await vetsNearby();
+      const list = await session(f.phone, ['1', '1', '1', '1']);
+      expect(list.last).toMatch(new RegExp(`^CON ${m(lang).chooseVet}\\n1\\. `));
+      expect(list.last).toContain('Dr. Otieno ~');
+      expect(list.last).toContain('Dr. Wanjiru Kam.'); // long names are cut to fit
+
+      // The list is kept for the session: answers replay against what the farmer saw.
+      const pickNear = list.last.includes('2. Dr. Wanjiru') ? '2' : '3';
+      const confirm = await session(f.phone, ['1', '1', '1', '1', pickNear]);
+      expect(confirm.last).toContain('1,100');
+      const done = await session(f.phone, ['1', '1', '1', '1', pickNear, '1']);
+      expect(done.last).toMatch(/^END /);
+      const [b] = await h.db.select().from(bookings).where(eq(bookings.farmerId, f.userId));
+      expect(b).toMatchObject({
+        status: 'requested',
+        dispatchMode: 'chosen',
+        requestedVetId: near.userId,
+      });
+      expect(h.gateway.pushes).toHaveLength(0); // the M-Pesa prompt waits for acceptance
+    });
+
+    it('"My last vet" asks the vet of the last finished visit again', async () => {
+      const f = await returningFarmer(lang);
+      expect((await session(f.phone, ['5'])).last).toBe(`END ${m(lang).noLastVet}`);
+      const { near } = await vetsNearby();
+      await h.db.insert(bookings).values({
+        farmerId: f.userId,
+        vetId: near.userId,
+        species: 'goat',
+        problemType: 'vaccination',
+        sourceChannel: 'ussd',
+        wardId: await wardId('Githunguri'),
+        status: 'done',
+        feeQuoted: 600,
+        completedAt: h.now,
+      });
+      const confirm = await session(f.phone, ['5']);
+      expect(confirm.last).toMatch(/^CON Dr\. Wanjiru Kam\./);
+      await session(f.phone, ['5', '1']);
+      const rows = await h.db.select().from(bookings).where(eq(bookings.farmerId, f.userId));
+      expect(rows.find((r) => r.status === 'requested')).toMatchObject({
+        requestedVetId: near.userId,
+        species: 'goat',
+        services: ['vaccination'],
+      });
+
+      await h.db.update(vets).set({ isAvailable: false }).where(eq(vets.userId, near.userId));
+      const g = await returningFarmer(lang);
+      await h.db.insert(bookings).values({
+        farmerId: g.userId,
+        vetId: near.userId,
+        species: 'goat',
+        problemType: 'sick',
+        sourceChannel: 'ussd',
+        wardId: await wardId('Githunguri'),
+        status: 'done',
+        feeQuoted: 600,
+        completedAt: h.now,
+      });
+      expect((await session(g.phone, ['5'])).last).toMatch(/^END /);
     });
   });
 

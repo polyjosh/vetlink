@@ -1,4 +1,18 @@
-import { and, avg, count, desc, eq, gte, inArray, isNull, lt, lte, type SQL } from 'drizzle-orm';
+import {
+  and,
+  avg,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  type SQL,
+} from 'drizzle-orm';
+import { servicesForProblem } from '@vetlink/shared';
 import type {
   CancelReason,
   Channel,
@@ -21,13 +35,15 @@ import {
   ratings,
   reminders,
   treatments,
+  users,
   vets,
 } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { getConfig } from '../config/service.js';
 import { depositOutcomeOnCancel } from '../payments/policy.js';
 import { createRefundIfPaid } from '../payments/refunds.js';
-import { assertChoosable, sendDirectRequest, vetHasRoom } from './choose.js';
+import { photoUrls } from '../media/service.js';
+import { assertChoosable, choosableVets, sendDirectRequest, vetHasRoom } from './choose.js';
 import { afterCommit } from './effects.js';
 import { currentBookingFee, quoteCallOutFee, quotePriceRange } from './pricing.js';
 import { transition, type BookingActor, type BookingRow } from './transitions.js';
@@ -57,6 +73,8 @@ export interface CreateBookingInput {
   /** §24.5: `chosen` sends the request to `vetId` only; the booking fee follows acceptance. */
   dispatchMode?: 'auto' | 'chosen' | undefined;
   vetId?: string | undefined;
+  /** §24.9: this request rebooks the follow-up of one of my treatments (its alerts stop). */
+  followUpOfTreatmentId?: number | undefined;
 }
 
 /** Keys are scoped per farmer, so one farmer's key can never return another farmer's booking. */
@@ -173,6 +191,9 @@ export async function createBooking(
     .onConflictDoNothing({ target: bookings.idempotencyKey })
     .returning();
   if (inserted) {
+    if (input.followUpOfTreatmentId) {
+      await linkFollowUp(ctx, input.farmerId, input.followUpOfTreatmentId, inserted.id);
+    }
     if (chosen && input.vetId) await sendDirectRequest(ctx, inserted, input.vetId);
     return { booking: inserted, created: true };
   }
@@ -396,6 +417,82 @@ export async function rateBooking(
       .where(eq(vets.userId, b.vetId));
     await flagIfNeeded(tx, b.vetId, input, now);
   });
+}
+
+/** Link a rebooked follow-up to its treatment, once, and only the farmer's own (§24.9). */
+async function linkFollowUp(
+  ctx: AppContext,
+  farmerId: string,
+  treatmentId: number,
+  bookingId: number,
+): Promise<void> {
+  const [t] = await ctx.db
+    .select({ id: treatments.id })
+    .from(treatments)
+    .innerJoin(bookings, eq(bookings.id, treatments.bookingId))
+    .where(and(eq(treatments.id, treatmentId), eq(bookings.farmerId, farmerId)));
+  if (!t) return;
+  await ctx.db
+    .update(treatments)
+    .set({ followUpBookingId: bookingId })
+    .where(and(eq(treatments.id, treatmentId), isNull(treatments.followUpBookingId)));
+}
+
+/**
+ * Vets this farmer finished jobs with, most recent first (§24.9 "Book again"), each with the
+ * last animal and whether they can be asked right now.
+ */
+export async function recentVets(ctx: AppContext, farmerId: string, limit = 3) {
+  const rows = await ctx.db
+    .select()
+    .from(bookings)
+    .where(
+      and(eq(bookings.farmerId, farmerId), eq(bookings.status, 'done'), isNotNull(bookings.vetId)),
+    )
+    .orderBy(desc(bookings.completedAt))
+    .limit(50);
+  const latest = new Map<string, BookingRow>();
+  for (const b of rows) if (b.vetId && !latest.has(b.vetId)) latest.set(b.vetId, b);
+  const picked = [...latest.values()].slice(0, limit);
+  if (picked.length === 0) return [];
+  const ids = picked.map((b) => b.vetId as string);
+  const people = await ctx.db
+    .select({ id: users.id, name: users.name, avatar: users.avatarMediaId })
+    .from(users)
+    .where(inArray(users.id, ids));
+  const photos = await photoUrls(
+    ctx,
+    people.map((p) => p.avatar),
+  );
+  const byId = new Map(people.map((p) => [p.id, p]));
+  const fee = await currentBookingFee(ctx);
+  const out = [];
+  for (const b of picked) {
+    const vetId = b.vetId as string;
+    const list = await choosableVets(
+      ctx,
+      {
+        species: b.species,
+        wardId: b.wardId,
+        lat: b.lat,
+        lng: b.lng,
+        services: servicesForProblem(b.problemType),
+      },
+      { bookingFee: fee },
+    );
+    const p = byId.get(vetId);
+    out.push({
+      vetId,
+      name: p?.name ?? null,
+      photoUrl: (p?.avatar && photos.get(p.avatar)) ?? null,
+      lastBookingId: b.id,
+      animalId: b.animalId,
+      species: b.species,
+      problemType: b.problemType,
+      available: list.some((v) => v.vetId === vetId),
+    });
+  }
+  return out;
 }
 
 /** Low ratings in this window count towards a review flag (§24.7). */

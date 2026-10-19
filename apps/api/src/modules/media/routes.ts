@@ -11,12 +11,13 @@ import {
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { DomainError } from '../../lib/errors.js';
-import { named, noContent, responses } from '../../schemas/common.js';
+import { intId, named, noContent, responses } from '../../schemas/common.js';
 import { presignDocument } from '../applications/service.js';
 import { access, authOf } from '../auth/access.js';
 import { animal, me } from '../users/schemas.js';
 import { animalById, loadMe } from '../users/service.js';
 import {
+  addBookingPhoto,
   decidePhoto,
   photoReviewQueue,
   presignPhoto,
@@ -177,6 +178,24 @@ export function mediaRoutes(app: FastifyInstance, ctx: AppContext): void {
       const farmerId = authOf(req).userId;
       await removeAnimalPhoto(ctx, farmerId, req.params.id, req.log);
       return animalById(ctx, farmerId, req.params.id);
+    },
+  );
+
+  r.put(
+    '/v1/bookings/:id/photos',
+    {
+      config: { access: access.role('farmer') },
+      schema: {
+        tags: ['bookings (farmer)'],
+        summary: 'Add a photo to my open request (up to 3; vets see them before accepting)',
+        params: z.object({ id: intId }),
+        body: confirmBody,
+        response: responses({ 204: noContent }),
+      },
+    },
+    async (req, reply) => {
+      await addBookingPhoto(ctx, authOf(req).userId, req.params.id, req.body.storageKey);
+      return reply.code(204).send(null);
     },
   );
 

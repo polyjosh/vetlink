@@ -10,12 +10,14 @@ import { Card, LinkButton } from '@/components/ui';
 import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
+import { PersonAvatar } from '@/components/pictures';
 
 /** Farmer home (§8.2): a big Request button, a red Emergency button, the active request. */
 export default function FarmerHome() {
   const { t, fmt } = useT();
   const { api, me } = useSession();
   const [active, setActive] = useState<Schemas['FarmerBooking'][]>([]);
+  const [recent, setRecent] = useState<Schemas['RecentVet'][]>([]);
   const load = useCallback(async () => {
     const { data } = await api.GET('/v1/bookings', {
       params: { query: { as: 'farmer', limit: 10 } },
@@ -25,6 +27,8 @@ export default function FarmerHome() {
         (b) => !TERMINAL_BOOKING_STATUSES.includes(b.status),
       ),
     );
+    const r = await api.GET('/v1/farmers/me/recent-vets');
+    setRecent(r.data ?? []);
   }, [api]);
   usePoll(load, 15_000);
   return (
@@ -67,6 +71,30 @@ export default function FarmerHome() {
             </ul>
           )}
         </Card>
+        {recent.length > 0 && (
+          <Card className="space-y-2">
+            <h2 className="text-lg font-bold">{t.web.bookAgain.title}</h2>
+            <ul className="space-y-2">
+              {recent.map((r) => (
+                <li key={r.vetId} className="flex items-center gap-3">
+                  <PersonAvatar url={r.photoUrl} name={r.name} size={40} />
+                  {r.available ? (
+                    <Link
+                      href={`/farmer/request?vet=${r.vetId}${r.animalId ? `&animal=${r.animalId}` : ''}`}
+                      className="flex-1 font-semibold underline"
+                    >
+                      {fmt(t.web.bookAgain.button, { vet: r.name ?? '' })}
+                    </Link>
+                  ) : (
+                    <span className="flex-1">
+                      {r.name} · <span className="text-muted">{t.web.bookAgain.unavailable}</span>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </div>
     </Shell>
   );

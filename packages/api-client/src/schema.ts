@@ -3042,7 +3042,7 @@ export interface paths {
                         /** @enum {string} */
                         purpose: "photo";
                         /** @enum {string} */
-                        photoKind: "avatar" | "animal_photo";
+                        photoKind: "avatar" | "animal_photo" | "booking_photo";
                         /** @enum {string} */
                         contentType: "image/jpeg" | "image/png";
                         size: number;
@@ -3654,6 +3654,141 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Add a photo to my open request (up to 3; vets see them before accepting)
+         * @description Access: role `farmer`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        storageKey: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description No content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4738,6 +4873,135 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/farmers/me/recent-vets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vets I finished jobs with, most recent first, for "Book again" (§24.9)
+         * @description Access: role `farmer`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RecentVet"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/bookings": {
         parameters: {
             query?: never;
@@ -4908,6 +5172,8 @@ export interface paths {
                         dispatchMode?: "auto" | "chosen";
                         /** Format: uuid */
                         vetId?: string;
+                        /** @description This request rebooks the follow-up of one of my treatments (§24.9) */
+                        followUpOfTreatmentId?: number;
                     };
                 };
             };
@@ -13708,6 +13974,8 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Short-lived links */
+            photos: string[];
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -13725,6 +13993,7 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                id: string;
                 /** @description Verified legal name */
                 name: string | null;
                 displayName: string | null;
@@ -13738,9 +14007,12 @@ export interface components {
                 phone: string | null;
             } | null;
             treatment: {
+                id: number;
                 diagnosis: string | null;
                 drugsUsed: string | null;
                 followUpDate: string | null;
+                /** @description The follow-up was rebooked */
+                followUpBookingId: number | null;
             } | null;
             rating: {
                 stars: number;
@@ -13770,6 +14042,7 @@ export interface components {
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             /** @description My price for this job; payVet is what I collect */
             price: components["schemas"]["PriceBreakdownInput"] | null;
+            photos: string[];
             acceptedAt: string | null;
             completedAt: string | null;
             timeline: {
@@ -13809,6 +14082,8 @@ export interface components {
              * @enum {string}
              */
             kind: "wave" | "direct";
+            /** @description Visible before accepting (§24.15) */
+            photos: string[];
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -13847,6 +14122,8 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Short-lived links */
+            photos: string[];
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -13864,6 +14141,7 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                id: string;
                 /** @description Verified legal name */
                 name: string | null;
                 displayName: string | null;
@@ -13877,9 +14155,12 @@ export interface components {
                 phone: string | null;
             } | null;
             treatment: {
+                id: number;
                 diagnosis: string | null;
                 drugsUsed: string | null;
                 followUpDate: string | null;
+                /** @description The follow-up was rebooked */
+                followUpBookingId: number | null;
             } | null;
             rating: {
                 stars: number;
@@ -14238,6 +14519,19 @@ export interface components {
             /** @description Older apps must update before continuing */
             minVersion: string;
         };
+        RecentVetInput: {
+            vetId: string;
+            name: string | null;
+            photoUrl: string | null;
+            lastBookingId: number;
+            animalId: string | null;
+            /** @enum {string} */
+            species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+            /** @enum {string} */
+            problemType: "sick" | "injury" | "breeding" | "vaccination" | "other";
+            /** @description Can be asked right now */
+            available: boolean;
+        };
         QuoteInput: {
             /** @description Call-out fee */
             feeQuoted: number;
@@ -14440,6 +14734,8 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Short-lived links */
+            photos: string[];
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -14457,6 +14753,7 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                id: string;
                 /** @description Verified legal name */
                 name: string | null;
                 displayName: string | null;
@@ -14470,9 +14767,12 @@ export interface components {
                 phone: string | null;
             } | null;
             treatment: {
+                id: number;
                 diagnosis: string | null;
                 drugsUsed: string | null;
                 followUpDate: string | null;
+                /** @description The follow-up was rebooked */
+                followUpBookingId: number | null;
             } | null;
             rating: {
                 stars: number;
@@ -14502,6 +14802,7 @@ export interface components {
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             /** @description My price for this job; payVet is what I collect */
             price: components["schemas"]["PriceBreakdown"] | null;
+            photos: string[];
             acceptedAt: string | null;
             completedAt: string | null;
             timeline: {
@@ -14541,6 +14842,8 @@ export interface components {
              * @enum {string}
              */
             kind: "wave" | "direct";
+            /** @description Visible before accepting (§24.15) */
+            photos: string[];
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -14579,6 +14882,8 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Short-lived links */
+            photos: string[];
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -14596,6 +14901,7 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                id: string;
                 /** @description Verified legal name */
                 name: string | null;
                 displayName: string | null;
@@ -14609,9 +14915,12 @@ export interface components {
                 phone: string | null;
             } | null;
             treatment: {
+                id: number;
                 diagnosis: string | null;
                 drugsUsed: string | null;
                 followUpDate: string | null;
+                /** @description The follow-up was rebooked */
+                followUpBookingId: number | null;
             } | null;
             rating: {
                 stars: number;
@@ -14969,6 +15278,19 @@ export interface components {
         MinAppVersion: {
             /** @description Older apps must update before continuing */
             minVersion: string;
+        };
+        RecentVet: {
+            vetId: string;
+            name: string | null;
+            photoUrl: string | null;
+            lastBookingId: number;
+            animalId: string | null;
+            /** @enum {string} */
+            species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+            /** @enum {string} */
+            problemType: "sick" | "injury" | "breeding" | "vaccination" | "other";
+            /** @description Can be asked right now */
+            available: boolean;
         };
         Quote: {
             /** @description Call-out fee */

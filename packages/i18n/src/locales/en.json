@@ -26,7 +26,8 @@
     "error": "Sorry, something went wrong. Please try again.",
     "practiceIncomplete": "VetLink: Set your consultation fee and service prices in the app before going online.",
     "acceptedAwaitingFee": "OK, you accepted request {ref}. We asked the farmer to pay the booking fee and will SMS you their details when paid.",
-    "atCapacity": "You already have a job waiting. Finish it before accepting request {ref}."
+    "atCapacity": "You already have a job waiting. Finish it before accepting request {ref}.",
+    "photoNote": ". {n} photo(s) in app"
   },
   "errors": {
     "invalid_request": "Something in the request was not right. Please check and try again.",
@@ -71,7 +72,7 @@
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
     "consent": "VetLink keeps your phone number and farm details to connect you with vets.\n1. I agree\n2. I do not agree",
     "consentDeclined": "Without your consent we cannot help you. Dial again anytime.",
-    "mainMenu": "VetLink\n1. Request vet\n2. My animals\n3. Reminders\n4. History",
+    "mainMenu": "VetLink\n1. Request vet\n2. My animals\n3. Reminders\n4. History\n5. My last vet",
     "chooseAnimal": "Which animal?\n1. Dairy cow\n2. Goat/Sheep\n3. Chicken\n4. Other",
     "chooseProblem": "What is the problem?\n1. Sick/not eating\n2. Injury\n3. Breeding/AI\n4. Vaccination\n5. EMERGENCY NOW",
     "chooseLocation": "Where is the animal?\n1. {ward} (saved)\n2. Another ward",
@@ -130,18 +131,26 @@
       "follow_up": "Follow-up"
     },
     "requestedNoStk": "Request {ref} saved, but M-Pesa is not available now. Dial again to pay the KES {deposit} booking fee, or use the VetLink app.",
-    "priceUnknown": "(vet confirms)"
+    "priceUnknown": "(vet confirms)",
+    "chooseVet": "Choose a vet:",
+    "fastestVet": "Fastest (any vet)",
+    "newVet": "New",
+    "confirmChosen": "{vet}: total from KES {price}\nPay KES {deposit} booking fee after the vet accepts\n1. Send request\n2. Cancel",
+    "requestedChosen": "Request {ref} sent to {vet}. We will SMS you when they accept, then send the M-Pesa prompt.",
+    "vetUnavailable": "That vet cannot take requests now. Dial again to choose another vet.",
+    "noLastVet": "You have no finished visit yet. Choose 1 to request a vet.",
+    "lastVetUnavailable": "{vet} cannot take requests now. Dial again and choose 1 to request another vet."
   },
   "notify": {
     "offer": {
       "title": "New job {ref}: {animal}",
       "body": "{animal}, {problem}, {ward} (~{km} km). Call-out KES {fee}. Tap to accept.",
-      "sms": "VETLINK JOB {ref}\n{animal}, {problem}, {ward} (~{km}km)\nCall-out KES {fee}\nReply Y{ref} to accept, N{ref} to decline"
+      "sms": "VETLINK JOB {ref}\n{animal}, {problem}, {ward} (~{km}km)\nCall-out KES {fee}{photos}\nReply Y{ref} to accept, N{ref} to decline"
     },
     "offerEmergency": {
       "title": "EMERGENCY job {ref}",
       "body": "EMERGENCY: {animal}, {ward} (~{km} km). Call-out KES {fee}. Tap to accept now.",
-      "sms": "VETLINK EMERGENCY {ref}\n{animal}, {ward} (~{km}km)\nCall-out KES {fee}\nReply Y{ref} to accept, N{ref} to decline"
+      "sms": "VETLINK EMERGENCY {ref}\n{animal}, {ward} (~{km}km)\nCall-out KES {fee}{photos}\nReply Y{ref} to accept, N{ref} to decline"
     },
     "booking_matched": {
       "title": "A vet is coming",
@@ -241,7 +250,7 @@
     "request": {
       "title": "Farmer chose you",
       "body": "{animal}, {problem} in {ward}. Accept within 5 minutes.",
-      "sms": "VETLINK REQUEST {ref}\n{animal}, {problem}, {ward}\nCall-out KES {fee}\nReply Y{ref} to accept, N{ref} to decline (5 min)"
+      "sms": "VETLINK REQUEST {ref}\n{animal}, {problem}, {ward}\nCall-out KES {fee}{photos}\nReply Y{ref} to accept, N{ref} to decline (5 min)"
     },
     "vet_accepted_pay": {
       "title": "{vet} accepted",
@@ -393,7 +402,8 @@
       "paymentFailed": "The payment did not go through.",
       "payAgain": "Pay again",
       "searching": "Finding a vet near you…",
-      "emergencyBadge": "EMERGENCY"
+      "emergencyBadge": "EMERGENCY",
+      "photos": "Photos of the animal (optional, up to 3)"
     },
     "tracking": {
       "title": "Request {ref}",
@@ -881,6 +891,12 @@
       "timeLeft": "{minutes}:{seconds} left",
       "farmerChoseYou": "The farmer chose you",
       "sendRequest": "Send request"
+    },
+    "bookAgain": {
+      "title": "Book again",
+      "button": "Book {vet} again",
+      "unavailable": "Not available right now",
+      "followUp": "Book {vet} for the follow-up"
     }
   }
 }

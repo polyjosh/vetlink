@@ -103,7 +103,7 @@ describe.skipIf(!testServerUrl)('SMS commands (database)', { timeout: 60_000 }, 
         }).toString(),
       });
     await ussd('');
-    const end = await ussd('1*1*1*1*1');
+    const end = await ussd('1*1*1*1*1*1'); // request, cow, sick, saved ward, fastest (§24.6), confirm
     const ref = Number(/Ombi (\d+)/.exec(end.body)?.[1]);
     expect(end.body).toMatch(/^END Ombi \d+ limetumwa/);
     await h.db

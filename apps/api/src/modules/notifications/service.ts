@@ -64,7 +64,13 @@ export interface NotifyInput {
   /** Passed to the app with the push (e.g. bookingId, offerId). Never personal data. */
   data?: Record<string, string | number>;
   /** Rendered in the recipient's language: `{animal}` and `{problem}`. */
-  localized?: { animal?: Species; problem?: ProblemType; reminderType?: ReminderType };
+  localized?: {
+    animal?: Species;
+    problem?: ProblemType;
+    reminderType?: ReminderType;
+    /** Fills `{photos}`: a note that the farmer added photos, or nothing (§24.15). */
+    photos?: number;
+  };
   /** Emergencies ignore quiet hours. */
   emergency?: boolean;
 }
@@ -102,6 +108,11 @@ function render(lang: Locale, kind: NotificationKind, payload: Payload) {
     }),
     ...(payload.localized?.problem && {
       problem: messages[lang].ussd.problems[payload.localized.problem],
+    }),
+    ...(payload.localized?.photos !== undefined && {
+      photos: payload.localized.photos
+        ? interpolate(messages[lang].sms.photoNote, { n: payload.localized.photos })
+        : '',
     }),
     ...(payload.localized?.reminderType && {
       reminder: messages[lang].ussd.reminderTypes[payload.localized.reminderType],

@@ -76,6 +76,7 @@ export const farmerBooking = named(
       .nullable()
       .describe('When the booking moves on by itself: vet answer, booking fee, choosing again'),
     directChoices: z.number().int(),
+    photos: z.array(z.string()).describe('Short-lived links'),
     deposit: z.object({
       status: z.enum(DEPOSIT_STATES),
       receipt: z.string().nullable(),
@@ -87,6 +88,7 @@ export const farmerBooking = named(
     timeline: z.array(timelineEntry),
     vet: z
       .object({
+        id: z.string(),
         name: z.string().nullable().describe('Verified legal name'),
         displayName: z.string().nullable(),
         photoUrl: z.string().nullable(),
@@ -98,9 +100,11 @@ export const farmerBooking = named(
       .nullable(),
     treatment: z
       .object({
+        id: z.number().int(),
         diagnosis: z.string().nullable(),
         drugsUsed: z.string().nullable(),
         followUpDate: z.string().nullable(),
+        followUpBookingId: z.number().int().nullable().describe('The follow-up was rebooked'),
       })
       .nullable(),
     rating: z
@@ -129,6 +133,7 @@ export const vetJob = named(
     feeQuoted: z.number().int(),
     services: z.array(z.enum(VET_SERVICES)),
     price: priceBreakdown.nullable().describe('My price for this job; payVet is what I collect'),
+    photos: z.array(z.string()),
     acceptedAt: z.string().nullable(),
     completedAt: z.string().nullable(),
     timeline: z.array(timelineEntry),
@@ -157,6 +162,7 @@ export const offer = named(
     services: z.array(z.enum(VET_SERVICES)),
     price: priceBreakdown.nullable().describe('What this job pays at my current prices'),
     kind: z.enum(OFFER_KINDS).describe('direct: the farmer chose you'),
+    photos: z.array(z.string()).describe('Visible before accepting (§24.15)'),
     wave: z.number().int(),
     sentAt: z.string(),
     expiresAt: z.string(),
@@ -205,6 +211,12 @@ export const createBookingBody = z.object({
     .default('auto')
     .describe('chosen: only vetId is asked, and the booking fee follows acceptance (§24.6)'),
   vetId: z.uuid().optional(),
+  followUpOfTreatmentId: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe('This request rebooks the follow-up of one of my treatments (§24.9)'),
 });
 export const idempotencyHeaders = z.object({
   'idempotency-key': z

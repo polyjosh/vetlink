@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Linking, View } from 'react-native';
 import { CANCEL_REASONS, TERMINAL_BOOKING_STATUSES, type CancelReason } from '@vetlink/shared';
@@ -27,6 +27,7 @@ import { ratingTagsFor, type RatingTag } from '@vetlink/shared';
 import { Countdown } from '../../../src/components/countdown';
 import { VetChooser, type VetSort } from '../../../src/components/vet-chooser';
 import { CHOICES_BEFORE_AUTO_HINT } from '@vetlink/shared';
+import { PhotoStrip } from '../../../src/components/photo-strip';
 
 /** Tracking (§8.2 step 7): progress, vet contact once matched, cancel with policy, rating. */
 export default function Tracking() {
@@ -100,6 +101,7 @@ export default function Tracking() {
         {b.services.length > 0 && (
           <P>{`${t.web.prices.consultation} + ${b.services.map((x) => t.web.application.services[x]).join(', ')}`}</P>
         )}
+        <PhotoStrip urls={b.photos} />
         {b.price ? (
           <PriceLines price={b.price} />
         ) : (
@@ -221,6 +223,17 @@ export default function Tracking() {
           {b.treatment.diagnosis && <P>{`${tr.diagnosis}: ${b.treatment.diagnosis}`}</P>}
           {b.treatment.drugsUsed && <P>{`${tr.drugs}: ${b.treatment.drugsUsed}`}</P>}
           {b.treatment.followUpDate && <P>{`${tr.followUp}: ${b.treatment.followUpDate}`}</P>}
+          {b.treatment.followUpDate && !b.treatment.followUpBookingId && b.vet && (
+            <Button
+              variant="secondary"
+              title={fmt(t.web.bookAgain.followUp, { vet: b.vet.name ?? '' })}
+              onPress={() =>
+                router.push(
+                  `/farmer/request?vet=${b.vet?.id ?? ''}&followUp=${b.treatment?.id ?? ''}`,
+                )
+              }
+            />
+          )}
         </Card>
       )}
       {b.status === 'done' && !b.rating && (

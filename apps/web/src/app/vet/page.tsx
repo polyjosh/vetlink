@@ -15,6 +15,7 @@ import { useSession } from '@/lib/session';
 import { EmptyState } from '@/components/pictures';
 import { PriceLines } from '@/components/prices';
 import { FollowUpList } from '@/components/follow-ups';
+import { PhotoStrip } from '@/components/photo-strip';
 
 /** Vet home (§8.3): online toggle, live offers with countdown, active jobs. */
 export default function VetHome() {
@@ -135,6 +136,7 @@ export default function VetHome() {
               <p>
                 {o.ward.ward} ({o.ward.subCounty})
               </p>
+              <PhotoStrip urls={o.photos} />
               {o.price ? (
                 <PriceLines price={o.price} forVet />
               ) : (

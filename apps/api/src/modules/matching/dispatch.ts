@@ -12,6 +12,7 @@ import { getConfig } from '../config/service.js';
 import { notify } from '../notifications/service.js';
 import { createRefundIfPaid } from '../payments/refunds.js';
 import { rankCandidates } from './candidates.js';
+import { bookingPhotoCount } from '../media/service.js';
 
 /**
  * Dispatch waves (§8.5): wave 1 the top 3, wave 2 the next 3, wave 3 a wider radius and the top 5;
@@ -72,6 +73,7 @@ export async function dispatchWave(
     .select({ name: locations.ward })
     .from(locations)
     .where(eq(locations.id, booking.wardId));
+  const photos = await bookingPhotoCount(ctx, booking.id);
   let offered = 0;
   for (const c of chosen) {
     const offerId = await createOffer(ctx, {
@@ -95,7 +97,7 @@ export async function dispatchWave(
           km: Math.round(c.distanceKm),
           fee: booking.feeQuoted,
         },
-        localized: { animal: booking.species, problem: booking.problemType },
+        localized: { animal: booking.species, problem: booking.problemType, photos },
         data: { bookingId: booking.id, offerId },
         emergency: booking.isEmergency,
       },
