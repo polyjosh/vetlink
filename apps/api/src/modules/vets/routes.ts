@@ -1,15 +1,18 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
   KVB_CATEGORIES,
   PRACTICE_TYPES,
   PRICED_ITEMS,
+  REVIEW_FLAG_REASONS,
   SPECIES,
   SPOKEN_LANGUAGES,
   VERIFICATION_STATUSES,
   VET_DOCUMENT_KINDS,
   VET_DOCUMENT_STATUSES,
+  VET_BADGES,
+  RATING_TAGS,
   VET_SERVICES,
   VET_TYPES,
   type VetService,
@@ -17,10 +20,10 @@ import {
 } from '@vetlink/shared';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
-import { locations, vetApplications, vetDocuments, vets } from '../../db/schema/index.js';
+import { locations, users, vetApplications, vetDocuments, vets } from '../../db/schema/index.js';
 import { fieldContext } from '../../lib/crypto.js';
 import { DomainError } from '../../lib/errors.js';
-import { intId, named, responses } from '../../schemas/common.js';
+import { intId, named, noContent, responses } from '../../schemas/common.js';
 import { audit } from '../admin/audit.js';
 import { DOCUMENT_URL_TTL_S } from '../applications/review.js';
 import { access, authOf } from '../auth/access.js';
@@ -33,6 +36,7 @@ import {
   workingHoursSchema,
   writeServiceFees,
 } from './practice.js';
+import { vetFollowUps, vetRatings } from './insights.js';
 import { setAvailability } from './service.js';
 
 const band = z.object({ min: z.number().int(), max: z.number().int() });
@@ -49,6 +53,7 @@ const vetProfile = named(
     specialties: z.array(z.enum(SPECIES)),
     services: z.array(z.enum(VET_SERVICES)),
     rating: z.number().nullable(),
+    badges: z.array(z.enum(VET_BADGES)).describe('Server-computed (§24.8)'),
     // §24.3: prices and practice.
     consultationFee: z.number().int().nullable(),
     serviceFees: z.partialRecord(z.enum(VET_SERVICES), z.number().int()),
@@ -141,6 +146,7 @@ async function loadVet(ctx: AppContext, userId: string): Promise<z.infer<typeof 
     specialties: only(SPECIES, v.specialties),
     services,
     rating: v.rating === null ? null : Number(v.rating),
+    badges: v.verificationStatus === 'approved' ? v.badges : [],
     consultationFee: v.consultationFee,
     serviceFees: practice.serviceFees,
     offersCallOuts: v.offersCallOuts,
@@ -291,6 +297,77 @@ export function vetRoutes(app: FastifyInstance, ctx: AppContext): void {
   );
 
   r.get(
+    '/v1/vets/me/ratings',
+    {
+      config: { access: access.role('vet') },
+      schema: {
+        tags,
+        summary: 'My ratings: summary and the latest 50 (farmers are never named)',
+        response: responses({
+          200: named(
+            z.object({
+              average: z.number().nullable(),
+              count: z.number().int(),
+              distribution: z.object({
+                1: z.number().int(),
+                2: z.number().int(),
+                3: z.number().int(),
+                4: z.number().int(),
+                5: z.number().int(),
+              }),
+              tagCounts: z.record(z.enum(RATING_TAGS), z.number().int()),
+              items: z.array(
+                z.object({
+                  bookingId: z.number().int(),
+                  stars: z.number().int(),
+                  tags: z.array(z.enum(RATING_TAGS)),
+                  comment: z.string().nullable(),
+                  species: z.enum(SPECIES),
+                  createdAt: z.string(),
+                }),
+              ),
+            }),
+            'VetRatings',
+          ),
+        }),
+      },
+    },
+    async (req) => vetRatings(ctx, authOf(req).userId),
+  );
+
+  r.get(
+    '/v1/vets/me/follow-ups',
+    {
+      config: { access: access.role('vet') },
+      schema: {
+        tags,
+        summary: 'Follow-ups I set, from today on (farmer contact only within 7 days)',
+        response: responses({
+          200: z.array(
+            named(
+              z.object({
+                treatmentId: z.number().int(),
+                bookingId: z.number().int(),
+                followUpDate: z.string(),
+                daysAway: z.number().int().describe('0 = today (Nairobi time)'),
+                species: z.enum(SPECIES),
+                ward: z.string(),
+                diagnosis: z.string().nullable(),
+                rebookedBookingId: z.number().int().nullable(),
+                farmer: z
+                  .object({ name: z.string().nullable(), phone: z.string().nullable() })
+                  .nullable(),
+              }),
+              'FollowUp',
+            ),
+          ),
+        }),
+      },
+    },
+    async (req) => vetFollowUps(ctx, authOf(req).userId),
+  );
+
+  r.get(
     '/v1/vets/me/documents/:id/url',
     {
       config: { access: access.role('vet') },
@@ -389,6 +466,85 @@ export function vetRoutes(app: FastifyInstance, ctx: AppContext): void {
         .set({ shareLiveLocation: false, liveLat: null, liveLng: null, liveLocationAt: null })
         .where(eq(vets.userId, userId));
       return loadVet(ctx, userId);
+    },
+  );
+
+  // ---- Admin: vets flagged by ratings (§24.7) ----
+
+  r.get(
+    '/v1/admin/vets/flagged',
+    {
+      config: { access: access.admin('verifier') },
+      schema: {
+        tags: ['admin: verification'],
+        summary: 'Vets flagged for review by complaints or low ratings, oldest first',
+        response: responses({
+          200: z.array(
+            named(
+              z.object({
+                vetUserId: z.string(),
+                name: z.string().nullable(),
+                reason: z.enum(REVIEW_FLAG_REASONS),
+                flaggedAt: z.string(),
+                rating: z.number().nullable(),
+                verificationStatus: z.enum(VERIFICATION_STATUSES),
+              }),
+              'FlaggedVet',
+            ),
+          ),
+        }),
+      },
+    },
+    async () => {
+      const rows = await ctx.db
+        .select({ vet: vets, name: users.name })
+        .from(vets)
+        .innerJoin(users, eq(users.id, vets.userId))
+        .where(isNotNull(vets.reviewFlaggedAt))
+        .orderBy(asc(vets.reviewFlaggedAt));
+      return rows.map((r) => ({
+        vetUserId: r.vet.userId,
+        name: r.name,
+        reason: r.vet.reviewFlagReason ?? 'repeated_low_ratings',
+        flaggedAt: (r.vet.reviewFlaggedAt ?? new Date(0)).toISOString(),
+        rating: r.vet.rating === null ? null : Number(r.vet.rating),
+        verificationStatus: r.vet.verificationStatus,
+      }));
+    },
+  );
+
+  r.post(
+    '/v1/admin/vets/:userId/review-flag/clear',
+    {
+      config: { access: access.admin('verifier') },
+      schema: {
+        tags: ['admin: verification'],
+        summary: 'Mark a flagged vet as reviewed (audited; suspend separately if needed)',
+        params: z.object({ userId: z.uuid() }),
+        body: z.object({ note: z.string().trim().min(3).max(500) }),
+        response: responses({ 204: noContent }),
+      },
+    },
+    async (req, reply) => {
+      const admin = authOf(req);
+      const [cleared] = await ctx.db
+        .update(vets)
+        .set({ reviewFlagReason: null, reviewFlaggedAt: null })
+        .where(and(eq(vets.userId, req.params.userId), isNotNull(vets.reviewFlaggedAt)))
+        .returning({ id: vets.userId });
+      if (!cleared) throw new DomainError('not_found');
+      await audit(
+        ctx.db,
+        {
+          actorUserId: admin.userId,
+          action: 'vet.review_flag_cleared',
+          entity: 'vet',
+          entityId: req.params.userId,
+          meta: { note: req.body.note },
+        },
+        ctx.clock(),
+      );
+      return reply.code(204).send(null);
     },
   );
 }

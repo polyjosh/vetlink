@@ -7,6 +7,8 @@ import type {
   DepositState,
   ProblemType,
   Species,
+  RatingTag,
+  VetBadge,
   VetService,
   VetType,
 } from './domain.js';
@@ -131,6 +133,7 @@ export interface FarmerBookingView {
     photoUrl: string | null;
     type: VetType;
     rating: number | null;
+    badges: VetBadge[];
     phone: string | null;
   } | null;
   treatment: {
@@ -138,7 +141,7 @@ export interface FarmerBookingView {
     drugsUsed: string | null;
     followUpDate: string | null;
   } | null;
-  rating: { stars: number; comment: string | null } | null;
+  rating: { stars: number; comment: string | null; tags: RatingTag[] } | null;
   /** Events the farmer can trigger now (e.g. `farmer_cancelled`). */
   actions: BookingEvent[];
 }

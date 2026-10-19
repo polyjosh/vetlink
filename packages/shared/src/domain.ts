@@ -174,3 +174,39 @@ export type DepositState = (typeof DEPOSIT_STATES)[number];
 
 export const REMINDER_TYPES = ['vaccine', 'deworm', 'calving', 'follow_up'] as const;
 export type ReminderType = (typeof REMINDER_TYPES)[number];
+
+/** Rating tags (§24.7): tap-to-pick chips, app and web only. */
+export const POSITIVE_RATING_TAGS = [
+  'on_time',
+  'explained_well',
+  'fair_price',
+  'gentle_with_animal',
+  'animal_recovered',
+  'would_book_again',
+] as const;
+export const NEGATIVE_RATING_TAGS = ['late', 'unclear_price', 'rude'] as const;
+export const RATING_TAGS = [...POSITIVE_RATING_TAGS, ...NEGATIVE_RATING_TAGS] as const;
+export type RatingTag = (typeof RATING_TAGS)[number];
+
+/** Server-computed vet badges (§24.8); never self-claimed. */
+export const VET_BADGES = [
+  'verified',
+  'top_rated',
+  'fast_responder',
+  'jobs_50',
+  'jobs_100',
+  'jobs_500',
+  'vaccinations_100',
+] as const;
+export type VetBadge = (typeof VET_BADGES)[number];
+
+/** Why a vet was flagged for admin review (§24.7). */
+export const REVIEW_FLAG_REASONS = ['rude_rating', 'repeated_low_ratings'] as const;
+export type ReviewFlagReason = (typeof REVIEW_FLAG_REASONS)[number];
+
+/** Which chips to offer for a star rating: praise for 4-5, problems for 1-2, both for 3. */
+export function ratingTagsFor(stars: number): readonly RatingTag[] {
+  if (stars >= 4) return POSITIVE_RATING_TAGS;
+  if (stars <= 2) return NEGATIVE_RATING_TAGS;
+  return RATING_TAGS;
+}

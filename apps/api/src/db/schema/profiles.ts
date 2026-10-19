@@ -23,11 +23,13 @@ import {
   VERIFICATION_STATUSES,
   VET_DOCUMENT_KINDS,
   VET_DOCUMENT_STATUSES,
+  REVIEW_FLAG_REASONS,
+  VET_BADGES,
   VET_SERVICES,
   VET_TYPES,
   type WorkingHours,
 } from '@vetlink/shared';
-import { emptyJson, emptyTextArray, oneOf, timestamptz } from './helpers.js';
+import { emptyJson, emptyTextArray, oneOf, subsetOf, timestamptz } from './helpers.js';
 import { media } from './bookings.js';
 import { users } from './identity.js';
 import { locations } from './reference.js';
@@ -84,6 +86,10 @@ export const vets = pgTable(
     premisesDirections: text('premises_directions'),
     premisesHours: text('premises_hours'),
     workingHours: jsonb('working_hours').$type<WorkingHours>(), // §24.10
+    badges: text('badges', { enum: VET_BADGES }).array().notNull().default(emptyTextArray), // §24.8
+    // §24.7: complaints or low ratings raise a flag an admin reviews (the vet stays online).
+    reviewFlagReason: text('review_flag_reason', { enum: REVIEW_FLAG_REASONS }),
+    reviewFlaggedAt: timestamptz('review_flagged_at'),
     rating: numeric('rating', { precision: 2, scale: 1 }),
     isAvailable: boolean('is_available').notNull().default(false),
     shareLiveLocation: boolean('share_live_location').notNull().default(false),
@@ -106,6 +112,8 @@ export const vets = pgTable(
     check('vets_base_call_out_fee_check', sql`${t.baseCallOutFee} >= 0`),
     check('vets_consultation_fee_check', sql`${t.consultationFee} >= 0`),
     check('vets_call_outs_or_premises', sql`${t.offersCallOuts} or ${t.hasPremises}`),
+    check('vets_badges_check', subsetOf(t.badges, VET_BADGES)),
+    check('vets_review_flag_reason_check', oneOf(t.reviewFlagReason, REVIEW_FLAG_REASONS)),
     check('vets_rating_check', sql`${t.rating} between 1 and 5`),
     index('vets_national_id_hash_idx').on(t.nationalIdHash), // duplicate-ID detection
     index('vets_ward_id_approved_available_idx')

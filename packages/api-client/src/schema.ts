@@ -4647,6 +4647,8 @@ export interface paths {
                     "application/json": {
                         stars: number;
                         comment?: string;
+                        /** @description Tap-to-pick chips (§24.7) */
+                        tags?: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
                     };
                 };
             };
@@ -5855,6 +5857,264 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/vets/me/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My ratings: summary and the latest 50 (farmers are never named)
+         * @description Access: role `vet`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VetRatings"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vets/me/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Follow-ups I set, from today on (farmer contact only within 7 days)
+         * @description Access: role `vet`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FollowUp"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vets/me/documents/{id}/url": {
         parameters: {
             query?: never;
@@ -6370,6 +6630,270 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vets/flagged": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vets flagged for review by complaints or low ratings, oldest first
+         * @description Access: admin permission `verifier` with 2FA.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FlaggedVet"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vets/{userId}/review-flag/clear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a flagged vet as reviewed (audited; suspend separately if needed)
+         * @description Access: admin permission `verifier` with 2FA.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description No content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -12380,6 +12904,8 @@ export interface components {
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
+                /** @description Server-computed (§24.8) */
+                badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
                 /** @description Only while the job is active */
                 phone: string | null;
             } | null;
@@ -12391,6 +12917,7 @@ export interface components {
             rating: {
                 stars: number;
                 comment: string | null;
+                tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
             actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
@@ -12500,6 +13027,8 @@ export interface components {
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
+                /** @description Server-computed (§24.8) */
+                badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
                 /** @description Only while the job is active */
                 phone: string | null;
             } | null;
@@ -12511,6 +13040,7 @@ export interface components {
             rating: {
                 stars: number;
                 comment: string | null;
+                tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
             actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
@@ -12675,7 +13205,7 @@ export interface components {
         NotificationInput: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today";
             title: string;
             body: string;
             data: {
@@ -12748,6 +13278,8 @@ export interface components {
             specialties: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             rating: number | null;
+            /** @description Server-computed (§24.8) */
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
             consultationFee: number | null;
             serviceFees: {
                 [key: string]: number;
@@ -12813,6 +13345,55 @@ export interface components {
             depositKes: number;
             /** @description Totals of nearby vets; null when none is near */
             priceRange: components["schemas"]["PriceRangeInput"] | null;
+        };
+        VetRatingsInput: {
+            average: number | null;
+            count: number;
+            distribution: {
+                1: number;
+                2: number;
+                3: number;
+                4: number;
+                5: number;
+            };
+            tagCounts: {
+                [key: string]: number;
+            };
+            items: {
+                bookingId: number;
+                stars: number;
+                tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
+                comment: string | null;
+                /** @enum {string} */
+                species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+                createdAt: string;
+            }[];
+        };
+        FollowUpInput: {
+            treatmentId: number;
+            bookingId: number;
+            followUpDate: string;
+            /** @description 0 = today (Nairobi time) */
+            daysAway: number;
+            /** @enum {string} */
+            species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+            ward: string;
+            diagnosis: string | null;
+            rebookedBookingId: number | null;
+            farmer: {
+                name: string | null;
+                phone: string | null;
+            } | null;
+        };
+        FlaggedVetInput: {
+            vetUserId: string;
+            name: string | null;
+            /** @enum {string} */
+            reason: "rude_rating" | "repeated_low_ratings";
+            flaggedAt: string;
+            rating: number | null;
+            /** @enum {string} */
+            verificationStatus: "draft" | "submitted" | "under_review" | "changes_requested" | "approved" | "rejected" | "suspended";
         };
         Error: {
             /** @enum {string} */
@@ -12972,6 +13553,8 @@ export interface components {
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
+                /** @description Server-computed (§24.8) */
+                badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
                 /** @description Only while the job is active */
                 phone: string | null;
             } | null;
@@ -12983,6 +13566,7 @@ export interface components {
             rating: {
                 stars: number;
                 comment: string | null;
+                tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
             actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
@@ -13092,6 +13676,8 @@ export interface components {
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
+                /** @description Server-computed (§24.8) */
+                badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
                 /** @description Only while the job is active */
                 phone: string | null;
             } | null;
@@ -13103,6 +13689,7 @@ export interface components {
             rating: {
                 stars: number;
                 comment: string | null;
+                tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
             } | null;
             /** @description Events the farmer can trigger now */
             actions: ("deposit_confirmed" | "payment_failed" | "vet_accepted" | "vet_released" | "vet_en_route" | "vet_arrived" | "vet_completed" | "farmer_cancelled" | "no_vet_found" | "admin_cancelled")[];
@@ -13267,7 +13854,7 @@ export interface components {
         Notification: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today";
             title: string;
             body: string;
             data: {
@@ -13340,6 +13927,8 @@ export interface components {
             specialties: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             rating: number | null;
+            /** @description Server-computed (§24.8) */
+            badges: ("verified" | "top_rated" | "fast_responder" | "jobs_50" | "jobs_100" | "jobs_500" | "vaccinations_100")[];
             consultationFee: number | null;
             serviceFees: {
                 [key: string]: number;
@@ -13405,6 +13994,55 @@ export interface components {
             depositKes: number;
             /** @description Totals of nearby vets; null when none is near */
             priceRange: components["schemas"]["PriceRange"] | null;
+        };
+        VetRatings: {
+            average: number | null;
+            count: number;
+            distribution: {
+                1: number;
+                2: number;
+                3: number;
+                4: number;
+                5: number;
+            };
+            tagCounts: {
+                [key: string]: number;
+            };
+            items: {
+                bookingId: number;
+                stars: number;
+                tags: ("on_time" | "explained_well" | "fair_price" | "gentle_with_animal" | "animal_recovered" | "would_book_again" | "late" | "unclear_price" | "rude")[];
+                comment: string | null;
+                /** @enum {string} */
+                species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+                createdAt: string;
+            }[];
+        };
+        FollowUp: {
+            treatmentId: number;
+            bookingId: number;
+            followUpDate: string;
+            /** @description 0 = today (Nairobi time) */
+            daysAway: number;
+            /** @enum {string} */
+            species: "cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other";
+            ward: string;
+            diagnosis: string | null;
+            rebookedBookingId: number | null;
+            farmer: {
+                name: string | null;
+                phone: string | null;
+            } | null;
+        };
+        FlaggedVet: {
+            vetUserId: string;
+            name: string | null;
+            /** @enum {string} */
+            reason: "rude_rating" | "repeated_low_ratings";
+            flaggedAt: string;
+            rating: number | null;
+            /** @enum {string} */
+            verificationStatus: "draft" | "submitted" | "under_review" | "changes_requested" | "approved" | "rejected" | "suspended";
         };
     };
     responses: never;

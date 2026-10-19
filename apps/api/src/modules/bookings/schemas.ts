@@ -7,7 +7,9 @@ import {
   OFFER_CHANNELS,
   OFFER_RESPONSES,
   PROBLEM_TYPES,
+  RATING_TAGS,
   SPECIES,
+  VET_BADGES,
   VET_SERVICES,
   VET_TYPES,
   type FarmerBookingView,
@@ -78,6 +80,7 @@ export const farmerBooking = named(
         photoUrl: z.string().nullable(),
         type: z.enum(VET_TYPES),
         rating: z.number().nullable(),
+        badges: z.array(z.enum(VET_BADGES)).describe('Server-computed (§24.8)'),
         phone: z.string().nullable().describe('Only while the job is active'),
       })
       .nullable(),
@@ -88,7 +91,13 @@ export const farmerBooking = named(
         followUpDate: z.string().nullable(),
       })
       .nullable(),
-    rating: z.object({ stars: z.number().int(), comment: z.string().nullable() }).nullable(),
+    rating: z
+      .object({
+        stars: z.number().int(),
+        comment: z.string().nullable(),
+        tags: z.array(z.enum(RATING_TAGS)),
+      })
+      .nullable(),
     actions: z.array(z.enum(BOOKING_EVENTS)).describe('Events the farmer can trigger now'),
   }),
   'FarmerBooking',
@@ -196,6 +205,11 @@ export const cancelBody = z.object({ reason: z.enum(CANCEL_REASONS) });
 export const ratingBody = z.object({
   stars: z.number().int().min(1).max(5),
   comment: z.string().max(500).optional(),
+  tags: z
+    .array(z.enum(RATING_TAGS))
+    .max(RATING_TAGS.length)
+    .optional()
+    .describe('Tap-to-pick chips (§24.7)'),
 });
 export const stepBody = z.object({ status: z.enum(['en_route', 'in_service']) });
 export const completeBody = z.object({

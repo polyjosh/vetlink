@@ -256,7 +256,7 @@ Forward-only migrations; exact names are set in the CS plans.
 - `bookings` (CS2, migration 0010): `services TEXT[]`, `booking_fee_kes INT`, `price_range JSONB`, `vet_price JSONB`. (CS4): `dispatch_mode TEXT NOT NULL DEFAULT 'auto'` (`auto|chosen`), `requested_vet_id UUID REFERENCES vets(user_id)`, `scheduled_for TIMESTAMPTZ`, `scheduled_part TEXT` (`morning|afternoon|evening`), `request_expires_at`, `deposit_due_at`; status CHECK gains the three new statuses.
 - `booking_offers`: `kind TEXT NOT NULL DEFAULT 'wave'` (`wave|direct`); direct requests use `wave = 0`.
 - `ratings`: `tags TEXT[] NOT NULL DEFAULT '{}'` (subset of `RATING_TAGS`).
-- `treatments`: `follow_up_booking_id INT REFERENCES bookings(id)`; follow-up notification idempotency keyed in `notifications`.
+- `treatments`: `follow_up_booking_id INT REFERENCES bookings(id)`, `vet_alert_evening_sent_at`, `vet_alert_day_sent_at` (claimed before sending, so alerts go out once). `vets.review_flag_reason`, `vets.review_flagged_at`.
 - `alert_campaigns` (id, title/body sw+en, target JSONB, species TEXT[], channel, status `draft|scheduled|sending|sent|cancelled`, send_at, created_by, sent_by, recipient_count, created_at) and `alert_deliveries (campaign_id, user_id, PRIMARY KEY both)` for idempotency.
 - `referral_partners` (code, name, kind `coop|agrovet|other`, created_by, created_at).
 
@@ -272,7 +272,7 @@ Representative; exact shapes in the zod schemas and OpenAPI. All need `Idempoten
 - Vet: direct requests appear in the existing offers list with `kind: direct`; accept/decline unchanged.
 - Public, no login: `GET /v1/public/vets/:slug`.
 - Admin: `GET/POST /v1/admin/vet-photos` (pending photo queue, `verifier`), `/v1/admin/alert-campaigns` (`super_admin`), `/v1/admin/referral-partners` and referral reports (`analyst` read, `super_admin` write), `fees.serviceBands` in `/v1/admin/config`.
-- Ratings: `POST /v1/bookings/:id/rating` accepts `tags`.
+- Ratings: `POST /v1/bookings/:id/rating` accepts `tags`. CS3: `GET /v1/vets/me/ratings`, `GET /v1/vets/me/follow-ups` (with `daysAway`), `GET /v1/admin/vets/flagged`, `POST /v1/admin/vets/:userId/review-flag/clear`; vet badges in `GET /v1/vets/me` and the farmer's booking view.
 - CS2: `GET /v1/bookings/quote?services=a,b` returns `priceRange`; `POST /v1/bookings` takes `services`; booking, job and offer views carry `services`, `priceRange` and `price` (a `PriceBreakdown`).
 
 ### 24.23 Testing additions (amends §16)

@@ -14,6 +14,7 @@ import {
 import type { Schemas } from '@vetlink/api-client';
 import { PersonAvatar } from '@/components/pictures';
 import { FeesEditor, HoursEditor } from '@/components/prices';
+import { BadgeChips } from '@/components/ratings';
 import { Shell } from '@/components/shell';
 import { Badge, Button, Card, ErrorBox, Field, Input, Notice, Spinner } from '@/components/ui';
 import { VetNav } from '@/components/vet-nav';
@@ -113,6 +114,7 @@ export default function VetProfilePage() {
               {profile.verificationStatus === 'approved' && <Badge tone="success">✓</Badge>}
             </p>
             {profile.rating !== null && <p>★ {profile.rating.toFixed(1)}</p>}
+            <BadgeChips badges={profile.badges} />
             <Link href="/settings" className="text-sm underline">
               {vp.editPhoto}
             </Link>

@@ -215,6 +215,21 @@
       "title": "Picha haikukubaliwa",
       "body": "Picha yako mpya ya wasifu haikukubaliwa. Fungua wasifu wako kuona sababu.",
       "sms": "VetLink: picha yako mpya ya wasifu haikukubaliwa. Fungua wasifu wako kwenye programu kuona sababu."
+    },
+    "reminder_due": {
+      "title": "{reminder} leo",
+      "body": "{reminder} ya {animal} {name} inafaa leo.",
+      "sms": "VetLink: {reminder} ya {animal} wako {name} inafaa leo. Piga *123# kuomba daktari."
+    },
+    "followup_tomorrow": {
+      "title": "Ufuatiliaji kesho",
+      "body": "Ufuatiliaji wa kazi {ref} ({animal}, {ward}) ni kesho.",
+      "sms": "VetLink: ufuatiliaji wa kazi {ref} ({animal}, {ward}) ni kesho."
+    },
+    "followup_today": {
+      "title": "Ufuatiliaji leo",
+      "body": "Ufuatiliaji wa kazi {ref} ({animal}, {ward}) ni leo.",
+      "sms": "VetLink: ufuatiliaji wa kazi {ref} ({animal}, {ward}) ni leo."
     }
   },
   "application": {
@@ -588,7 +603,8 @@
         "payments": "Malipo",
         "config": "Mipangilio",
         "admins": "Wasimamizi",
-        "photos": "Picha"
+        "photos": "Picha",
+        "flags": "Alama"
       },
       "queue": "Maombi ya kukagua",
       "queueEmpty": "Hakuna cha kukagua.",
@@ -644,7 +660,15 @@
       "openIdPhoto": "Fungua picha ya kitambulisho",
       "approvePhoto": "Idhinisha picha",
       "rejectPhoto": "Kataa picha",
-      "rejectReason": "Sababu"
+      "rejectReason": "Sababu",
+      "flagsTitle": "Madaktari walioalamishwa kwa tathmini",
+      "flagsEmpty": "Hakuna daktari aliyealamishwa.",
+      "flagReasons": {
+        "rude_rating": "Alitathminiwa mkorofi",
+        "repeated_low_ratings": "Tathmini 3 za chini kwa siku 30"
+      },
+      "clearFlag": "Weka kuwa imekaguliwa",
+      "clearNote": "Ulichokagua"
     },
     "mobile": {
       "pendingSync": "{n} vinasubiri kutumwa",
@@ -752,6 +776,44 @@
       "verifiedOn": "Amethibitishwa {date}",
       "editPhoto": "Badilisha picha kwenye Wasifu wangu",
       "updateDetails": "Sasisha maelezo yanayokaguliwa"
+    },
+    "ratings": {
+      "title": "Tathmini zangu",
+      "count": "Tathmini {n}",
+      "empty": "Bado hakuna tathmini. Zinaonekana wakulima wanapotathmini kazi zilizokamilika.",
+      "tagsTitle": "Wakulima walisema",
+      "tagsPrompt": "Nini kilienda vizuri? (si lazima)",
+      "tagsPromptLow": "Nini kiliharibika? (si lazima)",
+      "job": "Kazi {ref}",
+      "tags": {
+        "on_time": "Alifika kwa wakati",
+        "explained_well": "Alieleza vizuri",
+        "fair_price": "Bei nzuri",
+        "gentle_with_animal": "Mpole kwa mnyama",
+        "animal_recovered": "Mnyama alipona",
+        "would_book_again": "Ningemwita tena",
+        "late": "Alichelewa",
+        "unclear_price": "Bei haikuwa wazi",
+        "rude": "Mkorofi"
+      }
+    },
+    "badges": {
+      "verified": "Amethibitishwa",
+      "top_rated": "Anapendwa sana",
+      "fast_responder": "Hujibu haraka",
+      "jobs_50": "Kazi 50+",
+      "jobs_100": "Kazi 100+",
+      "jobs_500": "Kazi 500+",
+      "vaccinations_100": "Chanjo 100+"
+    },
+    "followUps": {
+      "title": "Ufuatiliaji",
+      "empty": "Hakuna ufuatiliaji unaokuja.",
+      "seeAll": "Ufuatiliaji wote",
+      "rebooked": "Imeagizwa tena: ombi {ref}",
+      "job": "Kutoka kazi {ref}",
+      "today": "Leo",
+      "tomorrow": "Kesho"
     }
   }
 }

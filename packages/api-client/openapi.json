@@ -870,6 +870,22 @@
                       "null"
                     ]
                   },
+                  "badges": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "verified",
+                        "top_rated",
+                        "fast_responder",
+                        "jobs_50",
+                        "jobs_100",
+                        "jobs_500",
+                        "vaccinations_100"
+                      ]
+                    },
+                    "description": "Server-computed (§24.8)"
+                  },
                   "phone": {
                     "description": "Only while the job is active",
                     "type": [
@@ -884,6 +900,7 @@
                   "photoUrl",
                   "type",
                   "rating",
+                  "badges",
                   "phone"
                 ]
               },
@@ -942,11 +959,29 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "on_time",
+                        "explained_well",
+                        "fair_price",
+                        "gentle_with_animal",
+                        "animal_recovered",
+                        "would_book_again",
+                        "late",
+                        "unclear_price",
+                        "rude"
+                      ]
+                    }
                   }
                 },
                 "required": [
                   "stars",
-                  "comment"
+                  "comment",
+                  "tags"
                 ]
               },
               {
@@ -1596,6 +1631,22 @@
                       "null"
                     ]
                   },
+                  "badges": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "verified",
+                        "top_rated",
+                        "fast_responder",
+                        "jobs_50",
+                        "jobs_100",
+                        "jobs_500",
+                        "vaccinations_100"
+                      ]
+                    },
+                    "description": "Server-computed (§24.8)"
+                  },
                   "phone": {
                     "description": "Only while the job is active",
                     "type": [
@@ -1610,6 +1661,7 @@
                   "photoUrl",
                   "type",
                   "rating",
+                  "badges",
                   "phone"
                 ]
               },
@@ -1668,11 +1720,29 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "on_time",
+                        "explained_well",
+                        "fair_price",
+                        "gentle_with_animal",
+                        "animal_recovered",
+                        "would_book_again",
+                        "late",
+                        "unclear_price",
+                        "rude"
+                      ]
+                    }
                   }
                 },
                 "required": [
                   "stars",
-                  "comment"
+                  "comment",
+                  "tags"
                 ]
               },
               {
@@ -2628,7 +2698,10 @@
               "vet_reinstated",
               "licence_expiring",
               "photo_approved",
-              "photo_rejected"
+              "photo_rejected",
+              "reminder_due",
+              "followup_tomorrow",
+              "followup_today"
             ]
           },
           "title": {
@@ -2991,6 +3064,22 @@
               "number",
               "null"
             ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            },
+            "description": "Server-computed (§24.8)"
           },
           "consultationFee": {
             "anyOf": [
@@ -3362,6 +3451,7 @@
           "specialties",
           "services",
           "rating",
+          "badges",
           "consultationFee",
           "serviceFees",
           "offersCallOuts",
@@ -3419,6 +3509,309 @@
           "feeQuoted",
           "depositKes",
           "priceRange"
+        ]
+      },
+      "VetRatingsInput": {
+        "type": "object",
+        "properties": {
+          "average": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "distribution": {
+            "type": "object",
+            "properties": {
+              "1": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "2": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "3": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "4": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "5": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ]
+          },
+          "tagCounts": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "on_time",
+                "explained_well",
+                "fair_price",
+                "gentle_with_animal",
+                "animal_recovered",
+                "would_book_again",
+                "late",
+                "unclear_price",
+                "rude"
+              ]
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "required": [
+              "on_time",
+              "explained_well",
+              "fair_price",
+              "gentle_with_animal",
+              "animal_recovered",
+              "would_book_again",
+              "late",
+              "unclear_price",
+              "rude"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bookingId": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "stars": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "on_time",
+                      "explained_well",
+                      "fair_price",
+                      "gentle_with_animal",
+                      "animal_recovered",
+                      "would_book_again",
+                      "late",
+                      "unclear_price",
+                      "rude"
+                    ]
+                  }
+                },
+                "comment": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "species": {
+                  "type": "string",
+                  "enum": [
+                    "cattle",
+                    "goat",
+                    "sheep",
+                    "pig",
+                    "poultry",
+                    "dog",
+                    "other"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "bookingId",
+                "stars",
+                "tags",
+                "comment",
+                "species",
+                "createdAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "average",
+          "count",
+          "distribution",
+          "tagCounts",
+          "items"
+        ]
+      },
+      "FollowUpInput": {
+        "type": "object",
+        "properties": {
+          "treatmentId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "bookingId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "followUpDate": {
+            "type": "string"
+          },
+          "daysAway": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "0 = today (Nairobi time)"
+          },
+          "species": {
+            "type": "string",
+            "enum": [
+              "cattle",
+              "goat",
+              "sheep",
+              "pig",
+              "poultry",
+              "dog",
+              "other"
+            ]
+          },
+          "ward": {
+            "type": "string"
+          },
+          "diagnosis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rebookedBookingId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "farmer": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "phone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "phone"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "treatmentId",
+          "bookingId",
+          "followUpDate",
+          "daysAway",
+          "species",
+          "ward",
+          "diagnosis",
+          "rebookedBookingId",
+          "farmer"
+        ]
+      },
+      "FlaggedVetInput": {
+        "type": "object",
+        "properties": {
+          "vetUserId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "rude_rating",
+              "repeated_low_ratings"
+            ]
+          },
+          "flaggedAt": {
+            "type": "string"
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "verificationStatus": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "submitted",
+              "under_review",
+              "changes_requested",
+              "approved",
+              "rejected",
+              "suspended"
+            ]
+          }
+        },
+        "required": [
+          "vetUserId",
+          "name",
+          "reason",
+          "flaggedAt",
+          "rating",
+          "verificationStatus"
         ]
       },
       "Error": {
@@ -4296,6 +4689,22 @@
                       "null"
                     ]
                   },
+                  "badges": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "verified",
+                        "top_rated",
+                        "fast_responder",
+                        "jobs_50",
+                        "jobs_100",
+                        "jobs_500",
+                        "vaccinations_100"
+                      ]
+                    },
+                    "description": "Server-computed (§24.8)"
+                  },
                   "phone": {
                     "description": "Only while the job is active",
                     "type": [
@@ -4310,6 +4719,7 @@
                   "photoUrl",
                   "type",
                   "rating",
+                  "badges",
                   "phone"
                 ],
                 "additionalProperties": false
@@ -4370,11 +4780,29 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "on_time",
+                        "explained_well",
+                        "fair_price",
+                        "gentle_with_animal",
+                        "animal_recovered",
+                        "would_book_again",
+                        "late",
+                        "unclear_price",
+                        "rude"
+                      ]
+                    }
                   }
                 },
                 "required": [
                   "stars",
-                  "comment"
+                  "comment",
+                  "tags"
                 ],
                 "additionalProperties": false
               },
@@ -5033,6 +5461,22 @@
                       "null"
                     ]
                   },
+                  "badges": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "verified",
+                        "top_rated",
+                        "fast_responder",
+                        "jobs_50",
+                        "jobs_100",
+                        "jobs_500",
+                        "vaccinations_100"
+                      ]
+                    },
+                    "description": "Server-computed (§24.8)"
+                  },
                   "phone": {
                     "description": "Only while the job is active",
                     "type": [
@@ -5047,6 +5491,7 @@
                   "photoUrl",
                   "type",
                   "rating",
+                  "badges",
                   "phone"
                 ],
                 "additionalProperties": false
@@ -5107,11 +5552,29 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "on_time",
+                        "explained_well",
+                        "fair_price",
+                        "gentle_with_animal",
+                        "animal_recovered",
+                        "would_book_again",
+                        "late",
+                        "unclear_price",
+                        "rude"
+                      ]
+                    }
                   }
                 },
                 "required": [
                   "stars",
-                  "comment"
+                  "comment",
+                  "tags"
                 ],
                 "additionalProperties": false
               },
@@ -6088,7 +6551,10 @@
               "vet_reinstated",
               "licence_expiring",
               "photo_approved",
-              "photo_rejected"
+              "photo_rejected",
+              "reminder_due",
+              "followup_tomorrow",
+              "followup_today"
             ]
           },
           "title": {
@@ -6456,6 +6922,22 @@
               "number",
               "null"
             ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            },
+            "description": "Server-computed (§24.8)"
           },
           "consultationFee": {
             "anyOf": [
@@ -6833,6 +7315,7 @@
           "specialties",
           "services",
           "rating",
+          "badges",
           "consultationFee",
           "serviceFees",
           "offersCallOuts",
@@ -6892,6 +7375,315 @@
           "feeQuoted",
           "depositKes",
           "priceRange"
+        ],
+        "additionalProperties": false
+      },
+      "VetRatings": {
+        "type": "object",
+        "properties": {
+          "average": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "distribution": {
+            "type": "object",
+            "properties": {
+              "1": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "2": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "3": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "4": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "5": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ],
+            "additionalProperties": false
+          },
+          "tagCounts": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "on_time",
+                "explained_well",
+                "fair_price",
+                "gentle_with_animal",
+                "animal_recovered",
+                "would_book_again",
+                "late",
+                "unclear_price",
+                "rude"
+              ]
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "required": [
+              "on_time",
+              "explained_well",
+              "fair_price",
+              "gentle_with_animal",
+              "animal_recovered",
+              "would_book_again",
+              "late",
+              "unclear_price",
+              "rude"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bookingId": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "stars": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "on_time",
+                      "explained_well",
+                      "fair_price",
+                      "gentle_with_animal",
+                      "animal_recovered",
+                      "would_book_again",
+                      "late",
+                      "unclear_price",
+                      "rude"
+                    ]
+                  }
+                },
+                "comment": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "species": {
+                  "type": "string",
+                  "enum": [
+                    "cattle",
+                    "goat",
+                    "sheep",
+                    "pig",
+                    "poultry",
+                    "dog",
+                    "other"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "bookingId",
+                "stars",
+                "tags",
+                "comment",
+                "species",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "average",
+          "count",
+          "distribution",
+          "tagCounts",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "FollowUp": {
+        "type": "object",
+        "properties": {
+          "treatmentId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "bookingId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "followUpDate": {
+            "type": "string"
+          },
+          "daysAway": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "0 = today (Nairobi time)"
+          },
+          "species": {
+            "type": "string",
+            "enum": [
+              "cattle",
+              "goat",
+              "sheep",
+              "pig",
+              "poultry",
+              "dog",
+              "other"
+            ]
+          },
+          "ward": {
+            "type": "string"
+          },
+          "diagnosis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rebookedBookingId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "farmer": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "phone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "phone"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "treatmentId",
+          "bookingId",
+          "followUpDate",
+          "daysAway",
+          "species",
+          "ward",
+          "diagnosis",
+          "rebookedBookingId",
+          "farmer"
+        ],
+        "additionalProperties": false
+      },
+      "FlaggedVet": {
+        "type": "object",
+        "properties": {
+          "vetUserId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "rude_rating",
+              "repeated_low_ratings"
+            ]
+          },
+          "flaggedAt": {
+            "type": "string"
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "verificationStatus": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "submitted",
+              "under_review",
+              "changes_requested",
+              "approved",
+              "rejected",
+              "suspended"
+            ]
+          }
+        },
+        "required": [
+          "vetUserId",
+          "name",
+          "reason",
+          "flaggedAt",
+          "rating",
+          "verificationStatus"
         ],
         "additionalProperties": false
       }
@@ -12223,6 +13015,25 @@
                   "comment": {
                     "type": "string",
                     "maxLength": 500
+                  },
+                  "tags": {
+                    "description": "Tap-to-pick chips (§24.7)",
+                    "maxItems": 9,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "on_time",
+                        "explained_well",
+                        "fair_price",
+                        "gentle_with_animal",
+                        "animal_recovered",
+                        "would_book_again",
+                        "late",
+                        "unclear_price",
+                        "rude"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -13715,6 +14526,261 @@
         }
       }
     },
+    "/v1/vets/me/ratings": {
+      "get": {
+        "summary": "My ratings: summary and the latest 50 (farmers are never named)",
+        "tags": [
+          "vet"
+        ],
+        "description": "Access: role `vet`.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VetRatings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vets/me/follow-ups": {
+      "get": {
+        "summary": "Follow-ups I set, from today on (farmer contact only within 7 days)",
+        "tags": [
+          "vet"
+        ],
+        "description": "Access: role `vet`.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FollowUp"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vets/me/documents/{id}/url": {
       "get": {
         "summary": "A short-lived link to one of my own documents (every view is logged)",
@@ -14182,6 +15248,286 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/vets/flagged": {
+      "get": {
+        "summary": "Vets flagged for review by complaints or low ratings, oldest first",
+        "tags": [
+          "admin: verification"
+        ],
+        "description": "Access: admin permission `verifier` with 2FA.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlaggedVet"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/vets/{userId}/review-flag/clear": {
+      "post": {
+        "summary": "Mark a flagged vet as reviewed (audited; suspend separately if needed)",
+        "tags": [
+          "admin: verification"
+        ],
+        "description": "Access: admin permission `verifier` with 2FA.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "note": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "note"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
           },
           "400": {
             "description": "Default Response",

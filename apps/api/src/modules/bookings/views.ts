@@ -88,6 +88,8 @@ export async function farmerViews(
             userId: vets.userId,
             type: vets.type,
             rating: vets.rating,
+            badges: vets.badges,
+            status: vets.verificationStatus,
             name: users.name,
             displayName: users.displayName,
             avatarMediaId: users.avatarMediaId,
@@ -144,6 +146,8 @@ export async function farmerViews(
             photoUrl: (vet.avatarMediaId && photos.get(vet.avatarMediaId)) ?? null,
             type: vet.type,
             rating: vet.rating === null ? null : Number(vet.rating),
+            // A suspended vet shows no badges anywhere (§24.8).
+            badges: vet.status === 'approved' ? vet.badges : [],
             phone: contactVisible ? vet.phone : null,
           }
         : null,
@@ -154,7 +158,7 @@ export async function farmerViews(
             followUpDate: treatment.followUpDate,
           }
         : null,
-      rating: rating ? { stars: rating.stars, comment: rating.comment } : null,
+      rating: rating ? { stars: rating.stars, comment: rating.comment, tags: rating.tags } : null,
       actions: availableEvents(b.status, 'farmer'),
     };
   });

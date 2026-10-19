@@ -2,7 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
-import { CANCEL_REASONS, TERMINAL_BOOKING_STATUSES, type CancelReason } from '@vetlink/shared';
+import {
+  CANCEL_REASONS,
+  TERMINAL_BOOKING_STATUSES,
+  ratingTagsFor,
+  type CancelReason,
+  type RatingTag,
+} from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { FarmerNav } from '@/components/farmer-nav';
 import { Shell } from '@/components/shell';
@@ -23,6 +29,7 @@ import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
 import { PersonAvatar } from '@/components/pictures';
 import { PriceLines, PriceRangeLines } from '@/components/prices';
+import { BadgeChips, TagChips } from '@/components/ratings';
 
 /** Tracking (§8.2 step 7): timeline, vet contact once matched, cancel with policy, then rating. */
 export default function Tracking() {
@@ -34,6 +41,7 @@ export default function Tracking() {
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState<CancelReason | null>(null);
   const [stars, setStars] = useState<number>(0);
+  const [tags, setTags] = useState<RatingTag[]>([]);
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -121,6 +129,7 @@ export default function Tracking() {
                   {fmt(t.web.tracking.vetComing, { vet: b.vet.name ?? '' })}
                 </p>
                 {b.vet.displayName && <p className="text-muted">“{b.vet.displayName}”</p>}
+                <BadgeChips badges={b.vet.badges} />
               </div>
             </div>
             {b.vet.phone && (
@@ -180,13 +189,17 @@ export default function Tracking() {
                   role="radio"
                   aria-checked={stars === n}
                   aria-label={`${n}`}
-                  onClick={() => setStars(n)}
+                  onClick={() => {
+                    setStars(n);
+                    setTags(tags.filter((x) => ratingTagsFor(n).includes(x)));
+                  }}
                   className={`min-h-touch min-w-touch rounded-control border text-2xl ${stars >= n ? 'border-warning bg-warning-light' : 'border-line'}`}
                 >
                   ★
                 </button>
               ))}
             </div>
+            <TagChips stars={stars} value={tags} onChange={setTags} />
             <Field label={t.web.tracking.comment}>
               <Input value={comment} onChange={(e) => setComment(e.target.value)} maxLength={500} />
             </Field>
@@ -196,7 +209,7 @@ export default function Tracking() {
                 void act(() =>
                   api.POST('/v1/bookings/{id}/rating', {
                     params: { path: { id: b.id } },
-                    body: { stars, ...(comment && { comment }) },
+                    body: { stars, tags, ...(comment && { comment }) },
                   }),
                 )
               }
