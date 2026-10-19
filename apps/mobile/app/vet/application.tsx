@@ -1,10 +1,18 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { Switch, View } from 'react-native';
-import { APPLICATION_FIELDS, APPLICATION_STEPS, type ApplicationStep } from '@vetlink/shared';
+import {
+  APPLICATION_FIELDS,
+  APPLICATION_STEPS,
+  DEFAULT_WORKING_HOURS,
+  type ApplicationStep,
+  type VetService,
+  type WorkingHours,
+} from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { colors } from '@vetlink/ui-tokens';
 import { DocCapture } from '../../src/components/doc-capture';
+import { FeesEditor, HoursEditor } from '../../src/components/prices';
 import { Screen } from '../../src/components/screen';
 import {
   Button,
@@ -40,6 +48,8 @@ export default function ApplicationWizard() {
   const [drafts, setDrafts] = useState<Partial<Record<ApplicationStep, Values>>>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Admin-set price limits, shown beside the price fields (the API enforces them).
+  const bands = useApi(['vet:me'], () => api.GET('/v1/vets/me')).data?.bands;
   const a = t.web.application;
 
   if (!app)
@@ -53,9 +63,18 @@ export default function ApplicationWizard() {
 
   const i = index ?? Math.min(Math.max(app.currentStep - 1, 0), APPLICATION_STEPS.length - 1);
   const step = APPLICATION_STEPS[i] ?? 'professional_type';
-  const values: Values = drafts[step] ?? app.steps[step] ?? {};
+  const answered: Values = drafts[step] ?? app.steps[step] ?? {};
   const vetType = (app.steps.professional_type?.vetType as string | undefined) ?? 'vet';
-  const fields = APPLICATION_FIELDS[step].filter((f) => !f.vetOnly || vetType === 'vet');
+  const stepFields = APPLICATION_FIELDS[step].filter((f) => !f.vetOnly || vetType === 'vet');
+  // Unanswered fields with a sensible default show (and save) that default.
+  const values: Values = { ...answered };
+  for (const f of stepFields) {
+    if (values[f.name] === undefined && f.defaultValue !== undefined)
+      values[f.name] = f.defaultValue;
+  }
+  const fields = stepFields.filter((f) => !f.showIf || values[f.showIf] === true);
+  // Step 5 prices one fee per service chosen in step 4 (§24.3).
+  const offered = (drafts.practice?.services ?? app.steps.practice?.services ?? []) as VetService[];
   const editable = (name: string) =>
     app.editable === 'all' ||
     (app.editable === 'flagged' && app.flaggedFields.includes(`${step}.${name}`));
@@ -150,11 +169,37 @@ export default function ApplicationWizard() {
           const off = !editable(f.name);
           if (f.kind === 'ward')
             return (
-              <WardPicker
-                key={f.name}
-                value={(v as number | undefined) ?? null}
-                onChange={(id) => set(f.name, id)}
-              />
+              <View key={f.name} style={{ gap: 6 }}>
+                <P>{label(f.name)}</P>
+                <WardPicker
+                  value={(v as number | undefined) ?? null}
+                  onChange={(id) => set(f.name, id)}
+                />
+              </View>
+            );
+          if (f.kind === 'fees')
+            return (
+              <View key={f.name} style={{ gap: 6 }}>
+                <P>{label(f.name)}</P>
+                <FeesEditor
+                  services={offered}
+                  value={(v as Partial<Record<VetService, number>> | undefined) ?? {}}
+                  onChange={(x) => set(f.name, x)}
+                  bands={bands?.items}
+                  disabled={off}
+                />
+              </View>
+            );
+          if (f.kind === 'hours')
+            return (
+              <View key={f.name} style={{ gap: 6 }}>
+                <P>{label(f.name)}</P>
+                <HoursEditor
+                  value={(v as WorkingHours | undefined) ?? DEFAULT_WORKING_HOURS}
+                  onChange={(x) => set(f.name, x)}
+                  disabled={off}
+                />
+              </View>
             );
           if (f.kind === 'bool')
             return (

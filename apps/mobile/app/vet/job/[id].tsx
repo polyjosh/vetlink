@@ -22,6 +22,7 @@ import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
 import { PersonAvatar } from '../../../src/components/pictures';
+import { PriceLines } from '../../../src/components/prices';
 
 /** Directions open in the phone's maps app (no map SDK yet: owner decision). */
 function directions(job: Schemas['VetJob']): string {
@@ -102,7 +103,11 @@ export default function Job() {
         </View>
         <P>{`${t.ussd.species[job.species]}, ${t.ussd.problems[job.problemType]}`}</P>
         {job.note && <P>{`“${job.note}”`}</P>}
-        <P>{fmt(t.web.common.kes, { amount: job.feeQuoted })}</P>
+        {job.price ? (
+          <PriceLines price={job.price} forVet />
+        ) : (
+          <P>{fmt(t.web.common.kes, { amount: job.feeQuoted })}</P>
+        )}
       </Card>
       {queued.length > 0 && <Notice tone="warning">{t.web.mobile.savedOffline}</Notice>}
       <Card>

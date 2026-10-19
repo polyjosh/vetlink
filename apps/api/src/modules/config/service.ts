@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { PRICED_ITEMS, type PricedItem } from '@vetlink/shared';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { appConfig } from '../../db/schema/index.js';
@@ -20,6 +21,10 @@ const weights = z
     message: 'weights must add up to 1',
   });
 
+const band = z
+  .object({ min: z.number().int().min(0), max: z.number().int().max(100_000) })
+  .refine((b) => b.min <= b.max, { message: 'min must not exceed max' });
+
 export const CONFIG_SCHEMAS = {
   /** Score weights (§8.5). */
   'matching.weights': weights,
@@ -37,6 +42,12 @@ export const CONFIG_SCHEMAS = {
   'vets.feeBands': z
     .object({ min: z.number().int().min(0), max: z.number().int().max(100_000) })
     .refine((b) => b.min <= b.max, { message: 'min must not exceed max' }),
+  /** Allowed "from" price (KES) per priced item: the consultation and each service (§24.3). */
+  'fees.serviceBands': z.object(
+    Object.fromEntries(PRICED_ITEMS.map((i) => [i, band])) as Record<PricedItem, typeof band>,
+  ),
+  /** VetLink's booking fee (KES), paid by STK push and counted towards the vet's bill (§24.24). */
+  'payments.bookingFeeKes': z.number().int().min(1).max(5000),
   /** Largest service radius a vet may set, km. */
   'vets.maxServiceRadiusKm': z.number().int().min(1).max(200),
 } as const;
@@ -59,6 +70,16 @@ export const CONFIG_DEFAULTS: { [K in ConfigKey]: ConfigValue<K> } = {
   'matching.giveUpAfterMinutes': 10,
   'vets.feeBands': { min: 200, max: 5000 },
   'vets.maxServiceRadiusKm': 50,
+  'fees.serviceBands': {
+    consultation: { min: 200, max: 5000 },
+    treatment: { min: 0, max: 20_000 },
+    vaccination: { min: 0, max: 10_000 },
+    artificial_insemination: { min: 0, max: 10_000 },
+    deworming: { min: 0, max: 5000 },
+    pregnancy_diagnosis: { min: 0, max: 10_000 },
+    minor_surgery: { min: 0, max: 30_000 },
+  },
+  'payments.bookingFeeKes': 200,
 };
 
 export const CONFIG_KEYS = Object.keys(CONFIG_SCHEMAS) as ConfigKey[];

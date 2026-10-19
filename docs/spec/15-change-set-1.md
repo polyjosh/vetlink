@@ -45,11 +45,16 @@ Items marked **(dep)** need a new dependency, which is proposed and approved in 
 - Matching and the vet list (24.6) consider only vets with `offers_call_outs = true` for bookings (every booking is a farm visit today).
 - Vets with premises appear to farmers in a separate **"Clinics near you"** list with distance, opening hours and a directions deep link. Clinic-visit bookings (farmer brings the animal, no call-out fee) are a later change.
 
-**Fees per service** (amends §8.6 and wizard step 5):
-- The vet sets a **"from" price in KES for each service they offer** (for example vaccination from KES 300). The call-out fee (`base_call_out_fee`) stays as the travel charge.
-- Admins set a **minimum and maximum per service** in config (`fees.serviceBands`), validated on the server like the call-out fee bands. Defaults ship in code; changes are versioned and audit-logged.
-- These are **displayed prices only**. VetLink still takes only the KES 200 deposit and the farmer pays the vet directly (decision 21.2). The client never sets or sends a price; the server returns them.
-- Integers in KES, `>= 0`.
+**Prices** (owner decisions 2026-10-19; amends §8.6 and wizard step 5):
+- **Consultation** is the base service of every request. Every vet sets a **consultation fee**; a vet cannot go online without one (`practice_incomplete`, app and SMS `ON`).
+- The vet sets a **"from" price for every service they offer**. The farmer may **add services** to the consultation (app and web: optional ticks; the problem pre-ticks vaccination or AI). "Other", or nothing ticked, means consultation only. On USSD the problem implies the services (`servicesForProblem`).
+- The **call-out fee** stays a separate travel charge for vets who do call-outs.
+- **Total = consultation + added services + call-out**, shown as **"from KES X"** (a starting price: medicine and extra work found on the farm can cost more).
+- VetLink's **booking fee** (KES 200, admin-editable as `payments.bookingFeeKes`, stored on each booking) is paid by STK push when booking and **counts towards the total** (§24.24). Screens show both parts: booking fee now to VetLink, the rest to the vet on the farm. Vets see what they collect (`payVet`).
+- **Before a vet accepts** (auto mode, emergencies, USSD) the farmer sees the **range** of totals across the vets who could be offered the job; none near means "the vet who accepts confirms the price". **When a vet accepts**, their breakdown is fixed on the booking (`vet_price`); later price changes do not alter it. Offers show each vet their own price for the job.
+- Admins set a **minimum and maximum per priced item** (consultation and each service) in config (`fees.serviceBands`); the consultation minimum is never below the booking fee. Changes are audit-logged.
+- Matching and the price range consider only vets who do call-outs, have a consultation fee, and offer **every** added service.
+- Integers in KES, `>= 0`, always computed by the server; the client never sends a price.
 
 ### 24.4 Vet: ratings and follow-ups
 
@@ -245,10 +250,10 @@ Forward-only migrations; exact names are set in the CS plans.
 
 - `users`: `display_name TEXT`, `avatar_media_id UUID REFERENCES media(id)`, `theme TEXT` (`system|light|dark`), `seasonal_alerts_opt_out BOOLEAN`, `referral_code TEXT UNIQUE`, `referred_by_code TEXT`.
 - `vets`: `pending_avatar_media_id UUID`, `offers_call_outs BOOLEAN NOT NULL DEFAULT true`, `has_premises BOOLEAN NOT NULL DEFAULT false`, `premises_ward_id`, `premises_lat`, `premises_lng`, `premises_directions`, `premises_hours JSONB`, `working_hours JSONB`, `badges TEXT[]`, `public_profile_enabled BOOLEAN NOT NULL DEFAULT false`, `public_slug TEXT UNIQUE`, `public_slug_changed_at`. CHECK `offers_call_outs OR has_premises`.
-- `vet_service_fees (vet_id, service, fee_from_kes INT CHECK >= 0, PRIMARY KEY (vet_id, service))`, services from `VET_SERVICES`.
+- `vets.consultation_fee`; `vet_service_fees (vet_id, service, fee_from_kes INT CHECK >= 0, PRIMARY KEY (vet_id, service))`, services from `VET_SERVICES`; `vets.premises_hours` is free text.
 - `animals`: `photo_media_id UUID REFERENCES media(id)`.
 - `media.kind` adds `avatar`, `booking_voice`; `media` gains `review_status` (`none|pending|approved|rejected`) for vet avatars.
-- `bookings`: `dispatch_mode TEXT NOT NULL DEFAULT 'auto'` (`auto|chosen`), `requested_vet_id UUID REFERENCES vets(user_id)`, `scheduled_for TIMESTAMPTZ`, `scheduled_part TEXT` (`morning|afternoon|evening`), `request_expires_at`, `deposit_due_at`; status CHECK gains the three new statuses.
+- `bookings` (CS2, migration 0010): `services TEXT[]`, `booking_fee_kes INT`, `price_range JSONB`, `vet_price JSONB`. (CS4): `dispatch_mode TEXT NOT NULL DEFAULT 'auto'` (`auto|chosen`), `requested_vet_id UUID REFERENCES vets(user_id)`, `scheduled_for TIMESTAMPTZ`, `scheduled_part TEXT` (`morning|afternoon|evening`), `request_expires_at`, `deposit_due_at`; status CHECK gains the three new statuses.
 - `booking_offers`: `kind TEXT NOT NULL DEFAULT 'wave'` (`wave|direct`); direct requests use `wave = 0`.
 - `ratings`: `tags TEXT[] NOT NULL DEFAULT '{}'` (subset of `RATING_TAGS`).
 - `treatments`: `follow_up_booking_id INT REFERENCES bookings(id)`; follow-up notification idempotency keyed in `notifications`.
@@ -261,13 +266,14 @@ Representative; exact shapes in the zod schemas and OpenAPI. All need `Idempoten
 
 - `POST /v1/uploads/presign` gains kinds `avatar`, `animal_photo`, `booking_photo`, `booking_voice`; `PUT /v1/me/avatar` (`{ storageKey }`), `DELETE /v1/me/avatar`; presign takes `purpose: photo` with `photoKind`; `PATCH /v1/me` accepts `displayName`, `theme`, `seasonalAlertsOptOut`.
 - `PATCH /v1/animals/:id` (edit), `PUT`/`DELETE /v1/animals/:id/photo`, `GET /v1/animals/:id/health-card`.
-- `GET /v1/vets/me/profile`, `PATCH /v1/vets/me/practice` (premises, call-outs, working hours, fees, species, services: non-critical edits), `GET /v1/vets/me/ratings`, `GET /v1/vets/me/follow-ups`, `GET /v1/vets/me/documents/:id/url`, `PATCH /v1/vets/me/public-profile`.
+- `GET /v1/vets/me` (now also prices, practice, qualifications, documents, `practiceMissing`, bands), `PATCH /v1/vets/me/profile` (prices, premises, call-outs, working hours, species, services: non-critical edits), `GET /v1/vets/me/ratings`, `GET /v1/vets/me/follow-ups`, `GET /v1/vets/me/documents/:id/url`, `PATCH /v1/vets/me/public-profile`.
 - Farmer: `GET /v1/vets/nearby?species&service&wardId&lat&lng&when&part&sort` (eligible vets for the choose screen), `GET /v1/vets/clinics-nearby`, `GET /v1/vets/:id/public` (farmer view), `GET /v1/farmers/me/recent-vets`.
 - `POST /v1/bookings` accepts `dispatchMode`, `vetId` (when `chosen`), `scheduledFor`, `scheduledPart`; `POST /v1/bookings/:id/rechoose` (`{ vetId }`), `POST /v1/bookings/:id/switch-to-auto`, `POST /v1/bookings/:id/deposit/resend`.
 - Vet: direct requests appear in the existing offers list with `kind: direct`; accept/decline unchanged.
 - Public, no login: `GET /v1/public/vets/:slug`.
 - Admin: `GET/POST /v1/admin/vet-photos` (pending photo queue, `verifier`), `/v1/admin/alert-campaigns` (`super_admin`), `/v1/admin/referral-partners` and referral reports (`analyst` read, `super_admin` write), `fees.serviceBands` in `/v1/admin/config`.
 - Ratings: `POST /v1/bookings/:id/rating` accepts `tags`.
+- CS2: `GET /v1/bookings/quote?services=a,b` returns `priceRange`; `POST /v1/bookings` takes `services`; booking, job and offer views carry `services`, `priceRange` and `price` (a `PriceBreakdown`).
 
 ### 24.23 Testing additions (amends §16)
 

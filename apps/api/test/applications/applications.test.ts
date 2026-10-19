@@ -9,6 +9,7 @@ import {
   users,
   vetApplications,
   vetDocuments,
+  vetServiceFees,
   vets,
 } from '../../src/db/schema/index.js';
 import { checkLicences } from '../../src/modules/vets/licence.js';
@@ -109,6 +110,11 @@ describe.skipIf(!testServerUrl)(
         serviceRadiusKm: 20,
         baseCallOutFee: 800,
         emergencyCallouts: true,
+        consultationFee: 600,
+        serviceFees: { treatment: 400, vaccination: 250 },
+        offersCallOuts: true,
+        hasPremises: false,
+        workingHours: { mon: [{ from: '08:00', to: '17:00' }] },
       });
       await put(s, 'payout', { payoutMpesaPhone: s.phone });
       await put(s, 'declaration', {
@@ -395,8 +401,18 @@ describe.skipIf(!testServerUrl)(
           isAvailable: false,
           specialties: ['cattle', 'goat'],
           baseCallOutFee: 800,
+          consultationFee: 600,
+          offersCallOuts: true,
           wardId,
           payoutMpesaPhone: s.phone,
+        });
+        const fees = await h.db
+          .select()
+          .from(vetServiceFees)
+          .where(eq(vetServiceFees.vetId, s.userId));
+        expect(Object.fromEntries(fees.map((f) => [f.service, f.feeFromKes]))).toEqual({
+          treatment: 400,
+          vaccination: 250,
         });
         expect(vet?.verifiedAt).not.toBeNull();
         const [u] = await h.db.select().from(users).where(eq(users.id, s.userId));
@@ -697,7 +713,7 @@ describe.skipIf(!testServerUrl)(
               body: { baseCallOutFee: 1200, bio: 'Dairy specialist' },
             })
           ).statusCode,
-        ).toBe(204);
+        ).toBe(200);
         expect((await h.db.select().from(vets).where(eq(vets.userId, s.userId)))[0]).toMatchObject({
           baseCallOutFee: 1200,
           bio: 'Dairy specialist',

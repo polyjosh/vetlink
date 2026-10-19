@@ -1,7 +1,6 @@
 import { asc, eq, inArray } from 'drizzle-orm';
 import {
   CONTACT_VISIBLE_STATUSES,
-  DEPOSIT_KES,
   OFFER_TIMEOUT_S,
   availableEvents,
   type FarmerBookingView,
@@ -25,6 +24,7 @@ import {
 } from '../../db/schema/index.js';
 import { photoUrls } from '../media/service.js';
 import { depositStates } from '../payments/service.js';
+import { vetPrice } from './pricing.js';
 import type { BookingRow } from './transitions.js';
 
 const iso = (d: Date | null) => (d ? d.toISOString() : null);
@@ -128,7 +128,10 @@ export async function farmerViews(
       sourceChannel: b.sourceChannel,
       ward: wardView(wards.get(b.wardId), b.wardId),
       feeQuoted: b.feeQuoted,
-      depositKes: DEPOSIT_KES,
+      depositKes: b.bookingFeeKes,
+      services: b.services,
+      priceRange: b.priceRange ?? null,
+      price: b.vetPrice ?? null,
       deposit: deposits.get(b.id) ?? { status: 'none', receipt: null, paymentId: null },
       createdAt: b.createdAt.toISOString(),
       acceptedAt: iso(b.acceptedAt),
@@ -210,6 +213,8 @@ export async function vetJobViews(
       ward: wardView(ward, b.wardId),
       location,
       feeQuoted: b.feeQuoted,
+      services: b.services,
+      price: b.vetPrice ?? null,
       acceptedAt: iso(b.acceptedAt),
       completedAt: iso(b.completedAt),
       timeline: times.get(b.id) ?? [],
@@ -242,7 +247,11 @@ export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferVie
     db,
     open.map((r) => r.booking.wardId),
   );
-  return open.map(({ offer, booking }) => {
+  // What each job pays at the vet's current prices (§24.3); fixed when they accept.
+  const prices = await Promise.all(
+    open.map((r) => vetPrice(db, vetUserId, r.booking.services, r.booking.bookingFeeKes)),
+  );
+  return open.map(({ offer, booking }, i) => {
     const timeoutS = booking.isEmergency ? OFFER_TIMEOUT_S.emergency : OFFER_TIMEOUT_S.normal;
     return {
       offerId: offer.id,
@@ -252,6 +261,8 @@ export async function openOffersFor(db: Db, vetUserId: string): Promise<OfferVie
       isEmergency: booking.isEmergency,
       ward: wardView(wards.get(booking.wardId), booking.wardId),
       feeQuoted: booking.feeQuoted,
+      services: booking.services,
+      price: prices[i] ?? null,
       wave: offer.wave,
       sentAt: offer.sentAt.toISOString(),
       expiresAt: new Date(offer.sentAt.getTime() + timeoutS * 1000).toISOString(),

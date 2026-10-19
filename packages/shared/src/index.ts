@@ -5,3 +5,4 @@ export * from './phone.js';
 export * from './bookings.js';
 export * from './applications.js';
 export * from './profiles.js';
+export * from './pricing.js';

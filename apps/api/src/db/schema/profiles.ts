@@ -9,6 +9,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  primaryKey,
   serial,
   text,
   unique,
@@ -22,7 +23,9 @@ import {
   VERIFICATION_STATUSES,
   VET_DOCUMENT_KINDS,
   VET_DOCUMENT_STATUSES,
+  VET_SERVICES,
   VET_TYPES,
+  type WorkingHours,
 } from '@vetlink/shared';
 import { emptyJson, emptyTextArray, oneOf, timestamptz } from './helpers.js';
 import { media } from './bookings.js';
@@ -70,7 +73,17 @@ export const vets = pgTable(
     specialties: text('specialties').array().notNull().default(emptyTextArray), // species treated
     wardId: integer('ward_id').references(() => locations.id),
     serviceRadiusKm: integer('service_radius_km').notNull().default(20),
-    baseCallOutFee: integer('base_call_out_fee'), // KES, integer
+    baseCallOutFee: integer('base_call_out_fee'), // KES, integer: the trip to the farm
+    // §24.3: every request includes a consultation; required before going online.
+    consultationFee: integer('consultation_fee'),
+    offersCallOuts: boolean('offers_call_outs').notNull().default(true),
+    hasPremises: boolean('has_premises').notNull().default(false),
+    premisesWardId: integer('premises_ward_id').references(() => locations.id),
+    premisesLat: doublePrecision('premises_lat'),
+    premisesLng: doublePrecision('premises_lng'),
+    premisesDirections: text('premises_directions'),
+    premisesHours: text('premises_hours'),
+    workingHours: jsonb('working_hours').$type<WorkingHours>(), // §24.10
     rating: numeric('rating', { precision: 2, scale: 1 }),
     isAvailable: boolean('is_available').notNull().default(false),
     shareLiveLocation: boolean('share_live_location').notNull().default(false),
@@ -91,11 +104,30 @@ export const vets = pgTable(
       sql`not ${t.isAvailable} or ${t.verificationStatus} = 'approved'`,
     ),
     check('vets_base_call_out_fee_check', sql`${t.baseCallOutFee} >= 0`),
+    check('vets_consultation_fee_check', sql`${t.consultationFee} >= 0`),
+    check('vets_call_outs_or_premises', sql`${t.offersCallOuts} or ${t.hasPremises}`),
     check('vets_rating_check', sql`${t.rating} between 1 and 5`),
     index('vets_national_id_hash_idx').on(t.nationalIdHash), // duplicate-ID detection
     index('vets_ward_id_approved_available_idx')
       .on(t.wardId)
       .where(sql`${t.verificationStatus} = 'approved' and ${t.isAvailable}`),
+  ],
+);
+
+/** A vet's "from" price for each service they offer (§24.3). */
+export const vetServiceFees = pgTable(
+  'vet_service_fees',
+  {
+    vetId: uuid('vet_id')
+      .notNull()
+      .references(() => vets.userId),
+    service: text('service', { enum: VET_SERVICES }).notNull(),
+    feeFromKes: integer('fee_from_kes').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.vetId, t.service] }),
+    check('vet_service_fees_service_check', oneOf(t.service, VET_SERVICES)),
+    check('vet_service_fees_fee_check', sql`${t.feeFromKes} >= 0`),
   ],
 );
 

@@ -8,6 +8,7 @@ import {
 import type { Tx } from '../../db/client.js';
 import { bookingEvents, bookingOffers, bookings, vets } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
+import { vetPrice } from './pricing.js';
 
 /**
  * THE ONLY place that writes `bookings.status` (invariant 3). Every channel (REST, USSD, SMS,
@@ -111,10 +112,13 @@ export async function transition(
   if (event === 'vet_accepted' && actor.kind === 'vet') {
     set.vetId = actor.userId;
     set.acceptedAt = now;
+    // The price this vet charges for this job is fixed when they accept (§24.3).
+    set.vetPrice = await vetPrice(tx, actor.userId, current.services, current.bookingFeeKes);
   }
   if (event === 'vet_released') {
     set.vetId = null;
     set.acceptedAt = null;
+    set.vetPrice = null;
   }
   if (event === 'vet_completed') set.completedAt = now;
 

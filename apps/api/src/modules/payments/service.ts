@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, lt, notExists, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
-import { DEPOSIT_KES, type DepositState } from '@vetlink/shared';
+import type { DepositState } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import { bookings, payments, users } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
@@ -59,7 +59,7 @@ export async function requestDeposit(
     .values({
       bookingId: input.bookingId,
       type: 'deposit',
-      amount: DEPOSIT_KES,
+      amount: b.booking.bookingFeeKes,
       status: 'pending',
       phone: b.phone,
       createdAt: now,

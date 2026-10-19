@@ -2,13 +2,16 @@ import * as Location from 'expo-location';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
-  DEPOSIT_KES,
   PROBLEM_TYPES,
   SPECIES,
+  VET_SERVICES,
+  servicesForProblem,
   type ProblemType,
   type Species,
+  type VetService,
 } from '@vetlink/shared';
 import { newIdempotencyKey } from '@vetlink/api-client';
+import { PriceRangeLines } from '../../src/components/prices';
 import { Screen } from '../../src/components/screen';
 import {
   Badge,
@@ -43,6 +46,8 @@ export default function Request() {
   const [animalId, setAnimalId] = useState<string | null>(null);
   const [species, setSpecies] = useState<Species | null>(null);
   const [problem, setProblem] = useState<ProblemType | null>(emergency ? 'sick' : null);
+  // Added to the consultation (§24.3); the problem pre-ticks the obvious one.
+  const [services, setServices] = useState<VetService[]>([]);
   const [note, setNote] = useState('');
   const [chosenPlace, setPlace] = useState<Place | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +72,7 @@ export default function Request() {
       wardId,
       place.kind === 'gps' ? place.lat : null,
       place.kind === 'gps' ? place.lng : null,
+      services.join(','),
     ],
     () =>
       api.GET('/v1/bookings/quote', {
@@ -75,6 +81,7 @@ export default function Request() {
             species: chosenSpecies ?? 'other',
             ...(wardId && { wardId }),
             ...(place.kind === 'gps' && { lat: place.lat, lng: place.lng }),
+            ...(services.length && { services: services.join(',') }),
           },
         },
       }),
@@ -105,6 +112,7 @@ export default function Request() {
           species: chosenSpecies,
           problemType: problem,
           isEmergency: emergency,
+          ...(services.length && { services }),
           ...(animalId && { animalId }),
           ...(note.trim() && { note: note.trim() }),
           ...(wardId && { wardId }),
@@ -160,7 +168,24 @@ export default function Request() {
           <Choices
             options={PROBLEM_TYPES.map((p) => ({ value: p, label: t.ussd.problems[p] }))}
             value={problem}
-            onChange={setProblem}
+            onChange={(p) => {
+              setProblem(p);
+              setServices(servicesForProblem(p));
+            }}
+          />
+        </Card>
+      )}
+      {!emergency && (
+        <Card>
+          <H2>{t.web.prices.addServices}</H2>
+          <P muted>{t.web.prices.addServicesHint}</P>
+          <Choices
+            multi
+            options={VET_SERVICES.map((x) => ({ value: x, label: t.web.application.services[x] }))}
+            value={services}
+            onChange={(x) =>
+              setServices(services.includes(x) ? services.filter((y) => y !== x) : [...services, x])
+            }
           />
         </Card>
       )}
@@ -204,20 +229,18 @@ export default function Request() {
       </Card>
       <Card>
         <H2>{r.review}</H2>
-        <P>
-          {r.fee}: {quote.data ? fmt(t.web.common.kes, { amount: quote.data.feeQuoted }) : '…'}
-        </P>
-        <P>
-          {r.deposit}: {fmt(t.web.common.kes, { amount: DEPOSIT_KES })}
-        </P>
-        <P muted>{r.depositHint}</P>
-        <Notice>{r.feeHint}</Notice>
+        {quote.data ? (
+          <PriceRangeLines range={quote.data.priceRange} bookingFee={quote.data.depositKes} />
+        ) : (
+          <P>…</P>
+        )}
+        <Notice>{r.depositHint}</Notice>
       </Card>
       <ErrorText message={error} />
       <Button
         big
         variant={emergency ? 'danger' : 'primary'}
-        title={fmt(r.confirmPay, { amount: DEPOSIT_KES })}
+        title={fmt(r.confirmPay, { amount: quote.data?.depositKes ?? '…' })}
         disabled={busy || !chosenSpecies || !problem || !placeReady || !quote.data}
         onPress={() => void submit()}
         testID="confirm-pay"

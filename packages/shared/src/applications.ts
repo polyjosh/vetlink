@@ -6,6 +6,7 @@ import {
   type VetDocumentKind,
   type VetType,
 } from './domain.js';
+import { DEFAULT_WORKING_HOURS } from './pricing.js';
 
 /** The vet application wizard (§8.3): the same 7 steps on mobile and web. */
 export const APPLICATION_STEPS = [
@@ -65,7 +66,20 @@ export const REVIEW_TARGET_HOURS = 48;
 
 /** How a wizard field is entered (the same on web and mobile). */
 export type ApplicationFieldKind =
-  'text' | 'textarea' | 'int' | 'date' | 'enum' | 'multi' | 'bool' | 'ward' | 'tel' | 'email';
+  | 'text'
+  | 'textarea'
+  | 'int'
+  | 'date'
+  | 'enum'
+  | 'multi'
+  | 'bool'
+  | 'ward'
+  | 'tel'
+  | 'email'
+  /** A price per service chosen in the practice step (§24.3). */
+  | 'fees'
+  /** Working hours per weekday (§24.10). */
+  | 'hours';
 
 export interface ApplicationField {
   name: string;
@@ -73,6 +87,10 @@ export interface ApplicationField {
   options?: readonly string[];
   /** Only asked of veterinary surgeons (not paravets). */
   vetOnly?: boolean;
+  /** Only shown when this boolean field of the same step is true. */
+  showIf?: string;
+  /** Shown and saved when the vet has not answered yet (a valid answer, not a placeholder). */
+  defaultValue?: unknown;
 }
 
 /** The wizard's fields per step (§8.3). Names match the API step schemas. */
@@ -104,9 +122,16 @@ export const APPLICATION_FIELDS: Record<ApplicationStep, readonly ApplicationFie
   service_area: [
     { name: 'wardId', kind: 'ward' },
     { name: 'serviceRadiusKm', kind: 'int' },
-    { name: 'baseCallOutFee', kind: 'int' },
-    { name: 'emergencyCallouts', kind: 'bool' },
-    { name: 'availabilityHours', kind: 'text' },
+    { name: 'consultationFee', kind: 'int' },
+    { name: 'serviceFees', kind: 'fees' },
+    { name: 'offersCallOuts', kind: 'bool', defaultValue: true },
+    { name: 'baseCallOutFee', kind: 'int', showIf: 'offersCallOuts' },
+    { name: 'emergencyCallouts', kind: 'bool', showIf: 'offersCallOuts', defaultValue: false },
+    { name: 'hasPremises', kind: 'bool', defaultValue: false },
+    { name: 'premisesWardId', kind: 'ward', showIf: 'hasPremises' },
+    { name: 'premisesDirections', kind: 'text', showIf: 'hasPremises' },
+    { name: 'premisesHours', kind: 'text', showIf: 'hasPremises' },
+    { name: 'workingHours', kind: 'hours', defaultValue: DEFAULT_WORKING_HOURS },
   ],
   payout: [{ name: 'payoutMpesaPhone', kind: 'tel' }],
   declaration: [

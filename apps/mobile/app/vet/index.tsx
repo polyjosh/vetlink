@@ -13,6 +13,7 @@ import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
 import { EmptyState } from '../../src/components/pictures';
+import { PriceLines } from '../../src/components/prices';
 
 function Countdown({ until }: { until: string }) {
   const { t, fmt } = useT();
@@ -79,6 +80,9 @@ export default function VetHome() {
       <Card style={online ? { borderColor: colors.brand, borderWidth: 2 } : {}}>
         <H2>{online ? v.online : v.offline}</H2>
         <P muted>{approved ? v.onlineHint : v.notApproved}</P>
+        {approved && (profile.data?.practiceMissing ?? []).length > 0 && (
+          <Notice tone="warning">{t.errors.practice_incomplete}</Notice>
+        )}
         <Button
           variant={online ? 'secondary' : 'primary'}
           title={online ? v.goOffline : v.goOnline}
@@ -124,7 +128,12 @@ export default function VetHome() {
               >{`${t.ussd.species[o.species]}, ${t.ussd.problems[o.problemType]}`}</Text>
               <Countdown until={o.expiresAt} />
             </View>
-            <P>{`${o.ward.ward} (${o.ward.subCounty}) · ${fmt(t.web.common.kes, { amount: o.feeQuoted })}`}</P>
+            <P>{`${o.ward.ward} (${o.ward.subCounty})`}</P>
+            {o.price ? (
+              <PriceLines price={o.price} forVet />
+            ) : (
+              <P>{fmt(t.web.common.kes, { amount: o.feeQuoted })}</P>
+            )}
             <View style={s.row}>
               <Button
                 title={v.accept}
@@ -179,6 +188,11 @@ export default function VetHome() {
           variant="secondary"
           title={v.jobHistory}
           onPress={() => router.push('/vet/history')}
+        />
+        <Button
+          variant="secondary"
+          title={t.web.vetProfile.title}
+          onPress={() => router.push('/vet/profile')}
         />
         <Button
           variant="secondary"

@@ -1,3 +1,4 @@
+import type { PriceBreakdown, PriceRange } from './pricing.js';
 import type {
   BookingActorKind,
   BookingEvent,
@@ -6,6 +7,7 @@ import type {
   DepositState,
   ProblemType,
   Species,
+  VetService,
   VetType,
 } from './domain.js';
 
@@ -68,7 +70,11 @@ export function availableEvents(status: BookingStatus, actor: BookingActorKind):
   );
 }
 
-/** Deposit taken by STK push at confirmation (§8.6). Balance is paid to the vet directly. */
+/**
+ * Default booking fee (§24.24): paid to VetLink by STK push at confirmation and kept as
+ * VetLink's fee; it counts towards the vet's bill. Admins change it (`payments.bookingFeeKes`);
+ * each booking stores the amount it was made with. Clients show the server's value.
+ */
 export const DEPOSIT_KES = 200;
 
 /** Offer response window (§8.5). */
@@ -101,7 +107,14 @@ export interface FarmerBookingView {
   sourceChannel: Channel;
   ward: WardView;
   feeQuoted: number;
+  /** The booking fee paid to VetLink (§24.24); the name is kept for older app versions. */
   depositKes: number;
+  /** Services added on top of the consultation (§24.3). */
+  services: VetService[];
+  /** Before a vet accepts: the spread of nearby vets' totals (null if none was near). */
+  priceRange: PriceRange | null;
+  /** Once matched: the accepting vet's price, fixed when they accepted. */
+  price: PriceBreakdown | null;
   /** Server-derived; `pending` means an M-Pesa prompt is out ("check your phone"). */
   deposit: { status: DepositState; receipt: string | null; paymentId: number | null };
   createdAt: string;
@@ -142,11 +155,13 @@ export interface VetJobView {
   /** Pinned farm location, else the ward centroid. */
   location: { lat: number; lng: number; precise: boolean } | null;
   feeQuoted: number;
+  services: VetService[];
+  /** My price for this job, fixed when I accepted; `payVet` is what I collect on the farm. */
+  price: PriceBreakdown | null;
   acceptedAt: string | null;
   completedAt: string | null;
   timeline: TimelineEntry[];
-  /** Phone only while the job is active. */
-  /** Show `displayName` when set, else `name` (§24.1). */
+  /** Show `displayName` when set, else `name` (§24.1); phone only while the job is active. */
   farmer: {
     name: string | null;
     displayName: string | null;
@@ -166,6 +181,9 @@ export interface OfferView {
   isEmergency: boolean;
   ward: WardView;
   feeQuoted: number;
+  services: VetService[];
+  /** What this job pays at my current prices (§24.3). */
+  price: PriceBreakdown | null;
   wave: number;
   sentAt: string;
   expiresAt: string;

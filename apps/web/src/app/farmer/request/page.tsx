@@ -3,14 +3,17 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import {
-  DEPOSIT_KES,
   PROBLEM_TYPES,
   SPECIES,
+  VET_SERVICES,
+  servicesForProblem,
   type ProblemType,
   type Species,
+  type VetService,
 } from '@vetlink/shared';
 import { newIdempotencyKey, type Schemas } from '@vetlink/api-client';
 import { FarmerNav } from '@/components/farmer-nav';
+import { PriceRangeLines } from '@/components/prices';
 import { Shell } from '@/components/shell';
 import {
   Badge,
@@ -43,6 +46,8 @@ function RequestFlow() {
   const [animalId, setAnimalId] = useState<string | null>(null);
   const [species, setSpecies] = useState<Species | null>(null);
   const [problem, setProblem] = useState<ProblemType | null>(isEmergency ? 'sick' : null);
+  // Added to the consultation (§24.3); the problem pre-ticks the obvious one.
+  const [services, setServices] = useState<VetService[]>([]);
   const [note, setNote] = useState('');
   const [location, setLocation] = useState<Location>({ kind: 'saved' });
   const [error, setError] = useState<string | null>(null);
@@ -71,10 +76,11 @@ function RequestFlow() {
           species: chosenSpecies,
           ...(wardForQuote && { wardId: wardForQuote }),
           ...(location.kind === 'gps' && { lat: location.lat, lng: location.lng }),
+          ...(services.length && { services: services.join(',') }),
         })
       : null;
-  const [quote, setQuote] = useState<{ key: string; fee: number } | null>(null);
-  const fee = quote && quote.key === quoteKey ? quote.fee : null;
+  const [quote, setQuote] = useState<{ key: string; data: Schemas['Quote'] } | null>(null);
+  const current = quote && quote.key === quoteKey ? quote.data : null;
   useEffect(() => {
     if (!quoteKey) return;
     const query = JSON.parse(quoteKey) as {
@@ -82,9 +88,10 @@ function RequestFlow() {
       wardId?: number;
       lat?: number;
       lng?: number;
+      services?: string;
     };
     void api.GET('/v1/bookings/quote', { params: { query } }).then(({ data }) => {
-      if (data) setQuote({ key: quoteKey, fee: data.feeQuoted });
+      if (data) setQuote({ key: quoteKey, data });
     });
   }, [api, quoteKey]);
 
@@ -99,6 +106,7 @@ function RequestFlow() {
         species: chosenSpecies,
         problemType: problem,
         isEmergency,
+        ...(services.length && { services }),
         ...(animalId && { animalId }),
         ...(note.trim() && { note: note.trim() }),
         ...(location.kind === 'ward' && location.wardId && { wardId: location.wardId }),
@@ -120,7 +128,7 @@ function RequestFlow() {
   }
 
   const ready =
-    chosenSpecies && problem && fee !== null && (location.kind !== 'ward' || location.wardId);
+    chosenSpecies && problem && current !== null && (location.kind !== 'ward' || location.wardId);
 
   return (
     <Shell
@@ -161,8 +169,36 @@ function RequestFlow() {
             <ChoiceGrid
               options={PROBLEM_TYPES.map((p) => ({ value: p, label: t.ussd.problems[p] }))}
               value={problem}
-              onChange={setProblem}
+              onChange={(p) => {
+                setProblem(p);
+                setServices(servicesForProblem(p));
+              }}
             />
+          </Card>
+        )}
+        {!isEmergency && (
+          <Card className="space-y-3">
+            <h2 className="text-lg font-bold">{t.web.prices.addServices}</h2>
+            <p className="text-sm text-muted">{t.web.prices.addServicesHint}</p>
+            <div className="flex flex-wrap gap-2">
+              {VET_SERVICES.map((s) => (
+                <label
+                  key={s}
+                  className={`flex min-h-touch items-center gap-2 rounded-full border px-3 ${services.includes(s) ? 'border-brand bg-brand-light' : 'border-line'}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={services.includes(s)}
+                    onChange={(e) =>
+                      setServices(
+                        e.target.checked ? [...services, s] : services.filter((x) => x !== s),
+                      )
+                    }
+                  />
+                  {t.web.application.services[s]}
+                </label>
+              ))}
+            </div>
           </Card>
         )}
         <Card className="space-y-3">
@@ -220,16 +256,12 @@ function RequestFlow() {
         </Card>
         <Card className="space-y-2">
           <h2 className="text-lg font-bold">{t.web.request.review}</h2>
-          <p>
-            <strong>{t.web.request.fee}: </strong>
-            {fee === null ? '…' : fmt(t.web.common.kes, { amount: fee })}
-          </p>
-          <p>
-            <strong>{t.web.request.deposit}: </strong>
-            {fmt(t.web.common.kes, { amount: DEPOSIT_KES })}
-          </p>
-          <p className="text-sm text-muted">{t.web.request.depositHint}</p>
-          <Notice>{t.web.request.feeHint}</Notice>
+          {current ? (
+            <PriceRangeLines range={current.priceRange} bookingFee={current.depositKes} />
+          ) : (
+            <p>…</p>
+          )}
+          <Notice>{t.web.request.depositHint}</Notice>
         </Card>
         <ErrorBox message={error} />
         <Button
@@ -238,7 +270,7 @@ function RequestFlow() {
           disabled={!ready || busy}
           onClick={() => void submit()}
         >
-          {fmt(t.web.request.confirmPay, { amount: DEPOSIT_KES })}
+          {fmt(t.web.request.confirmPay, { amount: current?.depositKes ?? '…' })}
         </Button>
       </div>
     </Shell>

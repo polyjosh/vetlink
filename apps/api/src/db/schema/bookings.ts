@@ -6,6 +6,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgTable,
   serial,
   text,
@@ -29,8 +30,11 @@ import {
   PROBLEM_TYPES,
   REMINDER_TYPES,
   SPECIES,
+  VET_SERVICES,
+  type PriceBreakdown,
+  type PriceRange,
 } from '@vetlink/shared';
-import { createdAt, oneOf, timestamptz } from './helpers.js';
+import { createdAt, emptyTextArray, oneOf, subsetOf, timestamptz } from './helpers.js';
 import { users } from './identity.js';
 import { farmers, vets } from './profiles.js';
 import { locations } from './reference.js';
@@ -78,6 +82,12 @@ export const bookings = pgTable(
     // Changes only through bookings/transitions.ts (invariant 3).
     status: text('status', { enum: BOOKING_STATUSES }).notNull().default('pending_payment'),
     feeQuoted: integer('fee_quoted').notNull(), // KES, set by the server, never the client
+    // §24.3 and §24.24: added services, VetLink's booking fee (as charged for this booking), the
+    // range shown before a vet accepted, and the accepting vet's price fixed at acceptance.
+    services: text('services', { enum: VET_SERVICES }).array().notNull().default(emptyTextArray),
+    bookingFeeKes: integer('booking_fee_kes').notNull().default(200),
+    priceRange: jsonb('price_range').$type<PriceRange>(),
+    vetPrice: jsonb('vet_price').$type<PriceBreakdown>(),
     idempotencyKey: text('idempotency_key').unique(), // from client, prevents double booking
     createdAt: createdAt(),
     acceptedAt: timestamptz('accepted_at'),
@@ -89,6 +99,8 @@ export const bookings = pgTable(
     check('bookings_species_check', oneOf(t.species, SPECIES)),
     check('bookings_problem_type_check', oneOf(t.problemType, PROBLEM_TYPES)),
     check('bookings_fee_quoted_check', sql`${t.feeQuoted} >= 0`),
+    check('bookings_services_check', subsetOf(t.services, VET_SERVICES)),
+    check('bookings_booking_fee_check', sql`${t.bookingFeeKes} > 0`),
     index('bookings_status_created_at_idx').on(t.status, t.createdAt),
     index('bookings_farmer_id_idx').on(t.farmerId),
     index('bookings_vet_id_idx').on(t.vetId),

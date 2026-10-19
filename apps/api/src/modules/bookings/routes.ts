@@ -1,9 +1,9 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { DEPOSIT_KES, SPECIES, type Channel } from '@vetlink/shared';
+import { SPECIES, VET_SERVICES, type Channel } from '@vetlink/shared';
 import { eq } from 'drizzle-orm';
 import { farmers } from '../../db/schema/index.js';
-import { quoteCallOutFee } from './pricing.js';
+import { currentBookingFee, quoteCallOutFee, quotePriceRange } from './pricing.js';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { DomainError } from '../../lib/errors.js';
@@ -14,6 +14,7 @@ import {
   cancelBody,
   completeBody,
   createBookingBody,
+  priceRange,
   farmerBooking,
   idempotencyHeaders,
   idempotencyKey,
@@ -103,10 +104,26 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
           wardId: intId.optional(),
           lat: z.coerce.number().min(-5).max(6).optional(),
           lng: z.coerce.number().min(33).max(42.5).optional(),
+          services: z
+            .string()
+            .optional()
+            .describe('Comma-separated services added to the consultation')
+            .transform((v, c) => {
+              const list = (v ?? '').split(',').filter(Boolean);
+              const parsed = z.array(z.enum(VET_SERVICES)).safeParse(list);
+              if (!parsed.success) c.addIssue({ code: 'custom', message: 'unknown service' });
+              return parsed.data ?? [];
+            }),
         }),
         response: responses({
           200: named(
-            z.object({ feeQuoted: z.number().int(), depositKes: z.number().int() }),
+            z.object({
+              feeQuoted: z.number().int().describe('Call-out fee'),
+              depositKes: z.number().int().describe("VetLink's booking fee"),
+              priceRange: priceRange
+                .nullable()
+                .describe('Totals of nearby vets; null when none is near'),
+            }),
             'Quote',
           ),
         }),
@@ -117,14 +134,18 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
       const [farmer] = await ctx.db.select().from(farmers).where(eq(farmers.userId, auth.userId));
       const wardId = req.query.wardId ?? farmer?.wardId;
       if (!wardId) throw new DomainError('farmer_profile_required');
+      const target = {
+        wardId,
+        species: req.query.species,
+        lat: req.query.lat ?? null,
+        lng: req.query.lng ?? null,
+        services: req.query.services,
+      };
+      const bookingFee = await currentBookingFee(ctx);
       return {
-        feeQuoted: await quoteCallOutFee(ctx, {
-          wardId,
-          species: req.query.species,
-          lat: req.query.lat ?? null,
-          lng: req.query.lng ?? null,
-        }),
-        depositKes: DEPOSIT_KES,
+        feeQuoted: await quoteCallOutFee(ctx, target),
+        depositKes: bookingFee,
+        priceRange: await quotePriceRange(ctx, target, bookingFee),
       };
     },
   );

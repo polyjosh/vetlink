@@ -4089,6 +4089,8 @@ export interface paths {
                         wardId?: number;
                         lat?: number;
                         lng?: number;
+                        /** @description Services added to the consultation (§24.3); none means consultation only */
+                        services?: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
                     };
                 };
             };
@@ -4229,6 +4231,8 @@ export interface paths {
                     wardId?: number;
                     lat?: number;
                     lng?: number;
+                    /** @description Comma-separated services added to the consultation */
+                    services?: string;
                 };
                 header?: never;
                 path?: never;
@@ -5573,7 +5577,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * My vet profile and status
+         * My vet profile: status, prices, practice, qualifications and documents
          * @description Access: role `vet`.
          */
         get: {
@@ -5694,6 +5698,297 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vets/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change prices and practice details (approved vets; applied immediately)
+         * @description Access: role `vet`.
+         *
+         *     Prices must stay within the admin bands, every offered service needs a price, and at least one of call-outs or premises. Critical details (name, ID, KVB, licence, payout) go through a reviewed new application version instead.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        serviceRadiusKm?: number;
+                        baseCallOutFee?: number;
+                        specialties?: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
+                        services?: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+                        languages?: ("sw" | "en" | "ki" | "luo" | "kam" | "kln" | "other")[];
+                        bio?: string;
+                        consultationFee?: number;
+                        serviceFees?: {
+                            [key: string]: number;
+                        };
+                        offersCallOuts?: boolean;
+                        hasPremises?: boolean;
+                        premisesWardId?: number | null;
+                        premisesDirections?: string | null;
+                        premisesHours?: string | null;
+                        workingHours?: {
+                            [key: string]: {
+                                from: string;
+                                to: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VetProfile"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/vets/me/documents/{id}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A short-lived link to one of my own documents (every view is logged)
+         * @description Access: role `vet`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            url: string;
+                            expiresAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vets/me/availability": {
         parameters: {
             query?: never;
@@ -5708,7 +6003,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Go online or offline (online only once approved)
+         * Go online or offline (online only once approved, with prices set)
          * @description Access: role `vet`.
          */
         patch: {
@@ -6805,6 +7100,21 @@ export interface paths {
                         baseCallOutFee?: number;
                         emergencyCallouts?: boolean;
                         availabilityHours?: string;
+                        consultationFee?: number;
+                        serviceFees?: {
+                            [key: string]: number;
+                        };
+                        offersCallOuts?: boolean;
+                        hasPremises?: boolean;
+                        premisesWardId?: number | null;
+                        premisesDirections?: string | null;
+                        premisesHours?: string | null;
+                        workingHours?: {
+                            [key: string]: {
+                                from: string;
+                                to: string;
+                            }[];
+                        };
                     };
                 };
             };
@@ -7847,144 +8157,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/v1/vets/me/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Change non-critical profile details (applied immediately)
-         * @description Access: role `vet`.
-         */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        serviceRadiusKm?: number;
-                        baseCallOutFee?: number;
-                        specialties?: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
-                        services?: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
-                        languages?: ("sw" | "en" | "ki" | "luo" | "kam" | "kln" | "other")[];
-                        bio?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description No content */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                410: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                503: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-            };
-        };
         trace?: never;
     };
     "/v1/admin/vet-applications": {
@@ -9654,6 +9826,21 @@ export interface paths {
                         baseCallOutFee?: number;
                         emergencyCallouts?: boolean;
                         availabilityHours?: string;
+                        consultationFee?: number;
+                        serviceFees?: {
+                            [key: string]: number;
+                        };
+                        offersCallOuts?: boolean;
+                        hasPremises?: boolean;
+                        premisesWardId?: number | null;
+                        premisesDirections?: string | null;
+                        premisesHours?: string | null;
+                        workingHours?: {
+                            [key: string]: {
+                                from: string;
+                                to: string;
+                            }[];
+                        };
                     };
                 };
             };
@@ -12037,7 +12224,7 @@ export interface components {
     schemas: {
         ErrorInput: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required" | "practice_incomplete";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -12124,6 +12311,28 @@ export interface components {
                 } | null;
             }[];
         };
+        PriceBreakdownInput: {
+            consultation: number;
+            services: {
+                /** @enum {string} */
+                service: "treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery";
+                fee: number;
+            }[];
+            callOut: number;
+            /** @description A starting price: medicine and extra work can cost more */
+            total: number;
+            /** @description Paid to VetLink when booking; part of the total */
+            bookingFee: number;
+            /** @description Paid to the vet on the farm: total minus booking fee */
+            payVet: number;
+        };
+        PriceRangeInput: {
+            min: number;
+            max: number;
+            bookingFee: number;
+            /** @description How many nearby vets the range is built from */
+            vets: number;
+        };
         FarmerBookingInput: {
             id: number;
             /** @enum {string} */
@@ -12139,7 +12348,14 @@ export interface components {
             ward: components["schemas"]["WardInput"];
             /** @description KES, quoted by the server */
             feeQuoted: number;
+            /** @description VetLink's booking fee for this booking (§24.24) */
             depositKes: number;
+            /** @description Added to the consultation */
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description Before a vet accepts */
+            priceRange: components["schemas"]["PriceRangeInput"] | null;
+            /** @description The accepting vet's price, fixed at acceptance */
+            price: components["schemas"]["PriceBreakdownInput"] | null;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -12196,6 +12412,9 @@ export interface components {
                 precise: boolean;
             } | null;
             feeQuoted: number;
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description My price for this job; payVet is what I collect */
+            price: components["schemas"]["PriceBreakdownInput"] | null;
             acceptedAt: string | null;
             completedAt: string | null;
             timeline: {
@@ -12227,6 +12446,9 @@ export interface components {
             isEmergency: boolean;
             ward: components["schemas"]["WardInput"];
             feeQuoted: number;
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description What this job pays at my current prices */
+            price: components["schemas"]["PriceBreakdownInput"] | null;
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -12246,7 +12468,14 @@ export interface components {
             ward: components["schemas"]["WardInput"];
             /** @description KES, quoted by the server */
             feeQuoted: number;
+            /** @description VetLink's booking fee for this booking (§24.24) */
             depositKes: number;
+            /** @description Added to the consultation */
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description Before a vet accepts */
+            priceRange: components["schemas"]["PriceRangeInput"] | null;
+            /** @description The accepting vet's price, fixed at acceptance */
+            price: components["schemas"]["PriceBreakdownInput"] | null;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -12514,22 +12743,80 @@ export interface components {
             shareLiveLocation: boolean;
             ward: components["schemas"]["WardInput"] | null;
             serviceRadiusKm: number;
+            /** @description Call-out fee: the trip to the farm */
             baseCallOutFee: number | null;
             specialties: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             rating: number | null;
+            consultationFee: number | null;
+            serviceFees: {
+                [key: string]: number;
+            };
+            offersCallOuts: boolean;
+            hasPremises: boolean;
+            premisesWard: components["schemas"]["WardInput"] | null;
+            premisesDirections: string | null;
+            premisesHours: string | null;
+            workingHours: {
+                [key: string]: {
+                    from: string;
+                    to: string;
+                }[];
+            } | null;
+            practiceMissing: string[];
+            bands: {
+                callOut: {
+                    min: number;
+                    max: number;
+                };
+                items: {
+                    [key: string]: {
+                        min: number;
+                        max: number;
+                    };
+                };
+                /** @description VetLink's fee, part of every total */
+                bookingFee: number;
+            };
+            qualifications: {
+                kvbRegNo: string | null;
+                kvbCategory: ("veterinary_surgeon" | "veterinary_paraprofessional" | "animal_health_assistant") | null;
+                licenceExpiry: string | null;
+                qualification: string | null;
+                institution: string | null;
+                yearQualified: number | null;
+                practiceType: ("independent" | "clinic" | "agrovet") | null;
+                practiceName: string | null;
+                yearsExperience: number | null;
+                languages: ("sw" | "en" | "ki" | "luo" | "kam" | "kln" | "other")[];
+                bio: string | null;
+                nationalIdLast3: string | null;
+                verifiedAt: string | null;
+            };
+            documents: {
+                id: number;
+                /** @enum {string} */
+                kind: "id_front" | "id_back" | "certificate" | "licence" | "profile_photo" | "training_cert";
+                /** @enum {string} */
+                status: "uploaded" | "accepted" | "flagged";
+                expiresAt: string | null;
+            }[];
         };
         MinAppVersionInput: {
             /** @description Older apps must update before continuing */
             minVersion: string;
         };
         QuoteInput: {
+            /** @description Call-out fee */
             feeQuoted: number;
+            /** @description VetLink's booking fee */
             depositKes: number;
+            /** @description Totals of nearby vets; null when none is near */
+            priceRange: components["schemas"]["PriceRangeInput"] | null;
         };
         Error: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required" | "practice_incomplete";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -12616,6 +12903,28 @@ export interface components {
                 } | null;
             }[];
         };
+        PriceBreakdown: {
+            consultation: number;
+            services: {
+                /** @enum {string} */
+                service: "treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery";
+                fee: number;
+            }[];
+            callOut: number;
+            /** @description A starting price: medicine and extra work can cost more */
+            total: number;
+            /** @description Paid to VetLink when booking; part of the total */
+            bookingFee: number;
+            /** @description Paid to the vet on the farm: total minus booking fee */
+            payVet: number;
+        };
+        PriceRange: {
+            min: number;
+            max: number;
+            bookingFee: number;
+            /** @description How many nearby vets the range is built from */
+            vets: number;
+        };
         FarmerBooking: {
             id: number;
             /** @enum {string} */
@@ -12631,7 +12940,14 @@ export interface components {
             ward: components["schemas"]["Ward"];
             /** @description KES, quoted by the server */
             feeQuoted: number;
+            /** @description VetLink's booking fee for this booking (§24.24) */
             depositKes: number;
+            /** @description Added to the consultation */
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description Before a vet accepts */
+            priceRange: components["schemas"]["PriceRange"] | null;
+            /** @description The accepting vet's price, fixed at acceptance */
+            price: components["schemas"]["PriceBreakdown"] | null;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -12688,6 +13004,9 @@ export interface components {
                 precise: boolean;
             } | null;
             feeQuoted: number;
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description My price for this job; payVet is what I collect */
+            price: components["schemas"]["PriceBreakdown"] | null;
             acceptedAt: string | null;
             completedAt: string | null;
             timeline: {
@@ -12719,6 +13038,9 @@ export interface components {
             isEmergency: boolean;
             ward: components["schemas"]["Ward"];
             feeQuoted: number;
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description What this job pays at my current prices */
+            price: components["schemas"]["PriceBreakdown"] | null;
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -12738,7 +13060,14 @@ export interface components {
             ward: components["schemas"]["Ward"];
             /** @description KES, quoted by the server */
             feeQuoted: number;
+            /** @description VetLink's booking fee for this booking (§24.24) */
             depositKes: number;
+            /** @description Added to the consultation */
+            services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
+            /** @description Before a vet accepts */
+            priceRange: components["schemas"]["PriceRange"] | null;
+            /** @description The accepting vet's price, fixed at acceptance */
+            price: components["schemas"]["PriceBreakdown"] | null;
             deposit: {
                 /** @enum {string} */
                 status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
@@ -13006,18 +13335,76 @@ export interface components {
             shareLiveLocation: boolean;
             ward: components["schemas"]["Ward"] | null;
             serviceRadiusKm: number;
+            /** @description Call-out fee: the trip to the farm */
             baseCallOutFee: number | null;
             specialties: ("cattle" | "goat" | "sheep" | "pig" | "poultry" | "dog" | "other")[];
             services: ("treatment" | "vaccination" | "artificial_insemination" | "deworming" | "pregnancy_diagnosis" | "minor_surgery")[];
             rating: number | null;
+            consultationFee: number | null;
+            serviceFees: {
+                [key: string]: number;
+            };
+            offersCallOuts: boolean;
+            hasPremises: boolean;
+            premisesWard: components["schemas"]["Ward"] | null;
+            premisesDirections: string | null;
+            premisesHours: string | null;
+            workingHours: {
+                [key: string]: {
+                    from: string;
+                    to: string;
+                }[];
+            } | null;
+            practiceMissing: string[];
+            bands: {
+                callOut: {
+                    min: number;
+                    max: number;
+                };
+                items: {
+                    [key: string]: {
+                        min: number;
+                        max: number;
+                    };
+                };
+                /** @description VetLink's fee, part of every total */
+                bookingFee: number;
+            };
+            qualifications: {
+                kvbRegNo: string | null;
+                kvbCategory: ("veterinary_surgeon" | "veterinary_paraprofessional" | "animal_health_assistant") | null;
+                licenceExpiry: string | null;
+                qualification: string | null;
+                institution: string | null;
+                yearQualified: number | null;
+                practiceType: ("independent" | "clinic" | "agrovet") | null;
+                practiceName: string | null;
+                yearsExperience: number | null;
+                languages: ("sw" | "en" | "ki" | "luo" | "kam" | "kln" | "other")[];
+                bio: string | null;
+                nationalIdLast3: string | null;
+                verifiedAt: string | null;
+            };
+            documents: {
+                id: number;
+                /** @enum {string} */
+                kind: "id_front" | "id_back" | "certificate" | "licence" | "profile_photo" | "training_cert";
+                /** @enum {string} */
+                status: "uploaded" | "accepted" | "flagged";
+                expiresAt: string | null;
+            }[];
         };
         MinAppVersion: {
             /** @description Older apps must update before continuing */
             minVersion: string;
         };
         Quote: {
+            /** @description Call-out fee */
             feeQuoted: number;
+            /** @description VetLink's booking fee */
             depositKes: number;
+            /** @description Totals of nearby vets; null when none is near */
+            priceRange: components["schemas"]["PriceRange"] | null;
         };
     };
     responses: never;

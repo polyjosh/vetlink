@@ -8,9 +8,9 @@ import type { BookingEvent, BookingStatus } from '@vetlink/shared';
 export type DepositOutcome = 'refund' | 'forfeit' | 'none';
 
 /**
- * What happens to a paid deposit when a booking is cancelled:
+ * What happens to a paid booking fee (the deposit) when a booking is cancelled:
  * refunded if no vet accepted, the farmer cancelled before the vet set off, or an admin
- * cancelled; forfeited to the vet if the farmer cancels once the vet is on the way.
+ * cancelled; kept by VetLink if the farmer cancels once the vet is on the way (§24.24).
  */
 export function depositOutcomeOnCancel(from: BookingStatus, event: BookingEvent): DepositOutcome {
   switch (event) {

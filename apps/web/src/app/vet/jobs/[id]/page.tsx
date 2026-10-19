@@ -21,6 +21,7 @@ import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
 import { PersonAvatar } from '@/components/pictures';
+import { PriceLines } from '@/components/prices';
 
 /** Directions open in the phone's own maps app (no map SDK yet: owner decision). */
 function directionsUrl(job: Schemas['VetJob']): string {
@@ -85,7 +86,11 @@ export default function Job() {
             {t.ussd.species[job.species]}, {t.ussd.problems[job.problemType]}
           </p>
           {job.note && <p className="italic">“{job.note}”</p>}
-          <p>{fmt(t.web.common.kes, { amount: job.feeQuoted })}</p>
+          {job.price ? (
+            <PriceLines price={job.price} forVet />
+          ) : (
+            <p>{fmt(t.web.common.kes, { amount: job.feeQuoted })}</p>
+          )}
         </Card>
         <Card className="space-y-2">
           <div className="flex items-center gap-3">

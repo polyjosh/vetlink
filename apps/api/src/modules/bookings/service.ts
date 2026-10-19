@@ -6,6 +6,7 @@ import type {
   ProblemType,
   Species,
   VetJobView,
+  VetService,
 } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import {
@@ -23,7 +24,7 @@ import { DomainError } from '../../lib/errors.js';
 import { depositOutcomeOnCancel } from '../payments/policy.js';
 import { createRefundIfPaid } from '../payments/refunds.js';
 import { afterCommit } from './effects.js';
-import { quoteCallOutFee } from './pricing.js';
+import { currentBookingFee, quoteCallOutFee, quotePriceRange } from './pricing.js';
 import { transition, type BookingActor, type BookingRow } from './transitions.js';
 import { farmerViews, vetJobViews } from './views.js';
 
@@ -46,6 +47,8 @@ export interface CreateBookingInput {
   wardId?: number | undefined;
   lat?: number | undefined;
   lng?: number | undefined;
+  /** Services added to the consultation (§24.3); USSD derives them from the problem. */
+  services?: readonly VetService[] | undefined;
 }
 
 /** Keys are scoped per farmer, so one farmer's key can never return another farmer's booking. */
@@ -57,7 +60,8 @@ function sameRequest(b: BookingRow, input: CreateBookingInput, wardId: number): 
     b.problemType === input.problemType &&
     b.isEmergency === input.isEmergency &&
     b.wardId === wardId &&
-    (b.animalId ?? undefined) === input.animalId
+    (b.animalId ?? undefined) === input.animalId &&
+    [...b.services].sort().join() === [...(input.services ?? [])].sort().join()
   );
 }
 
@@ -111,6 +115,15 @@ export async function createBooking(
   }
 
   const now = ctx.clock();
+  const services = [...new Set(input.services ?? [])];
+  const target = {
+    wardId,
+    species: input.species,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
+    services,
+  };
+  const bookingFeeKes = await currentBookingFee(ctx);
   const [inserted] = await ctx.db
     .insert(bookings)
     .values({
@@ -124,12 +137,10 @@ export async function createBooking(
       wardId,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
-      feeQuoted: await quoteCallOutFee(ctx, {
-        wardId,
-        species: input.species,
-        lat: input.lat ?? null,
-        lng: input.lng ?? null,
-      }),
+      feeQuoted: await quoteCallOutFee(ctx, target),
+      services,
+      bookingFeeKes,
+      priceRange: await quotePriceRange(ctx, target, bookingFeeKes),
       idempotencyKey: key,
       createdAt: now,
     })
