@@ -36,7 +36,7 @@ WhatsApp channel, county integrations, B2B (co-ops, processors, agrovets), multi
 ## 21. Open Questions (ask the owner before assuming)
 
 1. Pilot county and partner co-op?
-2. **Revenue model decided 2026-10-19: vets pay a subscription, farmers pay none (§24.24).** Original question: Balance payment: through the platform (we hold funds) or direct farmer-to-vet M-Pesa with commission collected separately?
+2. **Revenue model decided 2026-10-19: VetLink keeps a commission on the farmer's deposit and pays the rest to the vet; no subscriptions (§24.24).** Original question: Balance payment: through the platform (we hold funds) or direct farmer-to-vet M-Pesa with commission collected separately?
 3. Commission model at launch: 10 to 15% of call-out fee only, or also treatment fees?
 4. Shortcode: shared USSD code vs dedicated (cost and timeline)?
 5. Which diseases count as "notifiable" for outbreak alerts?

@@ -201,10 +201,12 @@ While a booking is `en_route`, show the vet's position on a map to the farmer (f
 - Clinic-visit bookings (24.3) and referral rewards (24.12): later, after owner decisions.
 - Live map (24.17): after Open Question 21.10.
 
-### 24.24 Vet subscriptions (decided 2026-10-19, details open)
+### 24.24 Commission and vet payouts (decided 2026-10-19, details open)
 
-- **Vets pay VetLink a recurring subscription** to receive farmer requests. **Farmers pay no subscription**; they keep paying vets directly (§24.3).
-- Open before planning CS11: price and period, free trial, what a lapsed subscription does (proposed: no new requests or direct requests, enforced on the server like invariant 2, active jobs finish), whether the KES 200 deposit stays, payment channel (M-Pesa), and **app-store billing**: Google Play and Apple may require their own billing for a subscription sold in the app, because it is a digital service rather than a real-world one (the deposit is exempt as payment for a physical service). Confirm with Google/Apple or counsel before building in-app purchase screens.
+- VetLink earns a **commission on the deposit**. The farmer pays the deposit to VetLink by STK push (as today); VetLink keeps a percentage and **pays the rest to the vet** by M-Pesa (Daraja B2C) to the vet's payout number. **No subscriptions** for vets or farmers (an earlier same-day subscription decision was withdrawn).
+- The deposit counts towards the vet's bill: the farmer pays the vet directly only the remainder of the total (§24.3).
+- Money rules stay: integers in KES, the commission and payout are computed and recorded on the server in one place (`payments/policy.ts`), payouts are idempotent and reconciled like STK pushes, and every payout is visible to finance admins.
+- Open before planning CS11: the commission rate (21.3 suggested 10 to 15%), the deposit amount (fixed KES 200, or a share of the quote), when the vet is paid (on completion is proposed), commission on a forfeited deposit and on refunds, payout batching and minimums (21.12), and Daraja B2C credentials.
 
 ### 24.20 Booking state machine (amends §9)
 
