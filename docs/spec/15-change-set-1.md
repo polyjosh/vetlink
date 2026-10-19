@@ -201,12 +201,13 @@ While a booking is `en_route`, show the vet's position on a map to the farmer (f
 - Clinic-visit bookings (24.3) and referral rewards (24.12): later, after owner decisions.
 - Live map (24.17): after Open Question 21.10.
 
-### 24.24 Commission and vet payouts (decided 2026-10-19, details open)
+### 24.24 VetLink's fee: the deposit (decided 2026-10-19)
 
-- VetLink earns a **commission on the deposit**. The farmer pays the deposit to VetLink by STK push (as today); VetLink keeps a percentage and **pays the rest to the vet** by M-Pesa (Daraja B2C) to the vet's payout number. **No subscriptions** for vets or farmers (an earlier same-day subscription decision was withdrawn).
-- The deposit counts towards the vet's bill: the farmer pays the vet directly only the remainder of the total (§24.3).
-- Money rules stay: integers in KES, the commission and payout are computed and recorded on the server in one place (`payments/policy.ts`), payouts are idempotent and reconciled like STK pushes, and every payout is visible to finance admins.
-- Open before planning CS11: the commission rate (21.3 suggested 10 to 15%), the deposit amount (fixed KES 200, or a share of the quote), when the vet is paid (on completion is proposed), commission on a forfeited deposit and on refunds, payout batching and minimums (21.12), and Daraja B2C credentials.
+- **VetLink keeps the whole KES 200 deposit** as its fee. No subscriptions, no percentage commission, no payouts to vets for now.
+- **The deposit counts towards the vet's bill.** For a total of "from KES 1,000" the farmer pays KES 200 to VetLink by STK push and from KES 800 to the vet directly on the farm. Every price screen shows both parts; vets see what they collect (total minus KES 200).
+- The admin band for the consultation fee starts at KES 200 or more, so the vet's share is never negative.
+- Refund rules (§8.6): no vet found or the farmer cancels before the vet sets off: refunded. Cancelled after the vet set off: the deposit is kept by VetLink (previously "forfeited to the vet"; there is no payout path now).
+- Revisit (percentage commission and M-Pesa B2C payouts) when the owner wants it; history in the decision log.
 
 ### 24.20 Booking state machine (amends §9)
 
