@@ -20,6 +20,7 @@ import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
+import { PersonAvatar } from '@/components/pictures';
 
 /** Directions open in the phone's own maps app (no map SDK yet: owner decision). */
 function directionsUrl(job: Schemas['VetJob']): string {
@@ -87,10 +88,17 @@ export default function Job() {
           <p>{fmt(t.web.common.kes, { amount: job.feeQuoted })}</p>
         </Card>
         <Card className="space-y-2">
-          <p>
-            <strong>{t.web.vet.farmer}: </strong>
-            {job.farmer.name ?? '-'}
-          </p>
+          <div className="flex items-center gap-3">
+            <PersonAvatar
+              url={job.farmer.photoUrl}
+              name={job.farmer.displayName ?? job.farmer.name}
+              size={48}
+            />
+            <p>
+              <strong>{t.web.vet.farmer}: </strong>
+              {job.farmer.displayName ?? job.farmer.name ?? '-'}
+            </p>
+          </div>
           <p>
             {job.ward.ward}, {job.ward.subCounty}
           </p>

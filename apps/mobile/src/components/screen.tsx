@@ -75,9 +75,7 @@ export function Screen({
               }}
             />
           ))}
-        {me && (
-          <HeaderLink label={t.web.common.settings} onPress={() => router.push('/settings')} />
-        )}
+        {me && <HeaderLink label={t.web.profile.title} onPress={() => router.push('/settings')} />}
       </View>
       {offline && (
         <View style={{ backgroundColor: colors.warningLight, padding: space.sm }}>

@@ -152,11 +152,11 @@ export async function viewBooking(
 ): Promise<FarmerBookingView | VetJobView> {
   const [b] = await ctx.db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   if (viewer.kind === 'farmer' && b?.farmerId === viewer.userId) {
-    const [view] = await farmerViews(ctx.db, [b]);
+    const [view] = await farmerViews(ctx, [b]);
     if (view) return view;
   }
   if (viewer.kind === 'vet' && b && b.vetId === viewer.userId) {
-    const [view] = await vetJobViews(ctx.db, [b]);
+    const [view] = await vetJobViews(ctx, [b]);
     if (view) return view;
   }
   throw new DomainError('not_found');
@@ -183,7 +183,7 @@ export async function listFarmerBookings(
     .where(pageConditions(page, eq(bookings.farmerId, farmerId)))
     .orderBy(desc(bookings.id))
     .limit(page.limit);
-  return farmerViews(ctx.db, rows);
+  return farmerViews(ctx, rows);
 }
 
 export async function listVetJobs(
@@ -197,7 +197,7 @@ export async function listVetJobs(
     .where(pageConditions(page, eq(bookings.vetId, vetId)))
     .orderBy(desc(bookings.id))
     .limit(page.limit);
-  return vetJobViews(ctx.db, rows);
+  return vetJobViews(ctx, rows);
 }
 
 export async function cancelByFarmer(

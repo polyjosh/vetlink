@@ -8,6 +8,7 @@ import {
   animal,
   animalBody,
   animalHistory,
+  animalUpdateBody,
   farmerProfile,
   farmerProfileBody,
   wardView,
@@ -19,6 +20,7 @@ import {
   listAnimals,
   listCounties,
   listWards,
+  updateAnimal,
   updateFarmerProfile,
 } from './service.js';
 
@@ -107,6 +109,21 @@ export function profileRoutes(app: FastifyInstance, ctx: AppContext): void {
       },
     },
     async (req, reply) => reply.code(201).send(await addAnimal(ctx, authOf(req).userId, req.body)),
+  );
+
+  r.patch(
+    '/v1/animals/:id',
+    {
+      config: { access: access.role('farmer') },
+      schema: {
+        tags: ['animals'],
+        summary: 'Edit an animal (the species cannot change)',
+        params: animalParams,
+        body: animalUpdateBody,
+        response: responses({ 200: animal }),
+      },
+    },
+    async (req) => updateAnimal(ctx, authOf(req).userId, req.params.id, req.body),
   );
 
   r.get(

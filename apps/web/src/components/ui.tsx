@@ -107,13 +107,14 @@ export function Notice({
   tone = 'info',
   children,
 }: {
-  tone?: 'info' | 'warning' | 'success';
+  tone?: 'info' | 'warning' | 'success' | 'danger';
   children: ReactNode;
 }) {
   const tones = {
     info: 'bg-info-light text-info',
     warning: 'bg-warning-light text-warning',
     success: 'bg-brand-light text-brand-dark',
+    danger: 'bg-emergency-light text-emergency',
   };
   return <div className={`rounded-control p-3 ${tones[tone]}`}>{children}</div>;
 }

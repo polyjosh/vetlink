@@ -39,6 +39,8 @@ export const ERROR_STATUS = {
   application_locked: 409,
   application_claimed: 409,
   upload_invalid: 422,
+  photo_invalid: 422,
+  vet_photo_required: 409,
 } as const;
 export type ErrorCode = keyof typeof ERROR_STATUS;
 

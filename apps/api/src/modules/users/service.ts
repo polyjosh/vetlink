@@ -1,6 +1,12 @@
 import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import type { Locale } from '@vetlink/i18n';
-import { adminPermissions, type MeResponse, type UserRole, type VetType } from '@vetlink/shared';
+import {
+  adminPermissions,
+  type MeResponse,
+  type Theme,
+  type UserRole,
+  type VetType,
+} from '@vetlink/shared';
 import type { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import {
@@ -16,9 +22,11 @@ import {
 } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { ADMIN_2FA_TTL_MS, isRecent, sessionRoles } from '../auth/access.js';
+import { mePhoto, photoUrls } from '../media/service.js';
 import type {
   animal,
   animalBody,
+  animalUpdateBody,
   animalHistory,
   farmerProfile,
   farmerProfileBody,
@@ -34,7 +42,10 @@ export async function loadMe(
     .select({
       phone: users.phone,
       name: users.name,
+      displayName: users.displayName,
+      avatarMediaId: users.avatarMediaId,
       language: users.language,
+      theme: users.theme,
       roles: users.roles,
       consentAt: users.consentAt,
       verificationStatus: vets.verificationStatus,
@@ -55,7 +66,10 @@ export async function loadMe(
     id: userId,
     phone: row.phone,
     name: row.name,
+    displayName: row.displayName,
     language: row.language,
+    theme: row.theme,
+    photo: await mePhoto(ctx, userId, row.avatarMediaId),
     roles: sessionRoles(row.roles, isAdmin),
     onboarding: { consented: row.consentAt !== null, roleChosen: row.roles.length > 0 },
     vet:
@@ -79,13 +93,20 @@ export async function loadMe(
 export async function updateMe(
   ctx: AppContext,
   userId: string,
-  input: { name?: string | undefined; language?: Locale | undefined },
+  input: {
+    name?: string | undefined;
+    displayName?: string | null | undefined;
+    language?: Locale | undefined;
+    theme?: Theme | undefined;
+  },
 ): Promise<void> {
   await ctx.db
     .update(users)
     .set({
       ...(input.name !== undefined && { name: input.name }),
+      ...(input.displayName !== undefined && { displayName: input.displayName }),
       ...(input.language !== undefined && { language: input.language }),
+      ...(input.theme !== undefined && { theme: input.theme }),
     })
     .where(eq(users.id, userId));
 }
@@ -198,14 +219,64 @@ export async function listWards(ctx: AppContext, county: string) {
 }
 
 type AnimalView = z.infer<typeof animal>;
-const animalView = (a: typeof animals.$inferSelect): AnimalView => ({
-  id: a.id,
-  species: a.species,
-  nameOrTag: a.nameOrTag,
-  breed: a.breed,
-  sex: a.sex,
-  dob: a.dob,
-});
+type AnimalRow = typeof animals.$inferSelect;
+
+async function animalViews(ctx: AppContext, rows: AnimalRow[]): Promise<AnimalView[]> {
+  const urls = await photoUrls(
+    ctx,
+    rows.map((a) => a.photoMediaId),
+  );
+  return rows.map((a) => ({
+    id: a.id,
+    species: a.species,
+    nameOrTag: a.nameOrTag,
+    breed: a.breed,
+    sex: a.sex,
+    dob: a.dob,
+    photoUrl: (a.photoMediaId && urls.get(a.photoMediaId)) ?? null,
+  }));
+}
+
+async function animalView(ctx: AppContext, row: AnimalRow): Promise<AnimalView> {
+  const [view] = await animalViews(ctx, [row]);
+  if (!view) throw new Error('animal view missing');
+  return view;
+}
+
+/** One of my animals (owner only; others get not_found). */
+export async function animalById(
+  ctx: AppContext,
+  farmerId: string,
+  animalId: string,
+): Promise<AnimalView> {
+  const [row] = await ctx.db
+    .select()
+    .from(animals)
+    .where(and(eq(animals.id, animalId), eq(animals.farmerId, farmerId)))
+    .limit(1);
+  if (!row) throw new DomainError('not_found');
+  return animalView(ctx, row);
+}
+
+export async function updateAnimal(
+  ctx: AppContext,
+  farmerId: string,
+  animalId: string,
+  input: z.infer<typeof animalUpdateBody>,
+): Promise<AnimalView> {
+  const [row] = await ctx.db
+    .update(animals)
+    .set({
+      ...(input.nameOrTag !== undefined && { nameOrTag: input.nameOrTag }),
+      ...(input.breed !== undefined && { breed: input.breed }),
+      ...(input.sex !== undefined && { sex: input.sex }),
+      ...(input.dob !== undefined && { dob: input.dob }),
+    })
+    .where(and(eq(animals.id, animalId), eq(animals.farmerId, farmerId)))
+    .returning();
+  if (!row) throw new DomainError('not_found');
+  return animalView(ctx, row);
+}
 
 async function requireFarmer(ctx: AppContext, userId: string): Promise<void> {
   const [f] = await ctx.db
@@ -222,7 +293,7 @@ export async function listAnimals(ctx: AppContext, farmerId: string): Promise<An
     .from(animals)
     .where(eq(animals.farmerId, farmerId))
     .orderBy(asc(animals.nameOrTag));
-  return rows.map(animalView);
+  return animalViews(ctx, rows);
 }
 
 export async function addAnimal(
@@ -243,7 +314,7 @@ export async function addAnimal(
     })
     .returning();
   if (!row) throw new Error('animal insert failed');
-  return animalView(row);
+  return animalView(ctx, row);
 }
 
 /** One animal and its visits (bookings and treatments). Owner only; others get not_found. */
@@ -276,7 +347,7 @@ export async function animalWithHistory(
     : [];
   const byBooking = new Map(treatmentRows.map((t) => [t.bookingId, t]));
   return {
-    animal: animalView(a),
+    animal: await animalView(ctx, a),
     visits: visits.map((v) => {
       const t = byBooking.get(v.id);
       return {

@@ -20,6 +20,7 @@ import {
 import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
+import { PersonAvatar } from '../../../src/components/pictures';
 
 /** Tracking (§8.2 step 7): progress, vet contact once matched, cancel with policy, rating. */
 export default function Tracking() {
@@ -104,7 +105,13 @@ export default function Tracking() {
       {b.status === 'pending' && <Notice>{t.web.request.searching}</Notice>}
       {b.vet && (
         <Card>
-          <H2>{fmt(tr.vetComing, { vet: b.vet.name ?? '' })}</H2>
+          <View style={s.row}>
+            <PersonAvatar url={b.vet.photoUrl} name={b.vet.name} size={56} />
+            <View style={{ flex: 1 }}>
+              <H2>{fmt(tr.vetComing, { vet: b.vet.name ?? '' })}</H2>
+              {b.vet.displayName && <P muted>{`“${b.vet.displayName}”`}</P>}
+            </View>
+          </View>
           {b.vet.phone && (
             <Button
               title={tr.callVet}

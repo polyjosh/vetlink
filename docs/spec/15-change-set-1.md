@@ -251,8 +251,8 @@ Forward-only migrations; exact names are set in the CS plans.
 
 Representative; exact shapes in the zod schemas and OpenAPI. All need `Idempotency-Key` where they create bookings or payments.
 
-- `POST /v1/uploads/presign` gains kinds `avatar`, `animal_photo`, `booking_photo`, `booking_voice`; `PUT /v1/me/avatar` (`{ mediaId }`), `DELETE /v1/me/avatar`; `PATCH /v1/me` accepts `displayName`, `theme`, `seasonalAlertsOptOut`.
-- `PUT /v1/animals/:id` (edit, photo), `GET /v1/animals/:id/health-card`.
+- `POST /v1/uploads/presign` gains kinds `avatar`, `animal_photo`, `booking_photo`, `booking_voice`; `PUT /v1/me/avatar` (`{ storageKey }`), `DELETE /v1/me/avatar`; presign takes `purpose: photo` with `photoKind`; `PATCH /v1/me` accepts `displayName`, `theme`, `seasonalAlertsOptOut`.
+- `PATCH /v1/animals/:id` (edit), `PUT`/`DELETE /v1/animals/:id/photo`, `GET /v1/animals/:id/health-card`.
 - `GET /v1/vets/me/profile`, `PATCH /v1/vets/me/practice` (premises, call-outs, working hours, fees, species, services: non-critical edits), `GET /v1/vets/me/ratings`, `GET /v1/vets/me/follow-ups`, `GET /v1/vets/me/documents/:id/url`, `PATCH /v1/vets/me/public-profile`.
 - Farmer: `GET /v1/vets/nearby?species&service&wardId&lat&lng&when&part&sort` (eligible vets for the choose screen), `GET /v1/vets/clinics-nearby`, `GET /v1/vets/:id/public` (farmer view), `GET /v1/farmers/me/recent-vets`.
 - `POST /v1/bookings` accepts `dispatchMode`, `vetId` (when `chosen`), `scheduledFor`, `scheduledPart`; `POST /v1/bookings/:id/rechoose` (`{ vetId }`), `POST /v1/bookings/:id/switch-to-auto`, `POST /v1/bookings/:id/deposit/resend`.

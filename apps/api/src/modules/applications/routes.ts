@@ -7,7 +7,6 @@ import {
   APPLICATION_REASONS,
   APPLICATION_STATUSES,
   APPLICATION_STEPS,
-  DOCUMENT_CONTENT_TYPES,
   SPECIES,
   SPOKEN_LANGUAGES,
   VET_DOCUMENT_KINDS,
@@ -39,7 +38,6 @@ import {
   applicationView,
   confirmDocument,
   currentApplication,
-  presignDocument,
   resubmitApplication,
   saveStep,
   startNewVersion,
@@ -162,42 +160,6 @@ export function applicationRoutes(app: FastifyInstance, ctx: AppContext): void {
       },
     );
   }
-
-  r.post(
-    '/v1/uploads/presign',
-    {
-      config: vetOnly,
-      schema: {
-        tags,
-        summary: 'Get a URL to upload a document straight to private storage',
-        description:
-          'PUT the file to `uploadUrl` with `headers`, then confirm with POST /v1/vets/me/application/documents.',
-        body: z.object({
-          purpose: z.literal('vet_document'),
-          documentKind: z.enum(VET_DOCUMENT_KINDS),
-          contentType: z.enum(DOCUMENT_CONTENT_TYPES),
-          size: z.number().int().positive(),
-        }),
-        response: responses({
-          200: named(
-            z.object({
-              uploadUrl: z.string(),
-              storageKey: z.string(),
-              headers: z.record(z.string(), z.string()),
-              expiresAt: z.string(),
-            }),
-            'PresignedUpload',
-          ),
-        }),
-      },
-    },
-    async (req) =>
-      presignDocument(ctx, authOf(req).userId, {
-        kind: req.body.documentKind,
-        contentType: req.body.contentType,
-        size: req.body.size,
-      }),
-  );
 
   r.post(
     '/v1/vets/me/application/documents',

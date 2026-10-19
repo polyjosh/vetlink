@@ -46,7 +46,9 @@ export const farmerBooking = named(
     timeline: z.array(timelineEntry),
     vet: z
       .object({
-        name: z.string().nullable(),
+        name: z.string().nullable().describe('Verified legal name'),
+        displayName: z.string().nullable(),
+        photoUrl: z.string().nullable(),
         type: z.enum(VET_TYPES),
         rating: z.number().nullable(),
         phone: z.string().nullable().describe('Only while the job is active'),
@@ -82,6 +84,8 @@ export const vetJob = named(
     timeline: z.array(timelineEntry),
     farmer: z.object({
       name: z.string().nullable(),
+      displayName: z.string().nullable().describe('Show this when set, else name'),
+      photoUrl: z.string().nullable(),
       phone: z.string().nullable().describe('Only while the job is active'),
       farmNotes: z.string().nullable(),
     }),

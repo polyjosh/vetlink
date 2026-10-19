@@ -57,7 +57,9 @@
     "application_incomplete": "Your application is not complete yet. Fill in the missing items.",
     "application_locked": "This part of your application cannot be changed now.",
     "application_claimed": "Another reviewer is already handling this application.",
-    "upload_invalid": "That file cannot be used. Upload a clear JPG, PNG or PDF under 5 MB."
+    "upload_invalid": "That file cannot be used. Upload a clear JPG, PNG or PDF under 5 MB.",
+    "photo_invalid": "That photo cannot be used. Choose a JPG or PNG photo under 500 KB.",
+    "vet_photo_required": "Vets need a profile photo. You can replace yours, but not remove it."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -200,6 +202,16 @@
       "title": "Licence expiring",
       "body": "Your practising licence expires in {days} days. Upload the renewal in the app.",
       "sms": "VetLink: your practising licence expires in {days} days. Upload the renewal in the app to keep getting jobs."
+    },
+    "photo_approved": {
+      "title": "New photo approved",
+      "body": "Farmers now see your new profile photo.",
+      "sms": "VetLink: your new profile photo was approved. Farmers now see it."
+    },
+    "photo_rejected": {
+      "title": "Photo not approved",
+      "body": "Your new profile photo was not approved. Open your profile to see why.",
+      "sms": "VetLink: your new profile photo was not approved. Open your profile in the app to see why."
     }
   },
   "application": {
@@ -381,7 +393,14 @@
       "dob": "Date of birth",
       "empty": "No animals yet.",
       "historyTitle": "Visits",
-      "noVisits": "No visits yet."
+      "noVisits": "No visits yet.",
+      "photo": "Photo",
+      "addPhoto": "Add photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove photo",
+      "photoHint": "Optional. Without a photo we show a picture of the animal type.",
+      "edit": "Edit details",
+      "saveChanges": "Save changes"
     },
     "vet": {
       "homeTitle": "Vet home",
@@ -556,7 +575,8 @@
         "bookings": "Bookings",
         "payments": "Payments",
         "config": "Settings",
-        "admins": "Admins"
+        "admins": "Admins",
+        "photos": "Photos"
       },
       "queue": "Applications to review",
       "queueEmpty": "Nothing to review.",
@@ -603,7 +623,16 @@
         "support": "Support",
         "finance": "Finance",
         "analyst": "Analyst"
-      }
+      },
+      "photoQueue": "Vet photos to review",
+      "photoQueueEmpty": "No photos waiting.",
+      "currentPhoto": "Current photo",
+      "newPhoto": "New photo",
+      "noCurrentPhoto": "No current photo",
+      "openIdPhoto": "Open ID photo",
+      "approvePhoto": "Approve photo",
+      "rejectPhoto": "Reject photo",
+      "rejectReason": "Reason"
     },
     "mobile": {
       "pendingSync": "{n} waiting to send",
@@ -617,6 +646,47 @@
       "enableAlerts": "Turn on job alerts",
       "alertsHint": "So you hear new job offers even when the app is closed. If alerts are off, offers still come by SMS.",
       "alertsOn": "Job alerts are on"
+    },
+    "profile": {
+      "title": "My profile",
+      "photo": "Profile photo",
+      "addPhoto": "Add photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove photo",
+      "uploading": "Uploading…",
+      "photoFailed": "That photo could not be used. Try another one.",
+      "photoPending": "Waiting for approval",
+      "photoPendingHint": "Farmers keep seeing your current photo until our team checks the new one.",
+      "withdrawPhoto": "Cancel the new photo",
+      "photoRejected": "Your new photo was not approved: {reason}",
+      "photoReasons": {
+        "face_not_clear": "your face must be clearly visible.",
+        "not_same_person": "it must show the same person as your ID.",
+        "inappropriate": "it is not suitable for a profile photo.",
+        "other": "please contact support for details."
+      },
+      "name": "Name",
+      "verifiedName": "Verified name",
+      "verifiedNameHint": "Farmers always see your verified name. To change it, contact support.",
+      "phone": "Phone number",
+      "phoneHint": "Your phone number is your login. It cannot be changed here.",
+      "username": "Username",
+      "usernameHint": "Optional. Vets see it instead of your name.",
+      "vetUsernameHint": "Optional. Farmers see it beside your verified name.",
+      "usernameErrors": {
+        "length": "Use 3 to 30 characters.",
+        "characters": "Use letters, numbers, spaces, dots, dashes or underscores.",
+        "contact": "A username cannot contain a phone number or a website."
+      },
+      "farm": "My farm",
+      "settings": "Settings"
+    },
+    "empty": {
+      "noAnimals": "No animals yet",
+      "noBookings": "No requests yet",
+      "noOffers": "No offers right now",
+      "noRatings": "No ratings yet",
+      "offline": "You are offline"
     }
   }
 }

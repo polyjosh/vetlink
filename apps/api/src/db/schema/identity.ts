@@ -16,9 +16,11 @@ import {
   ADMIN_ROLES,
   DEVICE_PLATFORMS,
   SESSION_REVOKED_REASONS,
+  THEMES,
   USER_ROLES,
 } from '@vetlink/shared';
 import { createdAt, emptyTextArray, oneOf, subsetOf, timestamptz } from './helpers.js';
+import { media } from './bookings.js';
 
 /** The phone number is the account (invariant 1). Farmer and vet are profiles on top. */
 export const users = pgTable(
@@ -28,7 +30,11 @@ export const users = pgTable(
     // 2547XXXXXXXX. NULL only after deletion, when the anonymize job clears it (§17).
     phone: text('phone'),
     name: text('name'),
+    displayName: text('display_name'), // §24.1: shown to others, never a login
+    // The live profile photo. A vet's new photo waits in vets.pending_avatar_media_id.
+    avatarMediaId: uuid('avatar_media_id').references((): AnyPgColumn => media.id),
     language: text('language', { enum: LOCALES }).notNull().default(DEFAULT_LOCALE),
+    theme: text('theme', { enum: THEMES }).notNull().default('system'),
     roles: text('roles', { enum: USER_ROLES }).array().notNull().default(emptyTextArray),
     consentAt: timestamptz('consent_at'),
     createdAt: createdAt(),
@@ -48,6 +54,7 @@ export const users = pgTable(
       .where(sql`${t.deletedAt} is null`),
     check('users_language_check', oneOf(t.language, LOCALES)),
     check('users_roles_check', subsetOf(t.roles, USER_ROLES)),
+    check('users_theme_check', oneOf(t.theme, THEMES)),
   ],
 );
 

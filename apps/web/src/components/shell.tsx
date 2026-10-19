@@ -8,6 +8,7 @@ import { useLang, useT } from '@/lib/i18n';
 import { ROUTE_PATHS, lastRole, rememberRole } from '@/lib/role';
 import { useSession } from '@/lib/session';
 import { Spinner } from './ui';
+import { PersonAvatar } from './pictures';
 
 /** Page frame: title bar, language toggle, role switcher for multi-role users, log out. */
 export function Shell({
@@ -54,8 +55,12 @@ export function Shell({
           </button>
         ))}
         {me && (
-          <Link href="/settings" className="flex min-h-touch items-center px-2 text-sm underline">
-            {t.web.common.settings}
+          <Link
+            href="/settings"
+            className="flex min-h-touch items-center gap-2 px-2 text-sm underline"
+          >
+            <PersonAvatar url={me.photo.url} name={me.displayName ?? me.name} size={32} />
+            {t.web.profile.title}
           </Link>
         )}
         {me && (

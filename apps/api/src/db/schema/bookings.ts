@@ -19,6 +19,8 @@ import {
   BOOKING_STATUSES,
   CHANNELS,
   MEDIA_KINDS,
+  MEDIA_REVIEW_STATUSES,
+  PHOTO_REJECT_REASONS,
   OFFER_CHANNELS,
   OFFER_RESPONSES,
   PAYMENT_STATUSES,
@@ -45,6 +47,7 @@ export const animals = pgTable(
     breed: text('breed'),
     dob: date('dob'),
     sex: text('sex', { enum: ANIMAL_SEXES }),
+    photoMediaId: uuid('photo_media_id').references((): AnyPgColumn => media.id), // §24.2
   },
   (t) => [
     check('animals_species_check', oneOf(t.species, SPECIES)),
@@ -202,9 +205,25 @@ export const media = pgTable(
     kind: text('kind', { enum: MEDIA_KINDS }).notNull(),
     animalId: uuid('animal_id').references(() => animals.id),
     bookingId: integer('booking_id').references(() => bookings.id),
+    contentType: text('content_type'),
+    sizeBytes: integer('size_bytes'),
+    // Only vet avatars are reviewed (§24.1); everything else stays `none`.
+    reviewStatus: text('review_status', { enum: MEDIA_REVIEW_STATUSES }).notNull().default('none'),
+    reviewedBy: uuid('reviewed_by').references(() => users.id),
+    reviewedAt: timestamptz('reviewed_at'),
+    reviewReason: text('review_reason', { enum: PHOTO_REJECT_REASONS }),
     createdAt: createdAt(),
   },
-  (t) => [check('media_kind_check', oneOf(t.kind, MEDIA_KINDS))],
+  (t) => [
+    check('media_kind_check', oneOf(t.kind, MEDIA_KINDS)),
+    check('media_review_status_check', oneOf(t.reviewStatus, MEDIA_REVIEW_STATUSES)),
+    check('media_review_reason_check', oneOf(t.reviewReason, PHOTO_REJECT_REASONS)),
+    uniqueIndex('media_storage_key_key').on(t.storageKey),
+    index('media_owner_kind_idx').on(t.ownerUserId, t.kind),
+    index('media_pending_review_idx')
+      .on(t.createdAt)
+      .where(sql`${t.reviewStatus} = 'pending'`),
+  ],
 );
 
 export const treatments = pgTable(

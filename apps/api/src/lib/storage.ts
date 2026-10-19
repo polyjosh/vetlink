@@ -1,4 +1,5 @@
 import {
+  CopyObjectCommand,
   CreateBucketCommand,
   DeleteObjectCommand,
   GetObjectCommand,
@@ -25,6 +26,8 @@ export interface ObjectStorage {
   /** Size and type of an uploaded object, or null if it is not there. */
   head(key: string): Promise<{ size: number; contentType: string } | null>;
   delete(key: string): Promise<void>;
+  /** Server-side copy inside the bucket (e.g. a verified document photo becomes the avatar). */
+  copy(fromKey: string, toKey: string): Promise<void>;
 }
 
 export interface S3Config {
@@ -81,6 +84,12 @@ export function s3Storage(config: S3Config): ObjectStorage & { ensureBucket(): P
     },
     async delete(key) {
       await internal.send(new DeleteObjectCommand({ Bucket, Key: key }));
+    },
+    async copy(fromKey, toKey) {
+      const source = fromKey.split('/').map(encodeURIComponent).join('/');
+      await internal.send(
+        new CopyObjectCommand({ Bucket, Key: toKey, CopySource: `${Bucket}/${source}` }),
+      );
     },
     async ensureBucket() {
       try {

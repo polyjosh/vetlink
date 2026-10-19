@@ -8,10 +8,11 @@ import { useSession } from '@/lib/session';
 /** Only the sections this admin's permissions allow (UX; the API enforces each one). */
 const SECTIONS: {
   href: string;
-  key: 'applications' | 'bookings' | 'payments' | 'config' | 'admins';
+  key: 'applications' | 'photos' | 'bookings' | 'payments' | 'config' | 'admins';
   needs: AdminRole;
 }[] = [
   { href: '/admin/applications', key: 'applications', needs: 'verifier' },
+  { href: '/admin/photos', key: 'photos', needs: 'verifier' },
   { href: '/admin/bookings', key: 'bookings', needs: 'support' },
   { href: '/admin/payments', key: 'payments', needs: 'finance' },
   { href: '/admin/config', key: 'config', needs: 'super_admin' },
