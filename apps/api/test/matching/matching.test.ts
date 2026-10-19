@@ -9,6 +9,7 @@ import {
   locations,
   payments,
   vets,
+  walletEntries,
 } from '../../src/db/schema/index.js';
 import { Harness, MINUTE, errorCode, type Session } from '../helpers/harness.js';
 import {
@@ -292,7 +293,7 @@ describe.skipIf(!testServerUrl)('matching and dispatch (database)', { timeout: 6
   });
 
   describe('nobody available', () => {
-    it('tells the farmer we are still searching, then cancels and refunds after 10 minutes', async () => {
+    it('tells the farmer we are still searching, then cancels and credits the fee after 10 minutes', async () => {
       const id = await paidBooking();
       expect(await statusOf(id)).toBe('pending');
       expect(h.sms.filter((m) => m.phone === farmer.phone).at(-1)?.text).toMatch(
@@ -305,11 +306,13 @@ describe.skipIf(!testServerUrl)('matching and dispatch (database)', { timeout: 6
       await h.jobs.runDue();
       expect(await statusOf(id)).toBe('cancelled');
       const rows = await h.db.select().from(payments).where(eq(payments.bookingId, id));
-      expect(rows.map((r) => [r.type, r.status])).toEqual([
-        ['deposit', 'success'],
-        ['refund', 'pending'],
-      ]);
-      expect(h.sms.filter((m) => m.phone === farmer.phone).at(-1)?.text).toMatch(/itarudishwa/);
+      // Never refunded to M-Pesa: the fee becomes VetLink credit (§24.25).
+      expect(rows.map((r) => [r.type, r.status])).toEqual([['deposit', 'success']]);
+      const credit = await h.db.select().from(walletEntries).where(eq(walletEntries.bookingId, id));
+      expect(credit.map((c) => [c.kind, c.amount])).toEqual([['credit_no_vet', 200]]);
+      expect(h.sms.filter((m) => m.phone === farmer.phone).some((m) => /salio/.test(m.text))).toBe(
+        true,
+      );
       expect(h.jobs.failed).toEqual([]);
     });
 

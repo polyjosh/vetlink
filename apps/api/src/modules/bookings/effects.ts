@@ -25,12 +25,19 @@ export async function afterCommit(
 }
 
 /** Ask the farmer for the booking fee once their chosen vet accepted (§24.6 step 6). */
-async function askForBookingFee(ctx: AppContext, b: BookingRow, log: FastifyBaseLogger) {
+/** Returns true when the farmer's credit paid it all (no M-Pesa prompt). */
+async function askForBookingFee(
+  ctx: AppContext,
+  b: BookingRow,
+  log: FastifyBaseLogger,
+): Promise<boolean> {
   try {
-    await requestDeposit(ctx, { bookingId: b.id, farmerId: b.farmerId }, log);
+    const p = await requestDeposit(ctx, { bookingId: b.id, farmerId: b.farmerId }, log);
+    return p.method === 'wallet';
   } catch (err) {
     // M-Pesa is down: the farmer can press "Pay" again until the deadline.
     log.warn({ err, bookingId: b.id }, 'booking fee prompt not sent');
+    return false;
   }
 }
 
@@ -120,7 +127,8 @@ export async function runBookingEffects(
     case 'vet_accepted': {
       const v = await vetName();
       if (b.status === 'awaiting_deposit') {
-        // Chosen vet said yes: the M-Pesa prompt goes out now; no contact details until paid.
+        // Chosen vet said yes: the fee is taken now (credit first, §24.25); no contact until paid.
+        if (await askForBookingFee(ctx, b, log)) return; // paid from credit: matched already
         await ctx.jobs.add(
           'notifications.send',
           {
@@ -131,7 +139,6 @@ export async function runBookingEffects(
           },
           { jobId: `notify-${once}-farmer` },
         );
-        await askForBookingFee(ctx, b, log);
         return;
       }
       await toFarmer('booking_matched', { vet: v.name, phone: v.phone });

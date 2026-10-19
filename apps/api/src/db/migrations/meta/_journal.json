@@ -92,6 +92,13 @@
       "when": 1792416602988,
       "tag": "0012_choose_vet",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792427305692,
+      "tag": "0013_wallet",
+      "breakpoints": true
     }
   ]
 }

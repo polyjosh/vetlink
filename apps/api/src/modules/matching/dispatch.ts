@@ -10,7 +10,7 @@ import { createOffer, timeoutOffers } from '../bookings/service.js';
 import { transition } from '../bookings/transitions.js';
 import { getConfig } from '../config/service.js';
 import { notify } from '../notifications/service.js';
-import { createRefundIfPaid } from '../payments/refunds.js';
+import { creditBookingFee } from '../wallet/service.js';
 import { rankCandidates } from './candidates.js';
 import { bookingPhotoCount } from '../media/service.js';
 
@@ -185,7 +185,7 @@ export async function giveUp(ctx: AppContext, bookingId: number): Promise<void> 
   try {
     result = await ctx.db.transaction(async (tx) => {
       const r = await transition(tx, bookingId, 'no_vet_found', { kind: 'system' }, now);
-      if (r.changed) await createRefundIfPaid(tx, bookingId, now, 'no_vet_found');
+      if (r.changed) await creditBookingFee(tx, ctx, bookingId, now, 'credit_no_vet');
       return r;
     });
   } catch (err) {

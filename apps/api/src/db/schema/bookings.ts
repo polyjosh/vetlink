@@ -21,6 +21,8 @@ import {
   CHANNELS,
   DISPATCH_MODES,
   OFFER_KINDS,
+  PAYMENT_METHODS,
+  WALLET_ENTRY_KINDS,
   MEDIA_KINDS,
   MEDIA_REVIEW_STATUSES,
   PHOTO_REJECT_REASONS,
@@ -200,6 +202,10 @@ export const payments = pgTable(
     refundOf: integer('refund_of')
       .unique()
       .references((): AnyPgColumn => payments.id),
+    // §24.25: `amount` is the whole booking fee; `wallet_amount` of it comes from the wallet, the
+    // rest by STK push. `wallet`: all of it from the wallet (no M-Pesa at all).
+    method: text('method', { enum: PAYMENT_METHODS }).notNull().default('mpesa'),
+    walletAmount: integer('wallet_amount').notNull().default(0),
     createdAt: createdAt(),
     updatedAt: timestamptz('updated_at').notNull().defaultNow(),
   },
@@ -208,6 +214,11 @@ export const payments = pgTable(
     check('payments_status_check', oneOf(t.status, PAYMENT_STATUSES)),
     // Direction comes from `type` (refund), so every amount is positive.
     check('payments_amount_check', sql`${t.amount} > 0`),
+    check('payments_method_check', oneOf(t.method, PAYMENT_METHODS)),
+    check(
+      'payments_wallet_amount_check',
+      sql`${t.walletAmount} >= 0 and ${t.walletAmount} <= ${t.amount}`,
+    ),
     check('payments_refund_of_check', sql`(${t.type} = 'refund') = (${t.refundOf} is not null)`),
     // At most one STK push in flight per booking, and never two paid deposits.
     uniqueIndex('payments_one_pending_deposit_key')
@@ -217,6 +228,35 @@ export const payments = pgTable(
       .on(t.bookingId)
       .where(sql`${t.type} = 'deposit' and ${t.status} in ('success', 'refunded')`),
     index('payments_status_created_at_idx').on(t.status, t.createdAt),
+  ],
+);
+
+/**
+ * The farmer's VetLink wallet (§24.25): an append-only ledger. The balance is the sum. Credits
+ * replace refunds; debits pay booking fees. One entry per booking and kind, so a retried
+ * cancellation or payment never credits or debits twice.
+ */
+export const walletEntries = pgTable(
+  'wallet_entries',
+  {
+    id: serial('id').primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    amount: integer('amount').notNull(), // KES: positive credit, negative debit
+    kind: text('kind', { enum: WALLET_ENTRY_KINDS }).notNull(),
+    bookingId: integer('booking_id').references(() => bookings.id),
+    note: text('note'), // adjustments: the admin's reason
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check('wallet_entries_kind_check', oneOf(t.kind, WALLET_ENTRY_KINDS)),
+    check('wallet_entries_amount_check', sql`${t.amount} <> 0`),
+    uniqueIndex('wallet_entries_booking_kind_key')
+      .on(t.bookingId, t.kind)
+      .where(sql`${t.bookingId} is not null`),
+    index('wallet_entries_user_idx').on(t.userId, t.createdAt),
   ],
 );
 

@@ -8,6 +8,7 @@ import {
   notifications,
   payments,
   vets,
+  walletEntries,
 } from '../../src/db/schema/index.js';
 import { sweepDeadlines } from '../../src/modules/bookings/choose.js';
 import { handleStkResult } from '../../src/modules/payments/service.js';
@@ -240,7 +241,7 @@ describe.skipIf(!testServerUrl)('farmer chooses the vet (database)', { timeout: 
       expect(h.gateway.pushes).toHaveLength(0);
     });
 
-    it('the fee is not paid in 5 minutes: expired, the vet is told; a late payment is refunded', async () => {
+    it('the fee is not paid in 5 minutes: expired, the vet is told; a late payment becomes credit', async () => {
       const farmer = await h.farmer(wardId);
       const vet = await h.vet(wardId);
       const booking = (await choose(farmer, vet)).json<FarmerBookingView>();
@@ -260,7 +261,12 @@ describe.skipIf(!testServerUrl)('farmer chooses the vet (database)', { timeout: 
 
       await pay(booking.id); // M-Pesa result arrives after all
       const rows = await h.db.select().from(payments).where(eq(payments.bookingId, booking.id));
-      expect(rows.map((p) => p.type).sort()).toEqual(['deposit', 'refund']);
+      expect(rows.map((p) => p.type)).toEqual(['deposit']); // nothing goes back to M-Pesa
+      const credit = await h.db
+        .select()
+        .from(walletEntries)
+        .where(eq(walletEntries.bookingId, booking.id));
+      expect(credit.map((c) => [c.kind, c.amount])).toEqual([['credit_late_payment', 200]]);
     });
   });
 

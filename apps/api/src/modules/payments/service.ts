@@ -14,7 +14,12 @@ import {
   PAYMENT_STUCK_AFTER_MS,
   UNPAID_BOOKING_EXPIRES_AFTER_MS,
 } from './policy.js';
-import { createRefundIfPaid } from './refunds.js';
+import {
+  creditLatePayment,
+  creditedBookings,
+  debitBookingFee,
+  walletBalance,
+} from '../wallet/service.js';
 
 export type PaymentRow = typeof payments.$inferSelect;
 
@@ -55,12 +60,22 @@ export async function requestDeposit(
     throw new DomainError('invalid_transition', { event: 'pay', status: b.booking.status });
   }
 
+  const fee = b.booking.bookingFeeKes;
+  // §24.25: credit pays first. Enough of it: paid at once, no M-Pesa prompt.
+  const credit = Math.min(fee, await walletBalance(ctx.db, input.farmerId));
+  if (credit === fee) {
+    const paid = await payFromWallet(ctx, b.booking, fee, now);
+    if (paid) return paid;
+  }
+  const walletPart = Math.min(fee, await walletBalance(ctx.db, input.farmerId));
   const [payment] = await ctx.db
     .insert(payments)
     .values({
       bookingId: input.bookingId,
       type: 'deposit',
-      amount: b.booking.bookingFeeKes,
+      amount: fee,
+      // Only the rest goes by STK push; the credit is taken when M-Pesa confirms.
+      walletAmount: walletPart,
       status: 'pending',
       phone: b.phone,
       createdAt: now,
@@ -83,7 +98,7 @@ export async function requestDeposit(
   try {
     const accepted = await ctx.payments.stkPush({
       phone: b.phone,
-      amount: payment.amount,
+      amount: payment.amount - payment.walletAmount,
       accountReference: `VL${input.bookingId}`,
       description: 'VetLink dep',
     });
@@ -163,7 +178,10 @@ export async function handleStkResult(
     return;
   }
 
-  if (result.amount !== undefined && Math.round(result.amount) !== payment.amount) {
+  if (
+    result.amount !== undefined &&
+    Math.round(result.amount) !== payment.amount - payment.walletAmount
+  ) {
     // Should never happen (we set the amount); money needs a human, not a guess.
     log.error({ paymentId: payment.id }, 'STK amount does not match the deposit');
     await ctx.db
@@ -177,7 +195,7 @@ export async function handleStkResult(
         action: 'payment.amount_mismatch',
         entity: 'payment',
         entityId: String(payment.id),
-        meta: { expected: payment.amount, received: result.amount },
+        meta: { expected: payment.amount - payment.walletAmount, received: result.amount },
       },
       now,
     );
@@ -198,17 +216,26 @@ export async function handleStkResult(
       .returning();
     if (!settled) return null; // a concurrent result got there first
     const [booking] = await tx
-      .select({ status: bookings.status })
+      .select({ status: bookings.status, farmerId: bookings.farmerId })
       .from(bookings)
       .where(eq(bookings.id, settled.bookingId));
     if (booking?.status === 'pending_payment' || booking?.status === 'awaiting_deposit') {
+      if (settled.walletAmount > 0) {
+        // The credit part of the fee: taken now that the M-Pesa part is in (§24.25).
+        await debitBookingFee(tx, {
+          userId: booking.farmerId,
+          bookingId: settled.bookingId,
+          amount: settled.walletAmount,
+          now,
+        });
+      }
       return transition(tx, settled.bookingId, 'deposit_confirmed', { kind: 'system' }, now, {
         reason: source,
       });
     } else {
-      // Paid after the booking was cancelled or expired: give the money back.
-      await createRefundIfPaid(tx, settled.bookingId, now, 'paid_after_close');
-      log.warn({ paymentId: settled.id, status: booking?.status }, 'late deposit; refund created');
+      // Paid after the booking was cancelled or expired: never refunded, credited (§24.25).
+      await creditLatePayment(tx, ctx, settled, now);
+      log.warn({ paymentId: settled.id, status: booking?.status }, 'late deposit; wallet credited');
       return null;
     }
   });
@@ -352,6 +379,55 @@ export async function completeRefund(
 }
 
 /** Deposit state of bookings, for booking views. */
+/**
+ * The whole fee from the wallet: debited, recorded as a paid deposit (method `wallet`), and the
+ * booking moves on, all at once. Null if the credit ran out meanwhile (then M-Pesa is used).
+ */
+async function payFromWallet(
+  ctx: AppContext,
+  booking: typeof bookings.$inferSelect,
+  fee: number,
+  now: Date,
+): Promise<PaymentRow | null> {
+  class NotEnough extends Error {}
+  try {
+    const { payment, result } = await ctx.db.transaction(async (tx) => {
+      const taken = await debitBookingFee(tx, {
+        userId: booking.farmerId,
+        bookingId: booking.id,
+        amount: fee,
+        now,
+      });
+      if (taken < fee) throw new NotEnough();
+      const [row] = await tx
+        .insert(payments)
+        .values({
+          bookingId: booking.id,
+          type: 'deposit',
+          amount: fee,
+          method: 'wallet',
+          walletAmount: fee,
+          status: 'success',
+          resultCode: 0,
+          resultDesc: 'wallet',
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+      if (!row) throw new Error('wallet payment insert failed');
+      const r = await transition(tx, booking.id, 'deposit_confirmed', { kind: 'system' }, now, {
+        reason: 'wallet',
+      });
+      return { payment: row, result: r };
+    });
+    await afterCommit(ctx, result, 'deposit_confirmed');
+    return payment;
+  } catch (err) {
+    if (err instanceof NotEnough) return null;
+    throw err;
+  }
+}
+
 export async function depositStates(
   ctx: Pick<AppContext, 'db'>,
   bookingIds: number[],
@@ -368,6 +444,7 @@ export async function depositStates(
     .from(payments)
     .where(inArray(payments.bookingId, bookingIds))
     .orderBy(payments.id);
+  const credited = await creditedBookings(ctx.db, bookingIds);
   for (const id of bookingIds) {
     const mine = rows.filter((r) => r.bookingId === id);
     const deposits = mine.filter((r) => r.type === 'deposit');
@@ -375,7 +452,8 @@ export async function depositStates(
     const refund = mine.find((r) => r.type === 'refund');
     const latest = deposits.at(-1);
     let status: DepositState = 'none';
-    if (paid?.status === 'refunded') status = 'refunded';
+    if (paid && credited.has(id)) status = 'credited';
+    else if (paid?.status === 'refunded') status = 'refunded';
     else if (paid && refund?.status === 'pending') status = 'refund_pending';
     else if (paid) status = 'paid';
     else if (latest?.status === 'pending') status = 'pending';

@@ -21,6 +21,7 @@ import { notificationRoutes } from './modules/notifications/routes.js';
 import { paymentRoutes } from './modules/payments/routes.js';
 import { chooseRoutes } from './modules/bookings/choose-routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
+import { walletRoutes } from './modules/wallet/routes.js';
 import { profileRoutes } from './modules/users/profile-routes.js';
 import { smsRoutes } from './modules/sms/routes.js';
 import { userRoutes } from './modules/users/routes.js';
@@ -117,6 +118,7 @@ export function buildApp({
       profileRoutes(api, ctx);
       mediaRoutes(api, ctx);
       chooseRoutes(api, ctx);
+      walletRoutes(api, ctx);
       bookingRoutes(api, ctx);
       vetRoutes(api, ctx);
       applicationRoutes(api, ctx);

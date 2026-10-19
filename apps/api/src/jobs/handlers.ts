@@ -7,6 +7,7 @@ import { deliver, notify, smsFallback } from '../modules/notifications/service.j
 import { handleStkResult, reconcilePayments } from '../modules/payments/service.js';
 import { morningReminders, sendVetFollowUpAlerts } from '../modules/reminders/service.js';
 import { updateBadges } from '../modules/vets/badges.js';
+import { expireCredit } from '../modules/wallet/service.js';
 import { checkLicences } from '../modules/vets/licence.js';
 import type { JobName, JobPayloads } from './types.js';
 
@@ -32,6 +33,7 @@ export const jobHandlers: { [N in JobName]: Handler<N> } = {
   'reminders.evening': (ctx, _data, log) => sendVetFollowUpAlerts(ctx, 'evening', log),
   'vets.badges': (ctx, _data, log) => updateBadges(ctx, log),
   'bookings.deadlines': (ctx, _data, log) => sweepDeadlines(ctx, log),
+  'wallet.expire': (ctx, _data, log) => expireCredit(ctx, log),
 };
 
 export async function runJob<N extends JobName>(

@@ -1,8 +1,19 @@
 import { randomUUID } from 'node:crypto';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { FarmerBookingView } from '@vetlink/shared';
-import { auditLog, bookingEvents, bookings, farmers, payments } from '../../src/db/schema/index.js';
+import {
+  auditLog,
+  bookingEvents,
+  bookings,
+  farmers,
+  notifications,
+  payments,
+  walletEntries,
+} from '../../src/db/schema/index.js';
+import { expireCredit } from '../../src/modules/wallet/service.js';
 import { reconcilePayments } from '../../src/modules/payments/service.js';
 import { createOffer } from '../../src/modules/bookings/service.js';
 import { darajaPassword, darajaTimestamp } from '../../src/modules/payments/daraja.js';
@@ -262,7 +273,7 @@ describe.skipIf(!testServerUrl)('payments (database)', { timeout: 60_000 }, () =
   });
 
   describe('late and stuck payments (reconciliation)', () => {
-    it('a payment that lands after the farmer cancelled is refunded automatically', async () => {
+    it('a payment that lands after the farmer cancelled becomes VetLink credit', async () => {
       const { farmer, bookingId } = await booked();
       await pay(farmer, bookingId);
       await h.post(
@@ -272,12 +283,12 @@ describe.skipIf(!testServerUrl)('payments (database)', { timeout: 60_000 }, () =
       );
       await mpesaSays(h.gateway.last().checkoutRequestId, 0);
       const view = await booking(farmer, bookingId);
-      expect(view).toMatchObject({ status: 'cancelled', deposit: { status: 'refund_pending' } });
+      expect(view).toMatchObject({ status: 'cancelled', deposit: { status: 'credited' } });
       const rows = await paymentRows(bookingId);
-      expect(rows.map((r) => [r.type, r.status])).toEqual([
-        ['deposit', 'success'],
-        ['refund', 'pending'],
-      ]);
+      expect(rows.map((r) => [r.type, r.status])).toEqual([['deposit', 'success']]);
+      expect((await h.get('/v1/wallet', farmer.accessToken)).json()).toMatchObject({
+        balance: 200,
+      });
     });
 
     it('no callback: after 2 minutes reconciliation asks M-Pesa and settles the payment', async () => {
@@ -332,48 +343,136 @@ describe.skipIf(!testServerUrl)('payments (database)', { timeout: 60_000 }, () =
     });
   });
 
-  describe('refunds', () => {
-    it('cancelling a paid booking before the vet sets off creates a refund; finance completes it', async () => {
+  describe('wallet instead of refunds (§24.25)', () => {
+    it('a cancelled paid booking credits the wallet; the next booking is paid from it', async () => {
+      const { farmer, bookingId } = await booked();
+      await pay(farmer, bookingId);
+      await mpesaSays(h.gateway.last().checkoutRequestId, 0);
+      const cancel = () =>
+        h.post(
+          `/v1/bookings/${bookingId}/cancel`,
+          { reason: 'found_other_help' },
+          farmer.accessToken,
+        );
+      await cancel();
+      await cancel(); // a retried cancellation never credits twice
+      expect((await booking(farmer, bookingId)).deposit.status).toBe('credited');
+      const wallet = (await h.get('/v1/wallet', farmer.accessToken)).json<{
+        balance: number;
+        entries: { kind: string }[];
+      }>();
+      expect(wallet).toMatchObject({ balance: 200 });
+      expect(wallet.entries.map((e) => e.kind)).toEqual(['credit_cancelled']);
+      const told = await h.db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, farmer.userId));
+      expect(told.map((n) => n.kind)).toContain('wallet_credited');
+
+      const quote = await h.get('/v1/bookings/quote?species=cattle', farmer.accessToken);
+      expect(quote.json()).toMatchObject({ walletCredit: 200 });
+      const pushes = h.gateway.pushes.length;
+      const next = await booked(farmer);
+      const paid = await pay(farmer, next.bookingId);
+      expect(paid.json()).toMatchObject({ status: 'success', method: 'wallet' });
+      expect(h.gateway.pushes).toHaveLength(pushes); // no M-Pesa prompt
+      expect((await booking(farmer, next.bookingId)).status).toBe('pending');
+      expect((await h.get('/v1/wallet', farmer.accessToken)).json()).toMatchObject({ balance: 0 });
+    });
+
+    it('credit that covers part of a higher fee: M-Pesa asks only for the rest', async () => {
       const { farmer, bookingId } = await booked();
       await pay(farmer, bookingId);
       await mpesaSays(h.gateway.last().checkoutRequestId, 0);
       await h.post(
         `/v1/bookings/${bookingId}/cancel`,
-        { reason: 'found_other_help' },
+        { reason: 'changed_mind' },
         farmer.accessToken,
       );
-
-      const finance = await h.admin('finance');
-      const refunds = await h.get(
-        '/v1/admin/payments?type=refund&status=pending',
-        finance.accessToken,
-      );
-      const refund = refunds
-        .json<{ id: number; bookingId: number; amount: number }[]>()
-        .find((r) => r.bookingId === bookingId);
-      expect(refund).toMatchObject({ amount: 200 });
-
-      const url = `/v1/admin/payments/${refund?.id}/refund-complete`;
-      expect(
-        errorCode(await h.post(url, { mpesaReceipt: 'RFD1234567' }, finance.accessToken)),
-      ).toBe('step_up_required');
-      await h.stepUp(finance);
-      expect(
-        (await h.post(url, { mpesaReceipt: 'RFD1234567' }, finance.accessToken)).json(),
-      ).toMatchObject({
-        status: 'success',
-        receipt: 'RFD1234567',
+      const boss = await h.admin('super_admin');
+      await h.stepUp(boss);
+      await h.request('PUT', '/v1/admin/config/payments.bookingFeeKes', {
+        token: boss.accessToken,
+        body: { value: 300 },
       });
-      expect((await booking(farmer, bookingId)).deposit.status).toBe('refunded');
+      const next = await booked(farmer);
+      const res = await pay(farmer, next.bookingId);
+      expect(res.json()).toMatchObject({ status: 'pending', amount: 300 });
+      expect(h.gateway.last().amount).toBe(100);
+      // The credit is only taken once M-Pesa confirms its part.
+      expect((await h.get('/v1/wallet', farmer.accessToken)).json()).toMatchObject({
+        balance: 200,
+      });
+      await mpesaSays(h.gateway.last().checkoutRequestId, 0, { amount: 100 });
+      expect((await booking(farmer, next.bookingId)).status).toBe('pending');
+      expect((await h.get('/v1/wallet', farmer.accessToken)).json()).toMatchObject({ balance: 0 });
+      // Config lives in this file's shared database: put the fee back (step-up still fresh).
+      await h.request('PUT', '/v1/admin/config/payments.bookingFeeKes', {
+        token: boss.accessToken,
+        body: { value: 200 },
+      });
+    });
+
+    it('finance views and corrects a wallet with step-up; never below zero; audited', async () => {
+      const farmer = await h.farmer(wardId);
+      const finance = await h.admin('finance');
+      const support = await h.admin('support');
+      const url = `/v1/admin/users/${farmer.userId}/wallet`;
+      expect((await h.get(url, support.accessToken)).statusCode).toBe(404);
+      expect((await h.get(url, finance.accessToken)).json()).toMatchObject({ balance: 0 });
+      const adjust = (amount: number) =>
+        h.post(`${url}/adjust`, { amount, note: 'Goodwill after an outage' }, finance.accessToken);
+      expect(errorCode(await adjust(100))).toBe('step_up_required');
+      await h.stepUp(finance);
+      expect((await adjust(100)).json()).toMatchObject({ balance: 100 });
+      expect(errorCode(await adjust(-500))).toBe('invalid_request');
       const audits = await h.db
         .select()
         .from(auditLog)
-        .where(eq(auditLog.entityId, String(refund?.id)));
-      expect(audits.map((a) => a.action)).toContain('payment.refunded');
-      // Completing twice is refused.
-      expect(
-        (await h.post(url, { mpesaReceipt: 'RFD1234567' }, finance.accessToken)).statusCode,
-      ).toBe(404);
+        .where(eq(auditLog.action, 'wallet.adjusted'));
+      expect(audits).toHaveLength(1);
+    });
+
+    it('credit unused for 12 months expires', async () => {
+      const farmer = await h.farmer(wardId);
+      await h.db.insert(walletEntries).values({
+        userId: farmer.userId,
+        amount: 200,
+        kind: 'adjustment',
+        note: 'test',
+        createdAt: h.now,
+      });
+      const mine = () =>
+        h.db.select().from(walletEntries).where(eq(walletEntries.userId, farmer.userId));
+      // (Other tests' wallets share this database, so only this farmer's entries are checked.)
+      h.advance(364 * 24 * 3600 * 1000);
+      await expireCredit(h.ctx, h.app.log);
+      expect((await mine()).map((r) => r.kind)).toEqual(['adjustment']);
+      h.advance(2 * 24 * 3600 * 1000);
+      await expireCredit(h.ctx, h.app.log);
+      await expireCredit(h.ctx, h.app.log); // once only
+      expect(await expireCredit(h.ctx, h.app.log)).toBe(0);
+      const rows = await h.db
+        .select()
+        .from(walletEntries)
+        .where(eq(walletEntries.userId, farmer.userId));
+      expect(rows.map((r) => [r.kind, r.amount])).toEqual([
+        ['adjustment', 200],
+        ['expired', -200],
+      ]);
+    });
+
+    it('no source file creates an M-Pesa refund any more', () => {
+      const srcDir = new URL('../../src/', import.meta.url).pathname;
+      const files = (dir: string): string[] =>
+        readdirSync(dir).flatMap((name) => {
+          const path = join(dir, name);
+          return statSync(path).isDirectory() ? files(path) : path.endsWith('.ts') ? [path] : [];
+        });
+      const offenders = files(srcDir).filter((path) =>
+        /type:\s*'refund'/.test(readFileSync(path, 'utf8')),
+      );
+      expect(offenders).toEqual([]);
     });
 
     it('cancelling once the vet is on the way forfeits the deposit (no refund)', async () => {

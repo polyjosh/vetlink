@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { SPECIES, VET_SERVICES, type Channel } from '@vetlink/shared';
 import { eq } from 'drizzle-orm';
 import { farmers } from '../../db/schema/index.js';
+import { walletBalance } from '../wallet/service.js';
 import { currentBookingFee, quoteCallOutFee, quotePriceRange } from './pricing.js';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
@@ -123,6 +124,10 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
               priceRange: priceRange
                 .nullable()
                 .describe('Totals of nearby vets; null when none is near'),
+              walletCredit: z
+                .number()
+                .int()
+                .describe('How much of the booking fee my VetLink credit will pay (§24.25)'),
             }),
             'Quote',
           ),
@@ -146,6 +151,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         feeQuoted: await quoteCallOutFee(ctx, target),
         depositKes: bookingFee,
         priceRange: await quotePriceRange(ctx, target, bookingFee),
+        walletCredit: Math.min(bookingFee, await walletBalance(ctx.db, auth.userId)),
       };
     },
   );
