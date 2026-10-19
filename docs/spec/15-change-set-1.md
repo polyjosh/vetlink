@@ -201,6 +201,11 @@ While a booking is `en_route`, show the vet's position on a map to the farmer (f
 - Clinic-visit bookings (24.3) and referral rewards (24.12): later, after owner decisions.
 - Live map (24.17): after Open Question 21.10.
 
+### 24.24 Vet subscriptions (decided 2026-10-19, details open)
+
+- **Vets pay VetLink a recurring subscription** to receive farmer requests. **Farmers pay no subscription**; they keep paying vets directly (§24.3).
+- Open before planning CS11: price and period, free trial, what a lapsed subscription does (proposed: no new requests or direct requests, enforced on the server like invariant 2, active jobs finish), whether the KES 200 deposit stays, payment channel (M-Pesa), and **app-store billing**: Google Play and Apple may require their own billing for a subscription sold in the app, because it is a digital service rather than a real-world one (the deposit is exempt as payment for a physical service). Confirm with Google/Apple or counsel before building in-app purchase screens.
+
 ### 24.20 Booking state machine (amends §9)
 
 New statuses: `requested`, `vet_unavailable`, `awaiting_deposit`. New events:
