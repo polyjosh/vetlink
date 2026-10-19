@@ -1,14 +1,17 @@
-import { and, avg, desc, eq, inArray, isNull, lt, type SQL } from 'drizzle-orm';
+import { and, avg, count, desc, eq, gte, inArray, isNull, lt, lte, type SQL } from 'drizzle-orm';
 import type {
   CancelReason,
   Channel,
   FarmerBookingView,
   ProblemType,
   Species,
+  RatingTag,
+  ReviewFlagReason,
   VetJobView,
   VetService,
 } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
+import type { Tx } from '../../db/client.js';
 import {
   animals,
   bookingOffers,
@@ -326,7 +329,7 @@ export async function rateBooking(
   ctx: AppContext,
   bookingId: number,
   farmerId: string,
-  input: { stars: number; comment?: string | undefined },
+  input: { stars: number; comment?: string | undefined; tags?: readonly RatingTag[] | undefined },
 ): Promise<void> {
   const now = ctx.clock();
   await ctx.db.transaction(async (tx) => {
@@ -341,7 +344,13 @@ export async function rateBooking(
     }
     const inserted = await tx
       .insert(ratings)
-      .values({ bookingId, stars: input.stars, comment: input.comment ?? null, createdAt: now })
+      .values({
+        bookingId,
+        stars: input.stars,
+        comment: input.comment ?? null,
+        tags: [...new Set(input.tags ?? [])],
+        createdAt: now,
+      })
       .onConflictDoNothing({ target: ratings.bookingId })
       .returning({ id: ratings.id });
     if (inserted.length === 0) {
@@ -360,7 +369,47 @@ export async function rateBooking(
       .update(vets)
       .set({ rating: average === null ? null : average.toFixed(1) })
       .where(eq(vets.userId, b.vetId));
+    await flagIfNeeded(tx, b.vetId, input, now);
   });
+}
+
+/** Low ratings in this window count towards a review flag (§24.7). */
+const LOW_RATING_WINDOW_MS = 30 * 24 * 3600 * 1000;
+const LOW_RATING_STARS = 2;
+const LOW_RATINGS_TO_FLAG = 3;
+
+/**
+ * Complaints or repeated low ratings flag the vet for an admin review (§24.7): a "rude" rating
+ * of 2 stars or less, or 3 low ratings within 30 days. The flag only draws attention; the vet
+ * stays online until an admin acts. An existing flag is kept (its first reason and time).
+ */
+async function flagIfNeeded(
+  tx: Tx,
+  vetId: string,
+  input: { stars: number; tags?: readonly RatingTag[] | undefined },
+  now: Date,
+): Promise<void> {
+  if (input.stars > LOW_RATING_STARS) return;
+  let reason: ReviewFlagReason | null = input.tags?.includes('rude') ? 'rude_rating' : null;
+  if (!reason) {
+    const [low] = await tx
+      .select({ n: count() })
+      .from(ratings)
+      .innerJoin(bookings, eq(bookings.id, ratings.bookingId))
+      .where(
+        and(
+          eq(bookings.vetId, vetId),
+          lte(ratings.stars, LOW_RATING_STARS),
+          gte(ratings.createdAt, new Date(now.getTime() - LOW_RATING_WINDOW_MS)),
+        ),
+      );
+    if (Number(low?.n ?? 0) >= LOW_RATINGS_TO_FLAG) reason = 'repeated_low_ratings';
+  }
+  if (!reason) return;
+  await tx
+    .update(vets)
+    .set({ reviewFlagReason: reason, reviewFlaggedAt: now })
+    .where(and(eq(vets.userId, vetId), isNull(vets.reviewFlaggedAt)));
 }
 
 /** Admin cancellation (support): any non-terminal booking, audit-logged by the caller. */

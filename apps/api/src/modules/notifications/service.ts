@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import { interpolate, messages, type Locale } from '@vetlink/i18n';
-import type { ProblemType, Species } from '@vetlink/shared';
+import type { ProblemType, ReminderType, Species } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import {
   authSessions,
@@ -39,6 +39,10 @@ export const NOTIFICATION_KINDS = {
   licence_expiring: { critical: false },
   photo_approved: { critical: false },
   photo_rejected: { critical: false },
+  // Reminders get the SMS fallback (§8.7).
+  reminder_due: { critical: true },
+  followup_tomorrow: { critical: true },
+  followup_today: { critical: true },
 } as const;
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
 
@@ -54,7 +58,7 @@ export interface NotifyInput {
   /** Passed to the app with the push (e.g. bookingId, offerId). Never personal data. */
   data?: Record<string, string | number>;
   /** Rendered in the recipient's language: `{animal}` and `{problem}`. */
-  localized?: { animal?: Species; problem?: ProblemType };
+  localized?: { animal?: Species; problem?: ProblemType; reminderType?: ReminderType };
   /** Emergencies ignore quiet hours. */
   emergency?: boolean;
 }
@@ -92,6 +96,9 @@ function render(lang: Locale, kind: NotificationKind, payload: Payload) {
     }),
     ...(payload.localized?.problem && {
       problem: messages[lang].ussd.problems[payload.localized.problem],
+    }),
+    ...(payload.localized?.reminderType && {
+      reminder: messages[lang].ussd.reminderTypes[payload.localized.reminderType],
     }),
   };
   return {

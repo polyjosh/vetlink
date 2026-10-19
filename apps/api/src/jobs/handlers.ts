@@ -4,6 +4,8 @@ import { runBookingEffects } from '../modules/bookings/effects.js';
 import { dispatchWave, giveUp, waveTimedOut } from '../modules/matching/dispatch.js';
 import { deliver, notify, smsFallback } from '../modules/notifications/service.js';
 import { handleStkResult, reconcilePayments } from '../modules/payments/service.js';
+import { morningReminders, sendVetFollowUpAlerts } from '../modules/reminders/service.js';
+import { updateBadges } from '../modules/vets/badges.js';
 import { checkLicences } from '../modules/vets/licence.js';
 import type { JobName, JobPayloads } from './types.js';
 
@@ -25,6 +27,9 @@ export const jobHandlers: { [N in JobName]: Handler<N> } = {
   'notifications.deliver': (ctx, data, log) => deliver(ctx, data.notificationId, log),
   'notifications.sms-fallback': (ctx, data, log) => smsFallback(ctx, data.notificationId, log),
   'vets.licence-check': (ctx, _data, log) => checkLicences(ctx, log),
+  'reminders.morning': (ctx, _data, log) => morningReminders(ctx, log),
+  'reminders.evening': (ctx, _data, log) => sendVetFollowUpAlerts(ctx, 'evening', log),
+  'vets.badges': (ctx, _data, log) => updateBadges(ctx, log),
 };
 
 export async function runJob<N extends JobName>(

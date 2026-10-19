@@ -29,6 +29,7 @@ import {
   PAYMENT_TYPES,
   PROBLEM_TYPES,
   REMINDER_TYPES,
+  RATING_TAGS,
   SPECIES,
   VET_SERVICES,
   type PriceBreakdown,
@@ -251,6 +252,10 @@ export const treatments = pgTable(
     drugsUsed: text('drugs_used'),
     rawNotes: text('raw_notes').notNull(), // original SMS or form text
     followUpDate: date('follow_up_date'),
+    // §24.4: the booking that rebooked this follow-up (alerts stop), and the vet's alerts sent.
+    followUpBookingId: integer('follow_up_booking_id').references((): AnyPgColumn => bookings.id),
+    vetAlertEveningSentAt: timestamptz('vet_alert_evening_sent_at'),
+    vetAlertDaySentAt: timestamptz('vet_alert_day_sent_at'),
     clientCreatedAt: timestamptz('client_created_at'), // when logged offline on device
     createdAt: createdAt(),
   },
@@ -267,9 +272,13 @@ export const ratings = pgTable(
       .references(() => bookings.id),
     stars: integer('stars').notNull(),
     comment: text('comment'),
+    tags: text('tags', { enum: RATING_TAGS }).array().notNull().default(emptyTextArray), // §24.7
     createdAt: createdAt(),
   },
-  (t) => [check('ratings_stars_check', sql`${t.stars} between 1 and 5`)],
+  (t) => [
+    check('ratings_stars_check', sql`${t.stars} between 1 and 5`),
+    check('ratings_tags_check', subsetOf(t.tags, RATING_TAGS)),
+  ],
 );
 
 export const reminders = pgTable(

@@ -14,6 +14,7 @@ import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
 import { EmptyState } from '../../src/components/pictures';
 import { PriceLines } from '../../src/components/prices';
+import { FollowUpList } from '../../src/components/follow-ups';
 
 function Countdown({ until }: { until: string }) {
   const { t, fmt } = useT();
@@ -36,6 +37,12 @@ export default function VetHome() {
   const { me } = useSession();
   const approved = me?.vet?.verificationStatus === 'approved';
   const profile = useApi(['vet-profile'], () => api.GET('/v1/vets/me'), { cache: 'vet:profile' });
+  // Follow-ups change slowly: read them once a minute (§24.4).
+  const followUps = useApi(['vet-follow-ups'], () => api.GET('/v1/vets/me/follow-ups'), {
+    cache: 'vet:follow-ups',
+    refetchInterval: 60_000,
+  });
+  const upcoming = (followUps.data ?? []).filter((f) => !f.rebookedBookingId);
   const offers = useApi(['offers'], () => api.GET('/v1/vets/me/offers'), {
     refetchInterval: 5_000,
   });
@@ -182,12 +189,28 @@ export default function VetHome() {
           </Pressable>
         ))}
       </Card>
+      {upcoming.length > 0 && (
+        <Card>
+          <H2>{t.web.followUps.title}</H2>
+          <FollowUpList items={upcoming.slice(0, 3)} />
+          <Button
+            variant="ghost"
+            title={t.web.followUps.seeAll}
+            onPress={() => router.push('/vet/follow-ups')}
+          />
+        </Card>
+      )}
       {!approved && <Notice tone="warning">{t.web.application.cannotWork}</Notice>}
       <View style={s.row}>
         <Button
           variant="secondary"
           title={v.jobHistory}
           onPress={() => router.push('/vet/history')}
+        />
+        <Button
+          variant="secondary"
+          title={t.web.ratings.title}
+          onPress={() => router.push('/vet/ratings')}
         />
         <Button
           variant="secondary"

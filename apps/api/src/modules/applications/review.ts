@@ -28,6 +28,7 @@ import { audit } from '../admin/audit.js';
 import type { AuthContext } from '../auth/access.js';
 import { TOTP_ENROL_WINDOW_MS } from '../auth/two-factor.js';
 import { avatarFromApplication } from '../media/service.js';
+import { updateBadges } from '../vets/badges.js';
 import { writeServiceFees } from '../vets/practice.js';
 import { applicationView, documentsOf, type ApplicationRow, vetTypeOf } from './service.js';
 import type { StoredData } from './steps.js';
@@ -379,6 +380,7 @@ export async function decideApplication(
       : input.decision === 'reject'
         ? 'application_rejected'
         : 'application_changes';
+  if (input.decision === 'approve') await updateBadges(ctx, undefined, [app.vetUserId]);
   // A later version's approval is not news worth an "approved, go online" message.
   if (!(input.decision === 'approve' && app.version > 1)) {
     await notifyVet(ctx, app.vetUserId, kind, { ref: app.reference }, `${id}-${now.getTime()}`);
@@ -483,6 +485,7 @@ export async function suspendVet(
     },
     now,
   );
+  await updateBadges(ctx, undefined, [vetUserId]); // suspended vets show none (§24.8)
   await notifyVet(ctx, vetUserId, 'vet_suspended', {}, `${vetUserId}-${now.getTime()}`);
 }
 
@@ -510,6 +513,7 @@ export async function reinstateVet(
     },
     now,
   );
+  await updateBadges(ctx, undefined, [vetUserId]); // suspended vets show none (§24.8)
   await notifyVet(ctx, vetUserId, 'vet_reinstated', {}, `${vetUserId}-${now.getTime()}`);
 }
 

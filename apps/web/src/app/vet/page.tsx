@@ -13,6 +13,7 @@ import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
 import { EmptyState } from '@/components/pictures';
 import { PriceLines } from '@/components/prices';
+import { FollowUpList } from '@/components/follow-ups';
 
 function Countdown({ until }: { until: string }) {
   const { t, fmt } = useT();
@@ -36,6 +37,7 @@ export default function VetHome() {
   const [profile, setProfile] = useState<Schemas['VetProfile'] | null>(null);
   const [offers, setOffers] = useState<Schemas['Offer'][]>([]);
   const [jobs, setJobs] = useState<Schemas['VetJob'][]>([]);
+  const [followUps, setFollowUps] = useState<Schemas['FollowUp'][]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const approved = me?.vet?.verificationStatus === 'approved';
@@ -55,6 +57,12 @@ export default function VetHome() {
     );
   }, [api]);
   usePoll(load, 5_000);
+  // Follow-ups change slowly: read them once a minute, not with the offers (§24.4).
+  const loadFollowUps = useCallback(async () => {
+    const { data } = await api.GET('/v1/vets/me/follow-ups');
+    setFollowUps(data ?? []);
+  }, [api]);
+  usePoll(loadFollowUps, 60_000);
 
   const act = async (fn: () => Promise<{ error?: unknown }>) => {
     setBusy(true);
@@ -175,6 +183,16 @@ export default function VetHome() {
             </div>
           ))}
         </Card>
+
+        {followUps.some((f) => !f.rebookedBookingId) && (
+          <Card className="space-y-2 border-warning">
+            <h2 className="text-lg font-bold">{t.web.followUps.title}</h2>
+            <FollowUpList items={followUps.filter((f) => !f.rebookedBookingId).slice(0, 3)} />
+            <Link href="/vet/follow-ups" className="text-sm underline">
+              {t.web.followUps.seeAll}
+            </Link>
+          </Card>
+        )}
 
         <Card>
           <h2 className="mb-2 text-lg font-bold">{t.web.vet.activeJobs}</h2>

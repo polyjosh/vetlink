@@ -22,6 +22,8 @@ import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
 import { PersonAvatar } from '../../../src/components/pictures';
 import { PriceLines, PriceRangeLines } from '../../../src/components/prices';
+import { BadgeChips, TagChips } from '../../../src/components/ratings';
+import { ratingTagsFor, type RatingTag } from '@vetlink/shared';
 
 /** Tracking (§8.2 step 7): progress, vet contact once matched, cancel with policy, rating. */
 export default function Tracking() {
@@ -39,6 +41,7 @@ export default function Tracking() {
   const [reason, setReason] = useState<CancelReason | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [stars, setStars] = useState(0);
+  const [tags, setTags] = useState<RatingTag[]>([]);
   const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -116,6 +119,7 @@ export default function Tracking() {
             <View style={{ flex: 1 }}>
               <H2>{fmt(tr.vetComing, { vet: b.vet.name ?? '' })}</H2>
               {b.vet.displayName && <P muted>{`“${b.vet.displayName}”`}</P>}
+              <BadgeChips badges={b.vet.badges ?? []} />
             </View>
           </View>
           {b.vet.phone && (
@@ -152,10 +156,14 @@ export default function Tracking() {
                 key={n}
                 title={`${n}★`}
                 variant={stars >= n ? 'primary' : 'secondary'}
-                onPress={() => setStars(n)}
+                onPress={() => {
+                  setStars(n);
+                  setTags(tags.filter((x) => ratingTagsFor(n).includes(x)));
+                }}
               />
             ))}
           </View>
+          <TagChips stars={stars} value={tags} onChange={setTags} />
           <Field label={tr.comment} value={comment} onChangeText={setComment} maxLength={500} />
           <Button
             title={tr.rateSubmit}
@@ -164,7 +172,7 @@ export default function Tracking() {
               void act(() =>
                 api.POST('/v1/bookings/{id}/rating', {
                   ...path,
-                  body: { stars, ...(comment && { comment }) },
+                  body: { stars, tags, ...(comment && { comment }) },
                 }),
               )
             }

@@ -31,6 +31,7 @@ import { WardPicker } from '../../src/components/ward-picker';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
+import { BadgeChips } from '../../src/components/ratings';
 
 type Profile = Schemas['VetProfile'];
 
@@ -128,6 +129,7 @@ export default function VetProfileScreen() {
               {profile.verificationStatus === 'approved' && <Badge tone="success">✓</Badge>}
             </View>
             {profile.rating !== null && <P>{`★ ${profile.rating.toFixed(1)}`}</P>}
+            <BadgeChips badges={profile.badges ?? []} />
           </View>
         </View>
         <Button title={vp.editPhoto} variant="ghost" onPress={() => router.push('/settings')} />

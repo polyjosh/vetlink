@@ -44,6 +44,23 @@ export async function scheduleRepeatingJobs(queue: Queue): Promise<void> {
     { pattern: '0 3 * * *', tz: 'UTC' },
     { name: 'vets.licence-check', data: {} },
   );
+  // 07:00 and 18:00 Nairobi (04:00 and 15:00 UTC), outside quiet hours (§8.7).
+  await queue.upsertJobScheduler(
+    'reminders.morning',
+    { pattern: '0 4 * * *', tz: 'UTC' },
+    { name: 'reminders.morning', data: {} },
+  );
+  await queue.upsertJobScheduler(
+    'reminders.evening',
+    { pattern: '0 15 * * *', tz: 'UTC' },
+    { name: 'reminders.evening', data: {} },
+  );
+  // 02:00 Nairobi (23:00 UTC), when nobody is booking.
+  await queue.upsertJobScheduler(
+    'vets.badges',
+    { pattern: '0 23 * * *', tz: 'UTC' },
+    { name: 'vets.badges', data: {} },
+  );
 }
 
 export function startWorker(

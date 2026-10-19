@@ -32,6 +32,12 @@ export interface JobPayloads {
   'notifications.sms-fallback': { notificationId: number };
   /** Daily: licence expiry warnings and auto-suspension. */
   'vets.licence-check': Record<string, never>;
+  /** Daily 07:00 EAT: farmer reminders due today, vets' follow-ups today (§8.8, §24.4). */
+  'reminders.morning': Record<string, never>;
+  /** Daily 18:00 EAT: vets' follow-ups tomorrow. */
+  'reminders.evening': Record<string, never>;
+  /** Nightly 02:00 EAT: recompute vet badges (§24.8). */
+  'vets.badges': Record<string, never>;
 }
 
 export type JobName = keyof JobPayloads;

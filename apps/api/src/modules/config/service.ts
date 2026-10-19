@@ -48,6 +48,14 @@ export const CONFIG_SCHEMAS = {
   ),
   /** VetLink's booking fee (KES), paid by STK push and counted towards the vet's bill (§24.24). */
   'payments.bookingFeeKes': z.number().int().min(1).max(5000),
+  /** When vets earn badges (§24.8). */
+  'badges.thresholds': z.object({
+    topRatedMin: z.number().min(1).max(5),
+    topRatedRatings: z.number().int().min(1),
+    fastResponderSeconds: z.number().int().min(1),
+    fastResponderOffers: z.number().int().min(1),
+    vaccinations: z.number().int().min(1),
+  }),
   /** Largest service radius a vet may set, km. */
   'vets.maxServiceRadiusKm': z.number().int().min(1).max(200),
 } as const;
@@ -80,6 +88,13 @@ export const CONFIG_DEFAULTS: { [K in ConfigKey]: ConfigValue<K> } = {
     minor_surgery: { min: 0, max: 30_000 },
   },
   'payments.bookingFeeKes': 200,
+  'badges.thresholds': {
+    topRatedMin: 4.5,
+    topRatedRatings: 10,
+    fastResponderSeconds: 60,
+    fastResponderOffers: 10,
+    vaccinations: 100,
+  },
 };
 
 export const CONFIG_KEYS = Object.keys(CONFIG_SCHEMAS) as ConfigKey[];

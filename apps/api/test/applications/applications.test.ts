@@ -403,6 +403,7 @@ describe.skipIf(!testServerUrl)(
           baseCallOutFee: 800,
           consultationFee: 600,
           offersCallOuts: true,
+          badges: ['verified'], // recomputed on approval (§24.8)
           wardId,
           payoutMpesaPhone: s.phone,
         });

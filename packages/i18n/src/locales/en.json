@@ -215,6 +215,21 @@
       "title": "Photo not approved",
       "body": "Your new profile photo was not approved. Open your profile to see why.",
       "sms": "VetLink: your new profile photo was not approved. Open your profile in the app to see why."
+    },
+    "reminder_due": {
+      "title": "{reminder} due today",
+      "body": "{reminder} for {animal} {name} is due today.",
+      "sms": "VetLink: {reminder} for your {animal} {name} is due today. Dial *123# to request a vet."
+    },
+    "followup_tomorrow": {
+      "title": "Follow-up tomorrow",
+      "body": "Follow-up for job {ref} ({animal}, {ward}) is tomorrow.",
+      "sms": "VetLink: follow-up for job {ref} ({animal}, {ward}) is tomorrow."
+    },
+    "followup_today": {
+      "title": "Follow-up today",
+      "body": "Follow-up for job {ref} ({animal}, {ward}) is today.",
+      "sms": "VetLink: follow-up for job {ref} ({animal}, {ward}) is today."
     }
   },
   "application": {
@@ -588,7 +603,8 @@
         "payments": "Payments",
         "config": "Settings",
         "admins": "Admins",
-        "photos": "Photos"
+        "photos": "Photos",
+        "flags": "Flags"
       },
       "queue": "Applications to review",
       "queueEmpty": "Nothing to review.",
@@ -644,7 +660,15 @@
       "openIdPhoto": "Open ID photo",
       "approvePhoto": "Approve photo",
       "rejectPhoto": "Reject photo",
-      "rejectReason": "Reason"
+      "rejectReason": "Reason",
+      "flagsTitle": "Vets flagged by ratings",
+      "flagsEmpty": "No vets flagged.",
+      "flagReasons": {
+        "rude_rating": "Rated rude",
+        "repeated_low_ratings": "3 low ratings in 30 days"
+      },
+      "clearFlag": "Mark reviewed",
+      "clearNote": "What you checked"
     },
     "mobile": {
       "pendingSync": "{n} waiting to send",
@@ -752,6 +776,44 @@
       "verifiedOn": "Verified on {date}",
       "editPhoto": "Change photo in My profile",
       "updateDetails": "Update reviewed details"
+    },
+    "ratings": {
+      "title": "My ratings",
+      "count": "{n} ratings",
+      "empty": "No ratings yet. They appear after farmers rate finished jobs.",
+      "tagsTitle": "What farmers said",
+      "tagsPrompt": "What went well? (optional)",
+      "tagsPromptLow": "What went wrong? (optional)",
+      "job": "Job {ref}",
+      "tags": {
+        "on_time": "On time",
+        "explained_well": "Explained well",
+        "fair_price": "Fair price",
+        "gentle_with_animal": "Gentle with the animal",
+        "animal_recovered": "Animal recovered",
+        "would_book_again": "Would book again",
+        "late": "Late",
+        "unclear_price": "Unclear price",
+        "rude": "Rude"
+      }
+    },
+    "badges": {
+      "verified": "Verified",
+      "top_rated": "Top rated",
+      "fast_responder": "Fast responder",
+      "jobs_50": "50+ jobs",
+      "jobs_100": "100+ jobs",
+      "jobs_500": "500+ jobs",
+      "vaccinations_100": "100+ vaccinations"
+    },
+    "followUps": {
+      "title": "Follow-ups",
+      "empty": "No follow-ups coming up.",
+      "seeAll": "All follow-ups",
+      "rebooked": "Booked again: request {ref}",
+      "job": "From job {ref}",
+      "today": "Today",
+      "tomorrow": "Tomorrow"
     }
   }
 }

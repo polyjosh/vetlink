@@ -35,6 +35,8 @@ describe('notification templates', () => {
     deposit: 200,
     hours: 48,
     days: 30,
+    name: 'Kipusa wa Mama Njeri',
+    reminder: 'Ufuatiliaji wa matibabu',
   };
   it.each(
     (['sw', 'en'] as Locale[]).flatMap((lang) =>
