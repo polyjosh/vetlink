@@ -105,3 +105,22 @@ test('the farmer chooses the vet; the booking fee is paid after the vet accepts'
   await expect(farmer.getByTestId('booking-status')).toHaveText(sw.ussd.statuses.matched);
   await expect(farmer.getByTestId('deposit-status')).toHaveText(sw.web.tracking.depositStatus.paid);
 });
+
+test('the farmer books a vet for a later day (§24.10)', async ({ browser }) => {
+  const farmer = await signIn(browser, FARMER);
+  await farmer.getByRole('link', { name: sw.web.farmer.requestVet }).click();
+  await farmer.getByRole('button', { name: sw.ussd.species.cattle, exact: true }).click();
+  await farmer.getByRole('button', { name: sw.ussd.problems.vaccination, exact: true }).click();
+  await farmer.getByRole('button', { name: sw.web.schedule.later }).click();
+  // The seed vet works Monday to Saturday: pick the next such day after today (Nairobi).
+  const day = new Date(Date.now() + 3 * 3600 * 1000);
+  do day.setUTCDate(day.getUTCDate() + 1);
+  while (day.getUTCDay() === 0);
+  await farmer.getByLabel(sw.web.schedule.date).selectOption(day.toISOString().slice(0, 10));
+  await farmer.getByRole('button', { name: sw.web.schedule.partLabels.morning }).click();
+  await farmer.getByRole('button', { name: /Dr\. Demo Vet/ }).click();
+  await farmer.getByRole('button', { name: sw.web.choose.sendRequest }).click();
+  await expect(farmer).toHaveURL(/\/farmer\/bookings\/\d+$/);
+  await expect(farmer.getByTestId('booking-status')).toHaveText(sw.ussd.statuses.requested);
+  await expect(farmer.getByText(/📅/)).toBeVisible();
+});

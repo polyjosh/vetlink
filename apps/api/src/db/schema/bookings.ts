@@ -22,6 +22,7 @@ import {
   DISPATCH_MODES,
   OFFER_KINDS,
   PAYMENT_METHODS,
+  SCHEDULE_PARTS,
   WALLET_ENTRY_KINDS,
   MEDIA_KINDS,
   MEDIA_REVIEW_STATUSES,
@@ -98,6 +99,12 @@ export const bookings = pgTable(
     dispatchMode: text('dispatch_mode', { enum: DISPATCH_MODES }).notNull().default('auto'),
     requestedVetId: uuid('requested_vet_id').references(() => vets.userId),
     statusDeadlineAt: timestamptz('status_deadline_at'),
+    // §24.10: a scheduled visit (null = as soon as possible); reminders and no-show flag sent.
+    scheduledFor: timestamptz('scheduled_for'),
+    scheduledPart: text('scheduled_part', { enum: SCHEDULE_PARTS }),
+    reminderEveningSentAt: timestamptz('reminder_evening_sent_at'),
+    reminderHourSentAt: timestamptz('reminder_hour_sent_at'),
+    overdueFlaggedAt: timestamptz('overdue_flagged_at'),
     idempotencyKey: text('idempotency_key').unique(), // from client, prevents double booking
     createdAt: createdAt(),
     acceptedAt: timestamptz('accepted_at'),
@@ -112,6 +119,14 @@ export const bookings = pgTable(
     check('bookings_services_check', subsetOf(t.services, VET_SERVICES)),
     check('bookings_booking_fee_check', sql`${t.bookingFeeKes} > 0`),
     check('bookings_dispatch_mode_check', oneOf(t.dispatchMode, DISPATCH_MODES)),
+    check('bookings_scheduled_part_check', oneOf(t.scheduledPart, SCHEDULE_PARTS)),
+    check(
+      'bookings_scheduled_both_check',
+      sql`(${t.scheduledFor} is null) = (${t.scheduledPart} is null)`,
+    ),
+    index('bookings_scheduled_for_idx')
+      .on(t.scheduledFor)
+      .where(sql`${t.scheduledFor} is not null`),
     index('bookings_status_deadline_idx')
       .on(t.statusDeadlineAt)
       .where(sql`${t.statusDeadlineAt} is not null`),

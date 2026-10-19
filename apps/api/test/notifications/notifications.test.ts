@@ -40,6 +40,7 @@ describe('notification templates', () => {
     farmer: 'Mama Wanjiku Kamau',
     photos: '. 3 photo(s) in app',
     amount: 1500,
+    part: 'afternoon',
   };
   it.each(
     (['sw', 'en'] as Locale[]).flatMap((lang) =>

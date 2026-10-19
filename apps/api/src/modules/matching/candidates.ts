@@ -1,5 +1,26 @@
-import { and, count, eq, gte, inArray, isNotNull, isNull, max, sql } from 'drizzle-orm';
-import { VET_BUSY_STATUSES, type Species, type VetService } from '@vetlink/shared';
+import {
+  and,
+  count,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  max,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
+import {
+  VET_BUSY_STATUSES,
+  eatDateOf,
+  hoursCoverSlot,
+  slotWindow,
+  type SchedulePart,
+  type Species,
+  type VetService,
+} from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import { bookingOffers, bookings, locations, users, vets } from '../../db/schema/index.js';
 import { distanceKm } from '../../lib/geo.js';
@@ -37,6 +58,26 @@ export interface BookingTarget {
   lng: number | null;
   /** Services added to the consultation (§24.3): the vet must offer every one. */
   services?: readonly VetService[];
+  /** §24.10: a scheduled visit. The vet need not be online; their hours must cover it. */
+  slot?: { date: string; part: SchedulePart } | null;
+}
+
+/**
+ * Jobs that hold a vet (§24.10): for an as-soon-as-possible job, everything due today (a
+ * scheduled visit on a later day does not count); for a scheduled slot, the jobs in that slot.
+ */
+export function busyWhere(now: Date, slotStart: Date | null): SQL {
+  const held = inArray(bookings.status, VET_BUSY_STATUSES);
+  if (slotStart) return and(held, eq(bookings.scheduledFor, slotStart)) as SQL;
+  const tomorrow = slotWindow(
+    eatDateOf(new Date(now.getTime() + 24 * 3600 * 1000)),
+    'morning',
+  ).start;
+  const startOfTomorrow = new Date(tomorrow.getTime() - 8 * 3600 * 1000); // 00:00 Nairobi
+  return and(
+    held,
+    or(isNull(bookings.scheduledFor), lt(bookings.scheduledFor, startOfTomorrow)),
+  ) as SQL;
 }
 
 /** The farm: pinned coordinates (app/web) or the ward centroid (USSD). */
@@ -87,7 +128,8 @@ export async function rankCandidates(
     .where(
       and(
         eq(vets.verificationStatus, 'approved'), // invariant 2: nobody else, ever
-        eq(vets.isAvailable, true),
+        // Online now, unless booking ahead: then working hours decide (filtered below).
+        ...(target.slot ? [] : [eq(vets.isAvailable, true)]),
         eq(vets.offersCallOuts, true),
         isNotNull(vets.consultationFee),
         isNull(users.deletedAt),
@@ -97,8 +139,10 @@ export async function rankCandidates(
     );
 
   const exclude = new Set(options.excludeVetIds ?? []);
+  const slot = target.slot ?? null;
   const placed = rows
     .filter((r) => !exclude.has(r.vet.userId))
+    .filter((r) => !slot || hoursCoverSlot(r.vet.workingHours, slot.date, slot.part))
     .map((r) => {
       const liveFresh =
         options.useLiveLocation !== false &&
@@ -124,7 +168,12 @@ export async function rankCandidates(
     ctx.db
       .select({ vetId: bookings.vetId, n: count() })
       .from(bookings)
-      .where(and(inArray(bookings.vetId, ids), inArray(bookings.status, VET_BUSY_STATUSES)))
+      .where(
+        and(
+          inArray(bookings.vetId, ids),
+          busyWhere(now, slot ? slotWindow(slot.date, slot.part).start : null),
+        ),
+      )
       .groupBy(bookings.vetId),
     ctx.db
       .select({

@@ -15,13 +15,20 @@ export default function AdminBookings() {
   const { t, fmt, lang } = useT();
   const { api } = useSession();
   const [status, setStatus] = useState<BookingStatus | ''>('');
+  const [overdue, setOverdue] = useState(false);
   const [rows, setRows] = useState<Schemas['FarmerBooking'][] | null>(null);
   const load = useCallback(async () => {
     const { data } = await api.GET('/v1/admin/bookings', {
-      params: { query: { limit: 100, ...(status && { status }) } },
+      params: {
+        query: {
+          limit: 100,
+          ...(status && { status }),
+          ...(overdue && { overdue: 'true' as const }),
+        },
+      },
     });
     setRows(data ?? []);
-  }, [api, status]);
+  }, [api, status, overdue]);
   usePoll(load, 30_000);
   return (
     <Shell title={t.web.admin.bookings} role="admin" nav={<AdminNav />}>
@@ -38,6 +45,10 @@ export default function AdminBookings() {
             </option>
           ))}
         </Select>
+        <label className="flex min-h-touch items-center gap-2">
+          <input type="checkbox" checked={overdue} onChange={(e) => setOverdue(e.target.checked)} />
+          {t.web.schedule.overdue}
+        </label>
         {!rows ? (
           <Spinner label={t.web.common.loading} />
         ) : (
@@ -51,6 +62,7 @@ export default function AdminBookings() {
                   >
                     <strong>{fmt(t.web.tracking.title, { ref: b.id })}</strong>
                     {b.isEmergency && <Badge tone="danger">{t.web.request.emergencyBadge}</Badge>}
+                    {b.overdue && <Badge tone="warning">{t.web.schedule.overdue}</Badge>}
                     <span>
                       {t.ussd.species[b.species]} · {b.ward.ward} ·{' '}
                       {new Date(b.createdAt).toLocaleString(lang)}

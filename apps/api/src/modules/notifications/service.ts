@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import { interpolate, messages, type Locale } from '@vetlink/i18n';
-import type { ProblemType, ReminderType, Species } from '@vetlink/shared';
+import type { ProblemType, ReminderType, SchedulePart, Species } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import {
   authSessions,
@@ -50,6 +50,11 @@ export const NOTIFICATION_KINDS = {
   request_unpaid: { critical: false },
   request_confirmed: { critical: true },
   wallet_credited: { critical: false },
+  // §24.10: scheduled visits.
+  appointment_tomorrow: { critical: true },
+  appointment_soon: { critical: true },
+  appointment_overdue: { critical: true },
+  appointment_late: { critical: true },
 } as const;
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
 
@@ -71,6 +76,8 @@ export interface NotifyInput {
     reminderType?: ReminderType;
     /** Fills `{photos}`: a note that the farmer added photos, or nothing (§24.15). */
     photos?: number;
+    /** Fills `{part}` with the part of the day in the recipient's language (§24.10). */
+    part?: SchedulePart;
   };
   /** Emergencies ignore quiet hours. */
   emergency?: boolean;
@@ -114,6 +121,9 @@ function render(lang: Locale, kind: NotificationKind, payload: Payload) {
       photos: payload.localized.photos
         ? interpolate(messages[lang].sms.photoNote, { n: payload.localized.photos })
         : '',
+    }),
+    ...(payload.localized?.part && {
+      part: messages[lang].web.schedule.parts[payload.localized.part],
     }),
     ...(payload.localized?.reminderType && {
       reminder: messages[lang].ussd.reminderTypes[payload.localized.reminderType],

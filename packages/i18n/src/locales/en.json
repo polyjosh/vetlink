@@ -278,6 +278,26 @@
       "title": "KES {amount} added to your VetLink credit",
       "body": "Request {ref} was closed, so its booking fee is now credit for your next request.",
       "sms": "VetLink: KES {amount} from request {ref} is now credit for your next request. It is used automatically."
+    },
+    "appointment_tomorrow": {
+      "title": "Visit tomorrow ({part})",
+      "body": "Request {ref} is booked for tomorrow {part} in {ward}.",
+      "sms": "VetLink: request {ref} is booked for tomorrow {part} in {ward}."
+    },
+    "appointment_soon": {
+      "title": "Visit in about an hour",
+      "body": "Request {ref}: the {part} visit in {ward} starts soon.",
+      "sms": "VetLink: request {ref}, the {part} visit in {ward}, starts in about an hour."
+    },
+    "appointment_overdue": {
+      "title": "You are late for job {ref}",
+      "body": "The visit started an hour ago. Set off now or hand the job back.",
+      "sms": "VetLink: job {ref} started an hour ago. Reply OTW {ref} when you set off, or call the farmer."
+    },
+    "appointment_late": {
+      "title": "The vet is late",
+      "body": "The vet has not set off for request {ref}. Cancel it in the app and the booking fee becomes VetLink credit.",
+      "sms": "VetLink: the vet has not set off for request {ref}. You can cancel in the app; your booking fee becomes VetLink credit."
     }
   },
   "application": {
@@ -924,6 +944,27 @@
       "adjust": "Adjust credit",
       "adjustAmount": "Amount (KES, minus to remove)",
       "adjustNote": "Reason"
+    },
+    "schedule": {
+      "title": "When?",
+      "asap": "As soon as possible",
+      "later": "Book for later",
+      "date": "Day",
+      "part": "Time of day",
+      "parts": {
+        "morning": "morning",
+        "afternoon": "afternoon",
+        "evening": "evening"
+      },
+      "partLabels": {
+        "morning": "Morning (8:00–12:00)",
+        "afternoon": "Afternoon (12:00–16:00)",
+        "evening": "Evening (16:00–19:00)"
+      },
+      "appointment": "Appointment: {date}, {part}",
+      "upcomingTitle": "Upcoming appointments",
+      "laterHint": "Only vets who work at that time are listed. They have up to 2 hours to answer.",
+      "overdue": "Vet is late"
     }
   }
 }

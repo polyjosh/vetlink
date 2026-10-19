@@ -4087,6 +4087,9 @@ export interface paths {
                     lat?: number;
                     lng?: number;
                     sort?: "distance" | "rating" | "price";
+                    /** @description Book ahead (§24.10): with part */
+                    date?: string;
+                    part?: "morning" | "afternoon" | "evening";
                 };
                 header?: never;
                 path?: never;
@@ -5572,6 +5575,13 @@ export interface paths {
                         dispatchMode?: "auto" | "chosen";
                         /** Format: uuid */
                         vetId?: string;
+                        /** @description A scheduled visit (chosen vet only; Nairobi date, within 14 days, 2 h ahead) */
+                        schedule?: {
+                            /** Format: date */
+                            date: string;
+                            /** @enum {string} */
+                            part: "morning" | "afternoon" | "evening";
+                        };
                         /** @description This request rebooks the follow-up of one of my treatments (§24.9) */
                         followUpOfTreatmentId?: number;
                     };
@@ -13032,6 +13042,8 @@ export interface paths {
             parameters: {
                 query?: {
                     status?: "pending_payment" | "pending" | "matched" | "en_route" | "in_service" | "done" | "cancelled" | "expired" | "requested" | "vet_unavailable" | "awaiting_deposit";
+                    /** @description Scheduled visits the vet has not set off for, an hour in (§24.10) */
+                    overdue?: "true";
                     limit?: number;
                     before?: number;
                 };
@@ -14374,6 +14386,11 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Slot start (UTC); null = as soon as possible */
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
+            /** @description The vet has not set off an hour into the slot */
+            overdue: boolean;
             /** @description Short-lived links */
             photos: string[];
             deposit: {
@@ -14443,6 +14460,8 @@ export interface components {
             /** @description My price for this job; payVet is what I collect */
             price: components["schemas"]["PriceBreakdownInput"] | null;
             photos: string[];
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
             acceptedAt: string | null;
             completedAt: string | null;
             timeline: {
@@ -14484,6 +14503,8 @@ export interface components {
             kind: "wave" | "direct";
             /** @description Visible before accepting (§24.15) */
             photos: string[];
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -14522,6 +14543,11 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Slot start (UTC); null = as soon as possible */
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
+            /** @description The vet has not set off an hour into the slot */
+            overdue: boolean;
             /** @description Short-lived links */
             photos: string[];
             deposit: {
@@ -14730,7 +14756,7 @@ export interface components {
         NotificationInput: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed" | "wallet_credited";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed" | "wallet_credited" | "appointment_tomorrow" | "appointment_soon" | "appointment_overdue" | "appointment_late";
             title: string;
             body: string;
             data: {
@@ -15164,6 +15190,11 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Slot start (UTC); null = as soon as possible */
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
+            /** @description The vet has not set off an hour into the slot */
+            overdue: boolean;
             /** @description Short-lived links */
             photos: string[];
             deposit: {
@@ -15233,6 +15264,8 @@ export interface components {
             /** @description My price for this job; payVet is what I collect */
             price: components["schemas"]["PriceBreakdown"] | null;
             photos: string[];
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
             acceptedAt: string | null;
             completedAt: string | null;
             timeline: {
@@ -15274,6 +15307,8 @@ export interface components {
             kind: "wave" | "direct";
             /** @description Visible before accepting (§24.15) */
             photos: string[];
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
             wave: number;
             sentAt: string;
             expiresAt: string;
@@ -15312,6 +15347,11 @@ export interface components {
             /** @description When the booking moves on by itself: vet answer, booking fee, choosing again */
             statusDeadlineAt: string | null;
             directChoices: number;
+            /** @description Slot start (UTC); null = as soon as possible */
+            scheduledFor: string | null;
+            scheduledPart: ("morning" | "afternoon" | "evening") | null;
+            /** @description The vet has not set off an hour into the slot */
+            overdue: boolean;
             /** @description Short-lived links */
             photos: string[];
             deposit: {
@@ -15520,7 +15560,7 @@ export interface components {
         Notification: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed" | "wallet_credited";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed" | "wallet_credited" | "appointment_tomorrow" | "appointment_soon" | "appointment_overdue" | "appointment_late";
             title: string;
             body: string;
             data: {

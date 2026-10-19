@@ -795,6 +795,32 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "scheduledFor": {
+            "description": "Slot start (UTC); null = as soon as possible",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overdue": {
+            "type": "boolean",
+            "description": "The vet has not set off an hour into the slot"
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -1134,6 +1160,9 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "scheduledFor",
+          "scheduledPart",
+          "overdue",
           "photos",
           "deposit",
           "createdAt",
@@ -1265,6 +1294,27 @@
             "items": {
               "type": "string"
             }
+          },
+          "scheduledFor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "acceptedAt": {
             "type": [
@@ -1414,6 +1464,8 @@
           "services",
           "price",
           "photos",
+          "scheduledFor",
+          "scheduledPart",
           "acceptedAt",
           "completedAt",
           "timeline",
@@ -1507,6 +1559,27 @@
             },
             "description": "Visible before accepting (§24.15)"
           },
+          "scheduledFor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -1531,6 +1604,8 @@
           "price",
           "kind",
           "photos",
+          "scheduledFor",
+          "scheduledPart",
           "wave",
           "sentAt",
           "expiresAt"
@@ -1704,6 +1779,32 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "scheduledFor": {
+            "description": "Slot start (UTC); null = as soon as possible",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overdue": {
+            "type": "boolean",
+            "description": "The vet has not set off an hour into the slot"
           },
           "photos": {
             "type": "array",
@@ -2134,6 +2235,9 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "scheduledFor",
+          "scheduledPart",
+          "overdue",
           "photos",
           "deposit",
           "createdAt",
@@ -2968,7 +3072,11 @@
               "request_declined",
               "request_unpaid",
               "request_confirmed",
-              "wallet_credited"
+              "wallet_credited",
+              "appointment_tomorrow",
+              "appointment_soon",
+              "appointment_overdue",
+              "appointment_late"
             ]
           },
           "title": {
@@ -5438,6 +5546,32 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "scheduledFor": {
+            "description": "Slot start (UTC); null = as soon as possible",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overdue": {
+            "type": "boolean",
+            "description": "The vet has not set off an hour into the slot"
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -5782,6 +5916,9 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "scheduledFor",
+          "scheduledPart",
+          "overdue",
           "photos",
           "deposit",
           "createdAt",
@@ -5915,6 +6052,27 @@
             "items": {
               "type": "string"
             }
+          },
+          "scheduledFor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "acceptedAt": {
             "type": [
@@ -6066,6 +6224,8 @@
           "services",
           "price",
           "photos",
+          "scheduledFor",
+          "scheduledPart",
           "acceptedAt",
           "completedAt",
           "timeline",
@@ -6160,6 +6320,27 @@
             },
             "description": "Visible before accepting (§24.15)"
           },
+          "scheduledFor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -6184,6 +6365,8 @@
           "price",
           "kind",
           "photos",
+          "scheduledFor",
+          "scheduledPart",
           "wave",
           "sentAt",
           "expiresAt"
@@ -6359,6 +6542,32 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "scheduledFor": {
+            "description": "Slot start (UTC); null = as soon as possible",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduledPart": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overdue": {
+            "type": "boolean",
+            "description": "The vet has not set off an hour into the slot"
           },
           "photos": {
             "type": "array",
@@ -6796,6 +7005,9 @@
           "requestedVet",
           "statusDeadlineAt",
           "directChoices",
+          "scheduledFor",
+          "scheduledPart",
+          "overdue",
           "photos",
           "deposit",
           "createdAt",
@@ -7648,7 +7860,11 @@
               "request_declined",
               "request_unpaid",
               "request_confirmed",
-              "wallet_credited"
+              "wallet_credited",
+              "appointment_tomorrow",
+              "appointment_soon",
+              "appointment_overdue",
+              "appointment_late"
             ]
           },
           "title": {
@@ -13962,6 +14178,30 @@
             "in": "query",
             "name": "sort",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "date",
+            "required": false,
+            "description": "Book ahead (§24.10): with part"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "in": "query",
+            "name": "part",
+            "required": false
           }
         ],
         "security": [
@@ -15486,6 +15726,29 @@
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "schedule": {
+                    "description": "A scheduled visit (chosen vet only; Nairobi date, within 14 days, 2 h ahead)",
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "part": {
+                        "type": "string",
+                        "enum": [
+                          "morning",
+                          "afternoon",
+                          "evening"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "part"
+                    ]
                   },
                   "followUpOfTreatmentId": {
                     "description": "This request rebooks the follow-up of one of my treatments (§24.9)",
@@ -24509,6 +24772,18 @@
             "in": "query",
             "name": "status",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "in": "query",
+            "name": "overdue",
+            "required": false,
+            "description": "Scheduled visits the vet has not set off for, an hour in (§24.10)"
           },
           {
             "schema": {

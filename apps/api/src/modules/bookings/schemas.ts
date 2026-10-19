@@ -10,6 +10,7 @@ import {
   OFFER_RESPONSES,
   PROBLEM_TYPES,
   RATING_TAGS,
+  SCHEDULE_PARTS,
   SPECIES,
   VET_BADGES,
   VET_SERVICES,
@@ -76,6 +77,9 @@ export const farmerBooking = named(
       .nullable()
       .describe('When the booking moves on by itself: vet answer, booking fee, choosing again'),
     directChoices: z.number().int(),
+    scheduledFor: z.string().nullable().describe('Slot start (UTC); null = as soon as possible'),
+    scheduledPart: z.enum(SCHEDULE_PARTS).nullable(),
+    overdue: z.boolean().describe('The vet has not set off an hour into the slot'),
     photos: z.array(z.string()).describe('Short-lived links'),
     deposit: z.object({
       status: z.enum(DEPOSIT_STATES),
@@ -134,6 +138,8 @@ export const vetJob = named(
     services: z.array(z.enum(VET_SERVICES)),
     price: priceBreakdown.nullable().describe('My price for this job; payVet is what I collect'),
     photos: z.array(z.string()),
+    scheduledFor: z.string().nullable(),
+    scheduledPart: z.enum(SCHEDULE_PARTS).nullable(),
     acceptedAt: z.string().nullable(),
     completedAt: z.string().nullable(),
     timeline: z.array(timelineEntry),
@@ -163,6 +169,8 @@ export const offer = named(
     price: priceBreakdown.nullable().describe('What this job pays at my current prices'),
     kind: z.enum(OFFER_KINDS).describe('direct: the farmer chose you'),
     photos: z.array(z.string()).describe('Visible before accepting (§24.15)'),
+    scheduledFor: z.string().nullable(),
+    scheduledPart: z.enum(SCHEDULE_PARTS).nullable(),
     wave: z.number().int(),
     sentAt: z.string(),
     expiresAt: z.string(),
@@ -211,6 +219,10 @@ export const createBookingBody = z.object({
     .default('auto')
     .describe('chosen: only vetId is asked, and the booking fee follows acceptance (§24.6)'),
   vetId: z.uuid().optional(),
+  schedule: z
+    .object({ date: z.iso.date(), part: z.enum(SCHEDULE_PARTS) })
+    .optional()
+    .describe('A scheduled visit (chosen vet only; Nairobi date, within 14 days, 2 h ahead)'),
   followUpOfTreatmentId: z
     .number()
     .int()

@@ -32,6 +32,7 @@ import { preparePhoto } from '@/lib/photo';
 import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
+import { WhenPicker, type When } from '@/components/when-picker';
 
 type Location =
   | { kind: 'saved' }
@@ -59,6 +60,7 @@ function RequestFlow() {
   // §24.6: a vet id, or 'auto' for fastest available (always auto in an emergency).
   const [choice, setChoice] = useState<string | null>(isEmergency ? 'auto' : againVet);
   const [sort, setSort] = useState<VetSort>('distance');
+  const [when, setWhen] = useState<When>({ kind: 'asap' });
   const [clinics, setClinics] = useState<Schemas['Clinic'][]>([]);
   const [note, setNote] = useState('');
   const [location, setLocation] = useState<Location>({ kind: 'saved' });
@@ -112,16 +114,21 @@ function RequestFlow() {
   }, [api, quoteKey]);
 
   // The vets to choose from, for the same request (§24.6). Not for emergencies.
-  const listKey = !isEmergency && quoteKey ? `${quoteKey}|${sort}` : null;
+  const whenKey = when.kind === 'later' ? `${when.date}|${when.part}` : 'asap';
+  const listKey = !isEmergency && quoteKey ? `${quoteKey}|${sort}|${whenKey}` : null;
   const [list, setList] = useState<{ key: string; vets: Schemas['ChoosableVet'][] } | null>(null);
   const vets = list && list.key === listKey ? list.vets : null;
   useEffect(() => {
     if (!listKey || !quoteKey) return;
-    const query = { ...(JSON.parse(quoteKey) as { species: Species }), sort };
+    const query = {
+      ...(JSON.parse(quoteKey) as { species: Species }),
+      sort,
+      ...(when.kind === 'later' && { date: when.date, part: when.part }),
+    };
     void api.GET('/v1/vets/choose', { params: { query } }).then(({ data }) => {
       if (data) setList({ key: listKey, vets: data });
     });
-  }, [api, listKey, quoteKey, sort]);
+  }, [api, listKey, quoteKey, sort, when]);
   const chosenVet = vets?.find((v) => v.vetId === choice) ?? null;
 
   async function submit() {
@@ -138,6 +145,8 @@ function RequestFlow() {
         ...(services.length && { services }),
         ...(chosenVet && { dispatchMode: 'chosen' as const, vetId: chosenVet.vetId }),
         ...(followUp && { followUpOfTreatmentId: followUp }),
+        ...(chosenVet &&
+          when.kind === 'later' && { schedule: { date: when.date, part: when.part } }),
         ...(animalId && { animalId }),
         ...(note.trim() && { note: note.trim() }),
         ...(location.kind === 'ward' && location.wardId && { wardId: location.wardId }),
@@ -353,6 +362,15 @@ function RequestFlow() {
         </Card>
         {!isEmergency && (
           <Card className="space-y-3">
+            <h2 className="text-lg font-bold">{t.web.schedule.title}</h2>
+            <WhenPicker
+              value={when}
+              onChange={(w) => {
+                setWhen(w);
+                // Booking ahead means choosing a vet; "fastest available" is now only.
+                if (w.kind === 'later' && choice === 'auto') setChoice(null);
+              }}
+            />
             <h2 className="text-lg font-bold">{t.web.choose.title}</h2>
             <VetChooser
               vets={vets}
@@ -360,6 +378,7 @@ function RequestFlow() {
               onChange={setChoice}
               sort={sort}
               onSort={setSort}
+              showFastest={when.kind === 'asap'}
             />
             <ClinicList clinics={clinics} />
           </Card>

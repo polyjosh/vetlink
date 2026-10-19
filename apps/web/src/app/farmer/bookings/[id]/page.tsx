@@ -35,6 +35,7 @@ import { VetChooser, type VetSort } from '@/components/vet-chooser';
 import { PriceLines, PriceRangeLines } from '@/components/prices';
 import { BadgeChips, TagChips } from '@/components/ratings';
 import { PhotoStrip } from '@/components/photo-strip';
+import { AppointmentLine } from '@/components/when-picker';
 
 /** Tracking (§8.2 step 7): timeline, vet contact once matched, cancel with policy, then rating. */
 export default function Tracking() {
@@ -101,6 +102,8 @@ export default function Tracking() {
           <p>
             {t.ussd.species[b.species]}, {t.ussd.problems[b.problemType]} · {b.ward.ward}
           </p>
+          <AppointmentLine scheduledFor={b.scheduledFor} part={b.scheduledPart} />
+          {b.overdue && <Notice tone="warning">{t.web.schedule.overdue}</Notice>}
           {b.services.length > 0 && (
             <p>
               {t.web.prices.consultation} +{' '}

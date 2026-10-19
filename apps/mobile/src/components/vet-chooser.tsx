@@ -89,28 +89,32 @@ export function VetChooser({
   onChange,
   sort,
   onSort,
+  showFastest = true,
 }: {
   vets: Vet[] | null | undefined;
   value: string | null;
   onChange: (v: string) => void;
   sort: VetSort;
   onSort: (s: VetSort) => void;
+  showFastest?: boolean;
 }) {
   const { t } = useT();
   const c = t.web.choose;
   return (
     <View style={{ gap: space.sm }}>
-      <Pressable
-        accessibilityRole="radio"
-        accessibilityState={{ checked: value === 'auto' }}
-        onPress={() => onChange('auto')}
-        style={cardStyle(value === 'auto')}
-      >
-        <Text style={{ fontWeight: '700', fontSize: fontSize.md, color: colors.ink }}>
-          {`⚡ ${c.fastest}`}
-        </Text>
-        <P muted>{c.fastestHint}</P>
-      </Pressable>
+      {showFastest && (
+        <Pressable
+          accessibilityRole="radio"
+          accessibilityState={{ checked: value === 'auto' }}
+          onPress={() => onChange('auto')}
+          style={cardStyle(value === 'auto')}
+        >
+          <Text style={{ fontWeight: '700', fontSize: fontSize.md, color: colors.ink }}>
+            {`⚡ ${c.fastest}`}
+          </Text>
+          <P muted>{c.fastestHint}</P>
+        </Pressable>
+      )}
       <P muted>{c.sortBy}</P>
       <Choices
         options={(['distance', 'rating', 'price'] as const).map((s) => ({

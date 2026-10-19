@@ -99,6 +99,13 @@
       "when": 1792427305692,
       "tag": "0013_wallet",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792429235845,
+      "tag": "0014_scheduling",
+      "breakpoints": true
     }
   ]
 }

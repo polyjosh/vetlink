@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
   PROBLEM_TYPES,
+  SCHEDULE_PARTS,
   SPECIES,
   SPOKEN_LANGUAGES,
   VET_BADGES,
@@ -129,6 +130,8 @@ export function chooseRoutes(app: FastifyInstance, ctx: AppContext): void {
           lat: z.coerce.number().min(-5).max(6).optional(),
           lng: z.coerce.number().min(33).max(42.5).optional(),
           sort,
+          date: z.iso.date().optional().describe('Book ahead (§24.10): with part'),
+          part: z.enum(SCHEDULE_PARTS).optional(),
         }),
         response: responses({ 200: z.array(choosableVet) }),
       },
@@ -143,6 +146,7 @@ export function chooseRoutes(app: FastifyInstance, ctx: AppContext): void {
           wardId: await farmWard(authOf(req).userId, q.wardId),
           lat: q.lat ?? null,
           lng: q.lng ?? null,
+          slot: q.date && q.part ? { date: q.date, part: q.part } : null,
         },
         { bookingFee: await currentBookingFee(ctx), ...(q.sort && { sort: q.sort }) },
       );

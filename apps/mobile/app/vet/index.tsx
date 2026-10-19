@@ -17,6 +17,7 @@ import { EmptyState } from '../../src/components/pictures';
 import { PriceLines } from '../../src/components/prices';
 import { FollowUpList } from '../../src/components/follow-ups';
 import { PhotoStrip } from '../../src/components/photo-strip';
+import { AppointmentLine } from '../../src/components/when-picker';
 
 /** Vet home (§8.3): online toggle, live offers with countdown, active jobs. */
 export default function VetHome() {
@@ -41,9 +42,14 @@ export default function VetHome() {
       refetchInterval: 15_000,
     },
   );
-  const active = ((jobs.data ?? []) as Schemas['VetJob'][]).filter(
+  const open = ((jobs.data ?? []) as Schemas['VetJob'][]).filter(
     (j) => !TERMINAL_BOOKING_STATUSES.includes(j.status),
   );
+  // §24.10: booked visits not yet set off for, soonest first; the rest is today's work.
+  const appointments = open
+    .filter((j) => j.scheduledFor && j.status === 'matched')
+    .sort((x, y) => (x.scheduledFor ?? '').localeCompare(y.scheduledFor ?? ''));
+  const active = open.filter((j) => !appointments.includes(j));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [alertsAsked, setAlertsAsked] = useState(() => kv.get('alerts_asked') === '1');
@@ -124,6 +130,7 @@ export default function VetHome() {
               {o.kind === 'direct' && <Badge tone="success">{t.web.choose.farmerChoseYou}</Badge>}
             </View>
             <P>{`${o.ward.ward} (${o.ward.subCounty})`}</P>
+            <AppointmentLine scheduledFor={o.scheduledFor} part={o.scheduledPart} />
             <PhotoStrip urls={o.photos} />
             {o.price ? (
               <PriceLines price={o.price} forVet />
@@ -158,6 +165,22 @@ export default function VetHome() {
           </View>
         ))}
       </Card>
+      {appointments.length > 0 && (
+        <Card>
+          <H2>{t.web.schedule.upcomingTitle}</H2>
+          {appointments.map((j) => (
+            <Pressable
+              key={j.id}
+              accessibilityRole="link"
+              onPress={() => router.push(`/vet/job/${j.id}`)}
+              style={{ backgroundColor: colors.canvas, padding: space.sm, borderRadius: 8 }}
+            >
+              <AppointmentLine scheduledFor={j.scheduledFor} part={j.scheduledPart} />
+              <P>{`${fmt(t.web.tracking.title, { ref: j.id })}: ${t.ussd.species[j.species]} · ${j.ward.ward}`}</P>
+            </Pressable>
+          ))}
+        </Card>
+      )}
       <Card>
         <H2>{v.activeJobs}</H2>
         {active.length === 0 && <P muted>{v.noJobs}</P>}
