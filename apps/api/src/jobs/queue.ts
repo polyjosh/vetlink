@@ -60,6 +60,12 @@ export async function scheduleRepeatingJobs(queue: Queue): Promise<void> {
     { pattern: '0 15 * * *', tz: 'UTC' },
     { name: 'reminders.evening', data: {} },
   );
+  // 03:30 Nairobi (00:30 UTC).
+  await queue.upsertJobScheduler(
+    'wallet.expire',
+    { pattern: '30 0 * * *', tz: 'UTC' },
+    { name: 'wallet.expire', data: {} },
+  );
   // 02:00 Nairobi (23:00 UTC), when nobody is booking.
   await queue.upsertJobScheduler(
     'vets.badges',

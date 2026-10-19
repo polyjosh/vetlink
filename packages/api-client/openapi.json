@@ -813,7 +813,8 @@
                   "paid",
                   "failed",
                   "refund_pending",
-                  "refunded"
+                  "refunded",
+                  "credited"
                 ]
               },
               "receipt": {
@@ -1722,7 +1723,8 @@
                   "paid",
                   "failed",
                   "refund_pending",
-                  "refunded"
+                  "refunded",
+                  "credited"
                 ]
               },
               "receipt": {
@@ -2965,7 +2967,8 @@
               "vet_accepted_pay",
               "request_declined",
               "request_unpaid",
-              "request_confirmed"
+              "request_confirmed",
+              "wallet_credited"
             ]
           },
           "title": {
@@ -3031,7 +3034,21 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "KES"
+            "description": "KES: the whole booking fee"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "mpesa",
+              "wallet"
+            ],
+            "description": "wallet: paid entirely from VetLink credit"
+          },
+          "walletAmount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Of the amount, paid from VetLink credit (§24.25)"
           },
           "status": {
             "type": "string",
@@ -3062,6 +3079,8 @@
           "bookingId",
           "type",
           "amount",
+          "method",
+          "walletAmount",
           "status",
           "receipt",
           "createdAt",
@@ -3093,7 +3112,21 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "KES"
+            "description": "KES: the whole booking fee"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "mpesa",
+              "wallet"
+            ],
+            "description": "wallet: paid entirely from VetLink credit"
+          },
+          "walletAmount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Of the amount, paid from VetLink credit (§24.25)"
           },
           "status": {
             "type": "string",
@@ -3142,6 +3175,8 @@
           "bookingId",
           "type",
           "amount",
+          "method",
+          "walletAmount",
           "status",
           "receipt",
           "createdAt",
@@ -3614,6 +3649,80 @@
           "pendingUrl",
           "currentUrl",
           "idFrontDocumentId"
+        ]
+      },
+      "WalletInput": {
+        "type": "object",
+        "properties": {
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "KES; pays the next booking fee automatically"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "description": "Positive credit, negative debit"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "credit_no_vet",
+                    "credit_cancelled",
+                    "credit_late_payment",
+                    "debit_booking_fee",
+                    "adjustment",
+                    "expired"
+                  ]
+                },
+                "bookingId": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "amount",
+                "kind",
+                "bookingId",
+                "note",
+                "createdAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "balance",
+          "entries"
         ]
       },
       "VetProfileInput": {
@@ -4212,12 +4321,19 @@
               }
             ],
             "description": "Totals of nearby vets; null when none is near"
+          },
+          "walletCredit": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "How much of the booking fee my VetLink credit will pay (§24.25)"
           }
         },
         "required": [
           "feeQuoted",
           "depositKes",
-          "priceRange"
+          "priceRange",
+          "walletCredit"
         ]
       },
       "VetRatingsInput": {
@@ -5340,7 +5456,8 @@
                   "paid",
                   "failed",
                   "refund_pending",
-                  "refunded"
+                  "refunded",
+                  "credited"
                 ]
               },
               "receipt": {
@@ -6261,7 +6378,8 @@
                   "paid",
                   "failed",
                   "refund_pending",
-                  "refunded"
+                  "refunded",
+                  "credited"
                 ]
               },
               "receipt": {
@@ -7529,7 +7647,8 @@
               "vet_accepted_pay",
               "request_declined",
               "request_unpaid",
-              "request_confirmed"
+              "request_confirmed",
+              "wallet_credited"
             ]
           },
           "title": {
@@ -7596,7 +7715,21 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "KES"
+            "description": "KES: the whole booking fee"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "mpesa",
+              "wallet"
+            ],
+            "description": "wallet: paid entirely from VetLink credit"
+          },
+          "walletAmount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Of the amount, paid from VetLink credit (§24.25)"
           },
           "status": {
             "type": "string",
@@ -7627,6 +7760,8 @@
           "bookingId",
           "type",
           "amount",
+          "method",
+          "walletAmount",
           "status",
           "receipt",
           "createdAt",
@@ -7659,7 +7794,21 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "KES"
+            "description": "KES: the whole booking fee"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "mpesa",
+              "wallet"
+            ],
+            "description": "wallet: paid entirely from VetLink credit"
+          },
+          "walletAmount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Of the amount, paid from VetLink credit (§24.25)"
           },
           "status": {
             "type": "string",
@@ -7708,6 +7857,8 @@
           "bookingId",
           "type",
           "amount",
+          "method",
+          "walletAmount",
           "status",
           "receipt",
           "createdAt",
@@ -8187,6 +8338,82 @@
           "pendingUrl",
           "currentUrl",
           "idFrontDocumentId"
+        ],
+        "additionalProperties": false
+      },
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "KES; pays the next booking fee automatically"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "description": "Positive credit, negative debit"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "credit_no_vet",
+                    "credit_cancelled",
+                    "credit_late_payment",
+                    "debit_booking_fee",
+                    "adjustment",
+                    "expired"
+                  ]
+                },
+                "bookingId": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "amount",
+                "kind",
+                "bookingId",
+                "note",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "balance",
+          "entries"
         ],
         "additionalProperties": false
       },
@@ -8795,12 +9022,19 @@
               }
             ],
             "description": "Totals of nearby vets; null when none is near"
+          },
+          "walletCredit": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "How much of the booking fee my VetLink credit will pay (§24.25)"
           }
         },
         "required": [
           "feeQuoted",
           "depositKes",
-          "priceRange"
+          "priceRange",
+          "walletCredit"
         ],
         "additionalProperties": false
       },
@@ -14623,6 +14857,434 @@
                   "items": {
                     "$ref": "#/components/schemas/RecentVet"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/wallet": {
+      "get": {
+        "summary": "My VetLink credit and its latest 50 entries",
+        "tags": [
+          "farmer"
+        ],
+        "description": "Access: role `farmer`.\n\nCredit replaces refunds and pays the next booking fee; it cannot be withdrawn.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/users/{userId}/wallet": {
+      "get": {
+        "summary": "A farmer's VetLink credit",
+        "tags": [
+          "admin: payments"
+        ],
+        "description": "Access: admin permission `finance` with 2FA.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/users/{userId}/wallet/adjust": {
+      "post": {
+        "summary": "Correct a farmer’s credit (step-up; reason required; audited)",
+        "tags": [
+          "admin: payments"
+        ],
+        "description": "Access: admin permission `finance` with 2FA and a step-up within 5 minutes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "minimum": -100000,
+                    "maximum": 100000
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 300
+                  }
+                },
+                "required": [
+                  "amount",
+                  "note"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
                 }
               }
             }

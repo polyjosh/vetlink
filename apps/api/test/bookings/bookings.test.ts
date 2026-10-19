@@ -125,6 +125,7 @@ describe.skipIf(!testServerUrl)('bookings (database)', { timeout: 30_000 }, () =
         feeQuoted: DEFAULT_CALL_OUT_FEE_KES,
         depositKes: 200,
         priceRange: null,
+        walletCredit: 0,
       });
 
       await h.vet(wardId);

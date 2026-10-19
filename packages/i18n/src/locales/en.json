@@ -139,7 +139,9 @@
     "requestedChosen": "Request {ref} sent to {vet}. We will SMS you when they accept, then send the M-Pesa prompt.",
     "vetUnavailable": "That vet cannot take requests now. Dial again to choose another vet.",
     "noLastVet": "You have no finished visit yet. Choose 1 to request a vet.",
-    "lastVetUnavailable": "{vet} cannot take requests now. Dial again and choose 1 to request another vet."
+    "lastVetUnavailable": "{vet} cannot take requests now. Dial again and choose 1 to request another vet.",
+    "paidFromCredit": "Request {ref} sent. KES {deposit} paid from your VetLink credit. We will SMS you when a vet accepts.",
+    "creditNote": "KES {credit} credit will be used"
   },
   "notify": {
     "offer": {
@@ -179,8 +181,8 @@
     },
     "no_vet_found": {
       "title": "No vet available",
-      "body": "Sorry, no vet could take request {ref}. Your KES {deposit} booking fee will be refunded.",
-      "sms": "VetLink: sorry, no vet could take request {ref}. Your KES {deposit} booking fee will be refunded."
+      "body": "Sorry, no vet could take request {ref}. Your KES {deposit} booking fee is now VetLink credit for your next request.",
+      "sms": "VetLink: sorry, no vet could take request {ref}. Your KES {deposit} booking fee is now credit for your next request."
     },
     "booking_cancelled": {
       "title": "Job cancelled",
@@ -271,6 +273,11 @@
       "title": "Job {ref} confirmed",
       "body": "The farmer paid. Open the job for their details.",
       "sms": "VetLink: job {ref} confirmed. Farmer {farmer}, {phone}, {ward}. Reply OTW {ref} when you set off."
+    },
+    "wallet_credited": {
+      "title": "KES {amount} added to your VetLink credit",
+      "body": "Request {ref} was closed, so its booking fee is now credit for your next request.",
+      "sms": "VetLink: KES {amount} from request {ref} is now credit for your next request. It is used automatically."
     }
   },
   "application": {
@@ -395,7 +402,7 @@
       "fee": "Vet call-out fee",
       "feeHint": "Pay the vet directly when they arrive.",
       "deposit": "Booking fee now",
-      "depositHint": "Paid by M-Pesa now. Refunded if no vet comes.",
+      "depositHint": "Paid by M-Pesa now. If no vet comes, it becomes credit for your next request.",
       "confirmPay": "Confirm and pay KES {amount}",
       "checkPhone": "Check your phone",
       "checkPhoneHint": "Enter your M-Pesa PIN to pay the KES {amount} booking fee.",
@@ -414,7 +421,7 @@
       "callVet": "Call the vet",
       "cancel": "Cancel request",
       "cancelTitle": "Why are you cancelling?",
-      "cancelPolicy": "Free until the vet sets off: the booking fee is refunded. After that, it is not refunded.",
+      "cancelPolicy": "Free until the vet sets off: the booking fee becomes VetLink credit for your next request. After that, it is kept.",
       "cancelConfirm": "Cancel request",
       "cancelled": "Request cancelled",
       "rateTitle": "How was the visit?",
@@ -431,7 +438,8 @@
         "paid": "Booking fee paid",
         "failed": "Booking fee not paid",
         "refund_pending": "Refund on the way",
-        "refunded": "Booking fee refunded"
+        "refunded": "Booking fee refunded",
+        "credited": "Booking fee added to your VetLink credit"
       },
       "cancelReasons": {
         "changed_mind": "I changed my mind",
@@ -897,6 +905,25 @@
       "button": "Book {vet} again",
       "unavailable": "Not available right now",
       "followUp": "Book {vet} for the follow-up"
+    },
+    "wallet": {
+      "title": "VetLink credit",
+      "balance": "KES {amount} credit",
+      "balanceHint": "Credit pays your next booking fee automatically. It cannot be withdrawn and expires after 12 months without use.",
+      "empty": "No credit yet.",
+      "covers": "Paid from your VetLink credit: no M-Pesa payment needed.",
+      "partly": "KES {credit} from your credit, KES {rest} by M-Pesa.",
+      "kinds": {
+        "credit_no_vet": "No vet found",
+        "credit_cancelled": "Request cancelled",
+        "credit_late_payment": "Paid after the request closed",
+        "debit_booking_fee": "Booking fee",
+        "adjustment": "Correction by VetLink",
+        "expired": "Expired"
+      },
+      "adjust": "Adjust credit",
+      "adjustAmount": "Amount (KES, minus to remove)",
+      "adjustNote": "Reason"
     }
   }
 }

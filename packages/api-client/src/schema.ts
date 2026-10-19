@@ -5002,6 +5002,406 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/wallet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My VetLink credit and its latest 50 entries
+         * @description Access: role `farmer`.
+         *
+         *     Credit replaces refunds and pays the next booking fee; it cannot be withdrawn.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Wallet"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{userId}/wallet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A farmer's VetLink credit
+         * @description Access: admin permission `finance` with 2FA.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Wallet"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{userId}/wallet/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Correct a farmer’s credit (step-up; reason required; audited)
+         * @description Access: admin permission `finance` with 2FA and a step-up within 5 minutes.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        amount: number;
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Wallet"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/bookings": {
         parameters: {
             query?: never;
@@ -13978,7 +14378,7 @@ export interface components {
             photos: string[];
             deposit: {
                 /** @enum {string} */
-                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded" | "credited";
                 receipt: string | null;
                 paymentId: number | null;
             };
@@ -14126,7 +14526,7 @@ export interface components {
             photos: string[];
             deposit: {
                 /** @enum {string} */
-                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded" | "credited";
                 receipt: string | null;
                 paymentId: number | null;
             };
@@ -14330,7 +14730,7 @@ export interface components {
         NotificationInput: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed" | "wallet_credited";
             title: string;
             body: string;
             data: {
@@ -14344,8 +14744,15 @@ export interface components {
             bookingId: number;
             /** @enum {string} */
             type: "deposit" | "balance" | "refund";
-            /** @description KES */
+            /** @description KES: the whole booking fee */
             amount: number;
+            /**
+             * @description wallet: paid entirely from VetLink credit
+             * @enum {string}
+             */
+            method: "mpesa" | "wallet";
+            /** @description Of the amount, paid from VetLink credit (§24.25) */
+            walletAmount: number;
             /** @enum {string} */
             status: "pending" | "success" | "failed" | "cancelled" | "refunded";
             /** @description M-Pesa receipt, once paid */
@@ -14358,8 +14765,15 @@ export interface components {
             bookingId: number;
             /** @enum {string} */
             type: "deposit" | "balance" | "refund";
-            /** @description KES */
+            /** @description KES: the whole booking fee */
             amount: number;
+            /**
+             * @description wallet: paid entirely from VetLink credit
+             * @enum {string}
+             */
+            method: "mpesa" | "wallet";
+            /** @description Of the amount, paid from VetLink credit (§24.25) */
+            walletAmount: number;
             /** @enum {string} */
             status: "pending" | "success" | "failed" | "cancelled" | "refunded";
             /** @description M-Pesa receipt, once paid */
@@ -14444,6 +14858,20 @@ export interface components {
             currentUrl: string | null;
             /** @description Open with GET /v1/admin/vet-documents/:id/url (logged) */
             idFrontDocumentId: number | null;
+        };
+        WalletInput: {
+            /** @description KES; pays the next booking fee automatically */
+            balance: number;
+            entries: {
+                id: number;
+                /** @description Positive credit, negative debit */
+                amount: number;
+                /** @enum {string} */
+                kind: "credit_no_vet" | "credit_cancelled" | "credit_late_payment" | "debit_booking_fee" | "adjustment" | "expired";
+                bookingId: number | null;
+                note: string | null;
+                createdAt: string;
+            }[];
         };
         VetProfileInput: {
             /** @enum {string} */
@@ -14539,6 +14967,8 @@ export interface components {
             depositKes: number;
             /** @description Totals of nearby vets; null when none is near */
             priceRange: components["schemas"]["PriceRangeInput"] | null;
+            /** @description How much of the booking fee my VetLink credit will pay (§24.25) */
+            walletCredit: number;
         };
         VetRatingsInput: {
             average: number | null;
@@ -14738,7 +15168,7 @@ export interface components {
             photos: string[];
             deposit: {
                 /** @enum {string} */
-                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded" | "credited";
                 receipt: string | null;
                 paymentId: number | null;
             };
@@ -14886,7 +15316,7 @@ export interface components {
             photos: string[];
             deposit: {
                 /** @enum {string} */
-                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+                status: "none" | "pending" | "paid" | "failed" | "refund_pending" | "refunded" | "credited";
                 receipt: string | null;
                 paymentId: number | null;
             };
@@ -15090,7 +15520,7 @@ export interface components {
         Notification: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected" | "reminder_due" | "followup_tomorrow" | "followup_today" | "request" | "vet_accepted_pay" | "request_declined" | "request_unpaid" | "request_confirmed" | "wallet_credited";
             title: string;
             body: string;
             data: {
@@ -15104,8 +15534,15 @@ export interface components {
             bookingId: number;
             /** @enum {string} */
             type: "deposit" | "balance" | "refund";
-            /** @description KES */
+            /** @description KES: the whole booking fee */
             amount: number;
+            /**
+             * @description wallet: paid entirely from VetLink credit
+             * @enum {string}
+             */
+            method: "mpesa" | "wallet";
+            /** @description Of the amount, paid from VetLink credit (§24.25) */
+            walletAmount: number;
             /** @enum {string} */
             status: "pending" | "success" | "failed" | "cancelled" | "refunded";
             /** @description M-Pesa receipt, once paid */
@@ -15118,8 +15555,15 @@ export interface components {
             bookingId: number;
             /** @enum {string} */
             type: "deposit" | "balance" | "refund";
-            /** @description KES */
+            /** @description KES: the whole booking fee */
             amount: number;
+            /**
+             * @description wallet: paid entirely from VetLink credit
+             * @enum {string}
+             */
+            method: "mpesa" | "wallet";
+            /** @description Of the amount, paid from VetLink credit (§24.25) */
+            walletAmount: number;
             /** @enum {string} */
             status: "pending" | "success" | "failed" | "cancelled" | "refunded";
             /** @description M-Pesa receipt, once paid */
@@ -15204,6 +15648,20 @@ export interface components {
             currentUrl: string | null;
             /** @description Open with GET /v1/admin/vet-documents/:id/url (logged) */
             idFrontDocumentId: number | null;
+        };
+        Wallet: {
+            /** @description KES; pays the next booking fee automatically */
+            balance: number;
+            entries: {
+                id: number;
+                /** @description Positive credit, negative debit */
+                amount: number;
+                /** @enum {string} */
+                kind: "credit_no_vet" | "credit_cancelled" | "credit_late_payment" | "debit_booking_fee" | "adjustment" | "expired";
+                bookingId: number | null;
+                note: string | null;
+                createdAt: string;
+            }[];
         };
         VetProfile: {
             /** @enum {string} */
@@ -15299,6 +15757,8 @@ export interface components {
             depositKes: number;
             /** @description Totals of nearby vets; null when none is near */
             priceRange: components["schemas"]["PriceRange"] | null;
+            /** @description How much of the booking fee my VetLink credit will pay (§24.25) */
+            walletCredit: number;
         };
         VetRatings: {
             average: number | null;

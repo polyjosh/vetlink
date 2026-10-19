@@ -49,6 +49,7 @@ export const NOTIFICATION_KINDS = {
   request_declined: { critical: true },
   request_unpaid: { critical: false },
   request_confirmed: { critical: true },
+  wallet_credited: { critical: false },
 } as const;
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
 

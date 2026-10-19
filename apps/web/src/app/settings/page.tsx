@@ -11,6 +11,7 @@ import { WardPicker } from '@/components/ward-picker';
 import { errorText } from '@/lib/errors';
 import { useLang, useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
+import { WalletCard } from '@/components/wallet-card';
 
 /** My profile (§24.1): photo, username, name, farm; then language and log out. */
 export default function Profile() {
@@ -152,6 +153,8 @@ export default function Profile() {
             {t.web.common.save}
           </Button>
         </Card>
+
+        {isFarmer && <WalletCard />}
 
         <Card className="space-y-3">
           <h2 className="font-bold">{t.web.common.language}</h2>

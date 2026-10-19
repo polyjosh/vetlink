@@ -325,7 +325,19 @@ export default function Request() {
             <PriceLines price={chosenVet.price} />
           </>
         ) : quote.data ? (
-          <PriceRangeLines range={quote.data.priceRange} bookingFee={quote.data.depositKes} />
+          <>
+            <PriceRangeLines range={quote.data.priceRange} bookingFee={quote.data.depositKes} />
+            {quote.data.walletCredit > 0 && (
+              <Notice tone="success">
+                {quote.data.walletCredit >= quote.data.depositKes
+                  ? t.web.wallet.covers
+                  : fmt(t.web.wallet.partly, {
+                      credit: quote.data.walletCredit,
+                      rest: quote.data.depositKes - quote.data.walletCredit,
+                    })}
+              </Notice>
+            )}
+          </>
         ) : (
           <P>…</P>
         )}

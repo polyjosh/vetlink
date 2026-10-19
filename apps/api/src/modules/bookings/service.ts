@@ -41,7 +41,7 @@ import {
 import { DomainError } from '../../lib/errors.js';
 import { getConfig } from '../config/service.js';
 import { depositOutcomeOnCancel } from '../payments/policy.js';
-import { createRefundIfPaid } from '../payments/refunds.js';
+import { creditBookingFee } from '../wallet/service.js';
 import { photoUrls } from '../media/service.js';
 import { assertChoosable, choosableVets, sendDirectRequest, vetHasRoom } from './choose.js';
 import { afterCommit } from './effects.js';
@@ -277,8 +277,8 @@ export async function cancelByFarmer(
       { reason },
     );
     // Refund or forfeit, per payments/policy.ts, in the same transaction as the cancellation.
-    if (r.changed && depositOutcomeOnCancel(r.from, 'farmer_cancelled') === 'refund') {
-      await createRefundIfPaid(tx, bookingId, now, 'farmer_cancelled');
+    if (r.changed && depositOutcomeOnCancel(r.from, 'farmer_cancelled') === 'credit') {
+      await creditBookingFee(tx, ctx, bookingId, now, 'credit_cancelled');
     }
     return r;
   });
@@ -551,8 +551,8 @@ export async function cancelByAdmin(
       now,
       { reason },
     );
-    if (r.changed && depositOutcomeOnCancel(r.from, 'admin_cancelled') === 'refund') {
-      await createRefundIfPaid(tx, bookingId, now, 'admin_cancelled');
+    if (r.changed && depositOutcomeOnCancel(r.from, 'admin_cancelled') === 'credit') {
+      await creditBookingFee(tx, ctx, bookingId, now, 'credit_cancelled');
     }
     return r;
   });

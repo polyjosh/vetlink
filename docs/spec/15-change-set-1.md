@@ -214,6 +214,15 @@ While a booking is `en_route`, show the vet's position on a map to the farmer (f
 - Refund rules (§8.6): no vet found or the farmer cancels before the vet sets off: refunded. Cancelled after the vet set off: the deposit is kept by VetLink (previously "forfeited to the vet"; there is no payout path now).
 - Revisit (percentage commission and M-Pesa B2C payouts) when the owner wants it; history in the decision log.
 
+### 24.25 Farmer wallet: credit instead of refunds (decided 2026-10-19)
+
+- **No money is ever refunded to M-Pesa.** Wherever the booking fee used to be refunded (no vet found, the farmer cancels before the vet sets off, an admin cancels, a payment that arrives after the booking expired, a vet no-show once the farmer or an admin cancels), the full booking fee is **credited to the farmer's VetLink wallet**, once per booking.
+- The next booking fee is **paid from the wallet first**: with enough credit, no M-Pesa prompt at all; otherwise the prompt asks only for the remainder. USSD and SMS say so ("KES 200 paid from your VetLink credit").
+- A farmer who cancels **after the vet set off** still loses the fee (the vet made the trip). For **scheduled visits** (§24.10) any cancellation before the vet sets off is credited; the 12-hour rule is dropped.
+- **Closed wallet:** credit only pays VetLink booking fees; it cannot be withdrawn, transferred, or paid out. Credit **expires after 12 months without wallet activity**; an unused balance is **lost on account deletion** (the app warns first; stated in the terms). The owner confirms with Safaricom/counsel that this is not e-money.
+- An append-only ledger (`wallet_entries`); the balance is the sum; every entry links to its booking; credits and debits are idempotent per booking. Finance admins can view a wallet and post an adjustment with step-up and a written reason (audited).
+- Amends §8.6 (refund policy) and §24.24.
+
 ### 24.20 Booking state machine (amends §9)
 
 New statuses: `requested`, `vet_unavailable`, `awaiting_deposit`. New events:

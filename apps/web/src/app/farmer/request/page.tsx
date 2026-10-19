@@ -373,7 +373,19 @@ function RequestFlow() {
               <Notice>{t.web.choose.feeAfterAccept}</Notice>
             </>
           ) : current ? (
-            <PriceRangeLines range={current.priceRange} bookingFee={current.depositKes} />
+            <>
+              <PriceRangeLines range={current.priceRange} bookingFee={current.depositKes} />
+              {current.walletCredit > 0 && (
+                <Notice tone="success">
+                  {current.walletCredit >= current.depositKes
+                    ? t.web.wallet.covers
+                    : fmt(t.web.wallet.partly, {
+                        credit: current.walletCredit,
+                        rest: current.depositKes - current.walletCredit,
+                      })}
+                </Notice>
+              )}
+            </>
           ) : (
             <p>…</p>
           )}

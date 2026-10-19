@@ -45,6 +45,7 @@ const EXPECTED_TABLES = [
   'vet_documents',
   'vet_service_fees',
   'vets',
+  'wallet_entries',
 ];
 
 describe.skipIf(!serverUrl)('database (migrations, seed, constraints)', () => {

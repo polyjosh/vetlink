@@ -320,7 +320,13 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
     await markSession(ctx, req.sessionId, 'booked', { bookingId: booking.id });
     // The deposit prompt arrives on the phone once this USSD session closes.
     try {
-      await requestDeposit(ctx, { bookingId: booking.id, farmerId: userId }, log);
+      const paid = await requestDeposit(ctx, { bookingId: booking.id, farmerId: userId }, log);
+      if (paid.method === 'wallet') {
+        // Credit covered it: no M-Pesa prompt at all (§24.25).
+        return end(
+          interpolate(t().paidFromCredit, { ref: booking.id, deposit: booking.bookingFeeKes }),
+        );
+      }
     } catch (err) {
       if (!(err instanceof DomainError && err.code === 'payment_unavailable')) throw err;
       return end(

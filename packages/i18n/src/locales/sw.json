@@ -139,7 +139,9 @@
     "requestedChosen": "Ombi {ref} limetumwa kwa {vet}. Tutakutumia SMS akikubali, kisha ombi la M-Pesa.",
     "vetUnavailable": "Daktari huyo hawezi kupokea maombi sasa. Piga tena uchague daktari mwingine.",
     "noLastVet": "Bado huna ziara iliyokamilika. Chagua 1 kuomba daktari.",
-    "lastVetUnavailable": "{vet} hawezi kupokea maombi sasa. Piga tena uchague 1 kuomba daktari mwingine."
+    "lastVetUnavailable": "{vet} hawezi kupokea maombi sasa. Piga tena uchague 1 kuomba daktari mwingine.",
+    "paidFromCredit": "Ombi {ref} limetumwa. KES {deposit} zimelipwa kutoka salio lako la VetLink. Tutakutumia SMS daktari akikubali.",
+    "creditNote": "Salio la KES {credit} litatumika"
   },
   "notify": {
     "offer": {
@@ -179,8 +181,8 @@
     },
     "no_vet_found": {
       "title": "Hakuna daktari",
-      "body": "Samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Ada yako ya kuhifadhi ya KES {deposit} itarudishwa.",
-      "sms": "VetLink: samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Ada yako ya kuhifadhi ya KES {deposit} itarudishwa."
+      "body": "Samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Ada yako ya KES {deposit} sasa ni salio la VetLink kwa ombi lijalo.",
+      "sms": "VetLink: samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Ada yako ya KES {deposit} sasa ni salio la ombi lijalo."
     },
     "booking_cancelled": {
       "title": "Kazi imeghairiwa",
@@ -271,6 +273,11 @@
       "title": "Kazi {ref} imethibitishwa",
       "body": "Mkulima amelipa. Fungua kazi kuona maelezo yake.",
       "sms": "VetLink: kazi {ref} imethibitishwa. Mkulima {farmer}, {phone}, {ward}. Jibu OTW {ref} ukianza safari."
+    },
+    "wallet_credited": {
+      "title": "KES {amount} imeongezwa kwenye salio lako la VetLink",
+      "body": "Ombi {ref} limefungwa, kwa hivyo ada yake ya kuhifadhi sasa ni salio la ombi lijalo.",
+      "sms": "VetLink: KES {amount} za ombi {ref} sasa ni salio la ombi lako lijalo. Litatumika moja kwa moja."
     }
   },
   "application": {
@@ -395,7 +402,7 @@
       "fee": "Ada ya daktari kufika",
       "feeHint": "Mlipe daktari moja kwa moja akifika.",
       "deposit": "Ada ya kuhifadhi sasa",
-      "depositHint": "Inalipwa kwa M-Pesa sasa. Inarudishwa daktari asipokuja.",
+      "depositHint": "Lipa kwa M-Pesa sasa. Daktari asipokuja, inakuwa salio la ombi lijalo.",
       "confirmPay": "Thibitisha na ulipe KES {amount}",
       "checkPhone": "Angalia simu yako",
       "checkPhoneHint": "Weka PIN ya M-Pesa kulipa ada ya kuhifadhi ya KES {amount}.",
@@ -414,7 +421,7 @@
       "callVet": "Mpigie daktari",
       "cancel": "Ghairi ombi",
       "cancelTitle": "Kwa nini unaghairi?",
-      "cancelPolicy": "Bure hadi daktari aanze safari: ada ya kuhifadhi inarudishwa. Baada ya hapo, hairudishwi.",
+      "cancelPolicy": "Bure hadi daktari aanze safari: ada ya kuhifadhi inakuwa salio la VetLink kwa ombi lijalo. Baada ya hapo, haitarudi.",
       "cancelConfirm": "Ghairi ombi",
       "cancelled": "Ombi limeghairiwa",
       "rateTitle": "Ziara ilikuwaje?",
@@ -431,7 +438,8 @@
         "paid": "Ada ya kuhifadhi imelipwa",
         "failed": "Ada ya kuhifadhi haijalipwa",
         "refund_pending": "Marejesho yako njiani",
-        "refunded": "Ada ya kuhifadhi imerudishwa"
+        "refunded": "Ada ya kuhifadhi imerudishwa",
+        "credited": "Ada imeongezwa kwenye salio lako la VetLink"
       },
       "cancelReasons": {
         "changed_mind": "Nimebadilisha nia",
@@ -897,6 +905,25 @@
       "button": "Mwite {vet} tena",
       "unavailable": "Hapatikani sasa hivi",
       "followUp": "Mwite {vet} kwa ufuatiliaji"
+    },
+    "wallet": {
+      "title": "Salio la VetLink",
+      "balance": "Salio KES {amount}",
+      "balanceHint": "Salio hulipa ada yako ijayo ya kuhifadhi moja kwa moja. Haliwezi kutolewa na huisha baada ya miezi 12 bila kutumika.",
+      "empty": "Bado huna salio.",
+      "covers": "Imelipwa kutoka salio lako la VetLink: hakuna malipo ya M-Pesa.",
+      "partly": "KES {credit} kutoka salio, KES {rest} kwa M-Pesa.",
+      "kinds": {
+        "credit_no_vet": "Hakuna daktari",
+        "credit_cancelled": "Ombi limeghairiwa",
+        "credit_late_payment": "Malipo baada ya ombi kufungwa",
+        "debit_booking_fee": "Ada ya kuhifadhi",
+        "adjustment": "Marekebisho ya VetLink",
+        "expired": "Limeisha muda"
+      },
+      "adjust": "Rekebisha salio",
+      "adjustAmount": "Kiasi (KES, minus kuondoa)",
+      "adjustNote": "Sababu"
     }
   }
 }

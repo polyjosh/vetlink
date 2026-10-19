@@ -38,6 +38,8 @@ export interface JobPayloads {
   'reminders.evening': Record<string, never>;
   /** Every minute: chosen-vet bookings whose clock ran out move on (§24.6). */
   'bookings.deadlines': Record<string, never>;
+  /** Daily: wallet credit unused for 12 months expires (§24.25). */
+  'wallet.expire': Record<string, never>;
   /** Nightly 02:00 EAT: recompute vet badges (§24.8). */
   'vets.badges': Record<string, never>;
 }

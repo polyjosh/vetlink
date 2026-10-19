@@ -39,6 +39,7 @@ describe('notification templates', () => {
     reminder: 'Ufuatiliaji wa matibabu',
     farmer: 'Mama Wanjiku Kamau',
     photos: '. 3 photo(s) in app',
+    amount: 1500,
   };
   it.each(
     (['sw', 'en'] as Locale[]).flatMap((lang) =>

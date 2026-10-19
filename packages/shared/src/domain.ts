@@ -180,6 +180,8 @@ export const DEPOSIT_STATES = [
   'failed',
   'refund_pending',
   'refunded',
+  // §24.25: no refunds; the booking fee went to the farmer's VetLink wallet.
+  'credited',
 ] as const;
 export type DepositState = (typeof DEPOSIT_STATES)[number];
 
@@ -229,3 +231,21 @@ export type DispatchMode = (typeof DISPATCH_MODES)[number];
 /** A wave offer (§8.5) or a direct request to the vet the farmer chose (§24.6). */
 export const OFFER_KINDS = ['wave', 'direct'] as const;
 export type OfferKind = (typeof OFFER_KINDS)[number];
+
+/** How a booking fee was paid (§24.25): by M-Pesa, entirely from the wallet, or partly. */
+export const PAYMENT_METHODS = ['mpesa', 'wallet'] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** Wallet ledger entries (§24.25). Credits are positive, debits negative. */
+export const WALLET_ENTRY_KINDS = [
+  'credit_no_vet',
+  'credit_cancelled',
+  'credit_late_payment',
+  'debit_booking_fee',
+  'adjustment',
+  'expired',
+] as const;
+export type WalletEntryKind = (typeof WALLET_ENTRY_KINDS)[number];
+
+/** Wallet credit expires after this many days without wallet activity (§24.25). */
+export const WALLET_EXPIRY_DAYS = 365;

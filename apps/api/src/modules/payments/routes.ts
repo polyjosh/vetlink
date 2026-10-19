@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { and, desc, eq, type SQL } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { PAYMENT_STATUSES, PAYMENT_TYPES } from '@vetlink/shared';
+import { PAYMENT_METHODS, PAYMENT_STATUSES, PAYMENT_TYPES } from '@vetlink/shared';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { bookings, payments } from '../../db/schema/index.js';
@@ -16,7 +16,9 @@ export const payment = named(
     id: z.number().int(),
     bookingId: z.number().int(),
     type: z.enum(PAYMENT_TYPES),
-    amount: z.number().int().describe('KES'),
+    amount: z.number().int().describe('KES: the whole booking fee'),
+    method: z.enum(PAYMENT_METHODS).describe('wallet: paid entirely from VetLink credit'),
+    walletAmount: z.number().int().describe('Of the amount, paid from VetLink credit (§24.25)'),
     status: z.enum(PAYMENT_STATUSES),
     receipt: z.string().nullable().describe('M-Pesa receipt, once paid'),
     createdAt: z.string(),
@@ -31,6 +33,8 @@ export function paymentView(p: PaymentRow): z.infer<typeof payment> {
     bookingId: p.bookingId,
     type: p.type,
     amount: p.amount,
+    method: p.method,
+    walletAmount: p.walletAmount,
     status: p.status,
     receipt: p.mpesaReceipt,
     createdAt: p.createdAt.toISOString(),
