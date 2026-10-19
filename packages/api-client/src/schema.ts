@@ -1585,8 +1585,11 @@ export interface paths {
                 content: {
                     "application/json": {
                         name?: string;
+                        displayName?: string | null;
                         /** @enum {string} */
                         language?: "sw" | "en";
+                        /** @enum {string} */
+                        theme?: "system" | "light" | "dark";
                     };
                 };
             };
@@ -2732,6 +2735,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/animals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit an animal (the species cannot change)
+         * @description Access: role `farmer`.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        nameOrTag?: string | null;
+                        breed?: string | null;
+                        sex?: ("female" | "male") | null;
+                        dob?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Animal"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/v1/animals/{id}/history": {
         parameters: {
             query?: never;
@@ -2857,6 +3000,929 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/uploads/presign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get a URL to upload a file straight to private storage
+         * @description Access: any signed-in user.
+         *
+         *     PUT the file to `uploadUrl` with `headers`, then confirm it: vet documents with POST /v1/vets/me/application/documents (vet role), avatars with PUT /v1/me/avatar, animal photos with PUT /v1/animals/:id/photo (farmer role). Photos must be re-encoded on the device (drops EXIF) and be at most 500 KB.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        purpose: "vet_document";
+                        /** @enum {string} */
+                        documentKind: "id_front" | "id_back" | "certificate" | "licence" | "profile_photo" | "training_cert";
+                        /** @enum {string} */
+                        contentType: "image/jpeg" | "image/png" | "application/pdf";
+                        size: number;
+                    } | {
+                        /** @enum {string} */
+                        purpose: "photo";
+                        /** @enum {string} */
+                        photoKind: "avatar" | "animal_photo";
+                        /** @enum {string} */
+                        contentType: "image/jpeg" | "image/png";
+                        size: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PresignedUpload"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set my profile photo (after uploading it)
+         * @description Access: any signed-in user.
+         *
+         *     A farmer's photo is live at once. A vet's new photo waits for a verifier (`photo.review`); farmers keep seeing the approved one. Safe to retry.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        storageKey: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Me"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Remove my profile photo (vets: withdraw a pending photo only)
+         * @description Access: any signed-in user.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Me"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/animals/{id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set an animal's photo (after uploading it). Safe to retry.
+         * @description Access: role `farmer`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        storageKey: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Animal"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Remove an animal's photo (the species picture is shown instead)
+         * @description Access: role `farmer`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Animal"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vet-photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vet profile photos waiting for review, oldest first
+         * @description Access: admin permission `verifier` with 2FA.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PhotoReviewItem"][];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vet-photos/{mediaId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve or reject a vet's new profile photo (audit-logged; the vet is told)
+         * @description Access: admin permission `verifier` with 2FA.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        decision: "approve";
+                    } | {
+                        /** @enum {string} */
+                        decision: "reject";
+                        /** @enum {string} */
+                        reason: "face_not_clear" | "not_same_person" | "inappropriate" | "other";
+                    };
+                };
+            };
+            responses: {
+                /** @description No content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -6124,149 +7190,6 @@ export interface paths {
             };
         };
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/uploads/presign": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Get a URL to upload a document straight to private storage
-         * @description Access: role `vet`.
-         *
-         *     PUT the file to `uploadUrl` with `headers`, then confirm with POST /v1/vets/me/application/documents.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        purpose: "vet_document";
-                        /** @enum {string} */
-                        documentKind: "id_front" | "id_back" | "certificate" | "licence" | "profile_photo" | "training_cert";
-                        /** @enum {string} */
-                        contentType: "image/jpeg" | "image/png" | "application/pdf";
-                        size: number;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["PresignedUpload"];
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                410: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-                /** @description Default Response */
-                503: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Error"];
-                    };
-                };
-            };
-        };
         delete?: never;
         options?: never;
         head?: never;
@@ -11114,7 +12037,7 @@ export interface components {
     schemas: {
         ErrorInput: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -11125,7 +12048,24 @@ export interface components {
             id: string;
             phone: string;
             name: string | null;
+            displayName: string | null;
             language: string;
+            /** @enum {string} */
+            theme: "system" | "light" | "dark";
+            photo: {
+                url: string | null;
+                /** @description A vet's new photo waiting for review, or the reason the last one was turned down */
+                review: ({
+                    /** @constant */
+                    status: "pending";
+                    url: string;
+                } | {
+                    /** @constant */
+                    status: "rejected";
+                    /** @enum {string} */
+                    reason: "face_not_clear" | "not_same_person" | "inappropriate" | "other";
+                }) | null;
+            };
             roles: ("farmer" | "vet" | "admin")[];
             onboarding: {
                 consented: boolean;
@@ -11164,6 +12104,8 @@ export interface components {
             sex: ("female" | "male") | null;
             /** @description YYYY-MM-DD */
             dob: string | null;
+            /** @description Short-lived link; null means show the species picture */
+            photoUrl: string | null;
         };
         AnimalHistoryInput: {
             animal: components["schemas"]["AnimalInput"];
@@ -11215,7 +12157,10 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                /** @description Verified legal name */
                 name: string | null;
+                displayName: string | null;
+                photoUrl: string | null;
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
@@ -11262,6 +12207,9 @@ export interface components {
             }[];
             farmer: {
                 name: string | null;
+                /** @description Show this when set, else name */
+                displayName: string | null;
+                photoUrl: string | null;
                 /** @description Only while the job is active */
                 phone: string | null;
                 farmNotes: string | null;
@@ -11316,7 +12264,10 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                /** @description Verified legal name */
                 name: string | null;
+                displayName: string | null;
+                photoUrl: string | null;
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
@@ -11495,7 +12446,7 @@ export interface components {
         NotificationInput: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected";
             title: string;
             body: string;
             data: {
@@ -11534,6 +12485,26 @@ export interface components {
             resultCode: number | null;
             resultDesc: string | null;
         };
+        PresignedUploadInput: {
+            uploadUrl: string;
+            storageKey: string;
+            headers: {
+                [key: string]: string;
+            };
+            expiresAt: string;
+        };
+        PhotoReviewItemInput: {
+            mediaId: string;
+            vetUserId: string;
+            name: string | null;
+            /** @enum {string} */
+            type: "vet" | "paravet";
+            submittedAt: string;
+            pendingUrl: string;
+            currentUrl: string | null;
+            /** @description Open with GET /v1/admin/vet-documents/:id/url (logged) */
+            idFrontDocumentId: number | null;
+        };
         VetProfileInput: {
             /** @enum {string} */
             type: "vet" | "paravet";
@@ -11556,17 +12527,9 @@ export interface components {
             feeQuoted: number;
             depositKes: number;
         };
-        PresignedUploadInput: {
-            uploadUrl: string;
-            storageKey: string;
-            headers: {
-                [key: string]: string;
-            };
-            expiresAt: string;
-        };
         Error: {
             /** @enum {string} */
-            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid";
+            code: "invalid_request" | "not_found" | "internal_error" | "unauthenticated" | "forbidden" | "invalid_phone" | "otp_invalid" | "otp_expired" | "rate_limited" | "account_locked" | "refresh_invalid" | "two_factor_required" | "two_factor_setup_required" | "two_factor_invalid" | "two_factor_locked" | "two_factor_already_enabled" | "two_factor_enrolment_closed" | "step_up_required" | "sms_unavailable" | "invalid_transition" | "offer_taken" | "idempotency_key_required" | "idempotency_key_reused" | "vet_not_approved" | "farmer_profile_required" | "already_rated" | "consent_required" | "payment_unavailable" | "application_incomplete" | "application_locked" | "application_claimed" | "upload_invalid" | "photo_invalid" | "vet_photo_required";
             /** @description i18n key, e.g. errors.otp_invalid */
             message_key: string;
             details: {
@@ -11577,7 +12540,24 @@ export interface components {
             id: string;
             phone: string;
             name: string | null;
+            displayName: string | null;
             language: string;
+            /** @enum {string} */
+            theme: "system" | "light" | "dark";
+            photo: {
+                url: string | null;
+                /** @description A vet's new photo waiting for review, or the reason the last one was turned down */
+                review: ({
+                    /** @constant */
+                    status: "pending";
+                    url: string;
+                } | {
+                    /** @constant */
+                    status: "rejected";
+                    /** @enum {string} */
+                    reason: "face_not_clear" | "not_same_person" | "inappropriate" | "other";
+                }) | null;
+            };
             roles: ("farmer" | "vet" | "admin")[];
             onboarding: {
                 consented: boolean;
@@ -11616,6 +12596,8 @@ export interface components {
             sex: ("female" | "male") | null;
             /** @description YYYY-MM-DD */
             dob: string | null;
+            /** @description Short-lived link; null means show the species picture */
+            photoUrl: string | null;
         };
         AnimalHistory: {
             animal: components["schemas"]["Animal"];
@@ -11667,7 +12649,10 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                /** @description Verified legal name */
                 name: string | null;
+                displayName: string | null;
+                photoUrl: string | null;
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
@@ -11714,6 +12699,9 @@ export interface components {
             }[];
             farmer: {
                 name: string | null;
+                /** @description Show this when set, else name */
+                displayName: string | null;
+                photoUrl: string | null;
                 /** @description Only while the job is active */
                 phone: string | null;
                 farmNotes: string | null;
@@ -11768,7 +12756,10 @@ export interface components {
                 at: string;
             }[];
             vet: {
+                /** @description Verified legal name */
                 name: string | null;
+                displayName: string | null;
+                photoUrl: string | null;
                 /** @enum {string} */
                 type: "vet" | "paravet";
                 rating: number | null;
@@ -11947,7 +12938,7 @@ export interface components {
         Notification: {
             id: number;
             /** @enum {string} */
-            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring";
+            kind: "offer" | "offerEmergency" | "booking_matched" | "vet_en_route" | "vet_arrived" | "booking_completed" | "still_searching" | "no_vet_found" | "booking_cancelled" | "application_submitted" | "application_changes" | "application_approved" | "application_rejected" | "vet_suspended" | "vet_reinstated" | "licence_expiring" | "photo_approved" | "photo_rejected";
             title: string;
             body: string;
             data: {
@@ -11986,6 +12977,26 @@ export interface components {
             resultCode: number | null;
             resultDesc: string | null;
         };
+        PresignedUpload: {
+            uploadUrl: string;
+            storageKey: string;
+            headers: {
+                [key: string]: string;
+            };
+            expiresAt: string;
+        };
+        PhotoReviewItem: {
+            mediaId: string;
+            vetUserId: string;
+            name: string | null;
+            /** @enum {string} */
+            type: "vet" | "paravet";
+            submittedAt: string;
+            pendingUrl: string;
+            currentUrl: string | null;
+            /** @description Open with GET /v1/admin/vet-documents/:id/url (logged) */
+            idFrontDocumentId: number | null;
+        };
         VetProfile: {
             /** @enum {string} */
             type: "vet" | "paravet";
@@ -12007,14 +13018,6 @@ export interface components {
         Quote: {
             feeQuoted: number;
             depositKes: number;
-        };
-        PresignedUpload: {
-            uploadUrl: string;
-            storageKey: string;
-            headers: {
-                [key: string]: string;
-            };
-            expiresAt: string;
         };
     };
     responses: never;

@@ -8,6 +8,7 @@ import { Shell } from '@/components/shell';
 import { Card, Spinner } from '@/components/ui';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
+import { EmptyState } from '@/components/pictures';
 
 export default function BookingHistory() {
   const { t, fmt, lang } = useT();
@@ -24,7 +25,7 @@ export default function BookingHistory() {
         <Spinner label={t.web.common.loading} />
       ) : (
         <Card>
-          {rows.length === 0 && <p className="text-muted">{t.web.farmer.noActive}</p>}
+          {rows.length === 0 && <EmptyState kind="noBookings" text={t.web.farmer.noActive} />}
           <ul className="divide-y divide-line">
             {rows.map((b) => (
               <li key={b.id}>

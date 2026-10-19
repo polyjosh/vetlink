@@ -57,7 +57,9 @@
     "application_incomplete": "Maombi yako bado hayajakamilika. Jaza vitu vinavyokosekana.",
     "application_locked": "Sehemu hii ya maombi yako haiwezi kubadilishwa sasa.",
     "application_claimed": "Mkaguzi mwingine tayari anashughulikia maombi haya.",
-    "upload_invalid": "Faili hiyo haiwezi kutumika. Pakia JPG, PNG au PDF iliyo wazi chini ya MB 5."
+    "upload_invalid": "Faili hiyo haiwezi kutumika. Pakia JPG, PNG au PDF iliyo wazi chini ya MB 5.",
+    "photo_invalid": "Picha hiyo haiwezi kutumika. Chagua picha ya JPG au PNG iliyo chini ya KB 500.",
+    "vet_photo_required": "Daktari anahitaji picha ya wasifu. Unaweza kuibadilisha, lakini si kuiondoa."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -200,6 +202,16 @@
       "title": "Leseni inaisha",
       "body": "Leseni yako ya kazi inaisha baada ya siku {days}. Pakia leseni mpya kwenye programu.",
       "sms": "VetLink: leseni yako ya kazi inaisha baada ya siku {days}. Pakia leseni mpya kwenye programu ili uendelee kupata kazi."
+    },
+    "photo_approved": {
+      "title": "Picha mpya imekubaliwa",
+      "body": "Wakulima sasa wanaona picha yako mpya ya wasifu.",
+      "sms": "VetLink: picha yako mpya ya wasifu imekubaliwa. Wakulima sasa wanaiona."
+    },
+    "photo_rejected": {
+      "title": "Picha haikukubaliwa",
+      "body": "Picha yako mpya ya wasifu haikukubaliwa. Fungua wasifu wako kuona sababu.",
+      "sms": "VetLink: picha yako mpya ya wasifu haikukubaliwa. Fungua wasifu wako kwenye programu kuona sababu."
     }
   },
   "application": {
@@ -381,7 +393,14 @@
       "dob": "Tarehe ya kuzaliwa",
       "empty": "Bado hakuna mifugo.",
       "historyTitle": "Ziara",
-      "noVisits": "Bado hakuna ziara."
+      "noVisits": "Bado hakuna ziara.",
+      "photo": "Picha",
+      "addPhoto": "Weka picha",
+      "changePhoto": "Badilisha picha",
+      "removePhoto": "Ondoa picha",
+      "photoHint": "Si lazima. Bila picha tutaonyesha mchoro wa aina ya mnyama.",
+      "edit": "Hariri maelezo",
+      "saveChanges": "Hifadhi mabadiliko"
     },
     "vet": {
       "homeTitle": "Nyumbani kwa daktari",
@@ -556,7 +575,8 @@
         "bookings": "Maombi",
         "payments": "Malipo",
         "config": "Mipangilio",
-        "admins": "Wasimamizi"
+        "admins": "Wasimamizi",
+        "photos": "Picha"
       },
       "queue": "Maombi ya kukagua",
       "queueEmpty": "Hakuna cha kukagua.",
@@ -603,7 +623,16 @@
         "support": "Msaada",
         "finance": "Fedha",
         "analyst": "Mchambuzi"
-      }
+      },
+      "photoQueue": "Picha za madaktari za kukagua",
+      "photoQueueEmpty": "Hakuna picha zinazosubiri.",
+      "currentPhoto": "Picha ya sasa",
+      "newPhoto": "Picha mpya",
+      "noCurrentPhoto": "Hakuna picha ya sasa",
+      "openIdPhoto": "Fungua picha ya kitambulisho",
+      "approvePhoto": "Idhinisha picha",
+      "rejectPhoto": "Kataa picha",
+      "rejectReason": "Sababu"
     },
     "mobile": {
       "pendingSync": "{n} vinasubiri kutumwa",
@@ -617,6 +646,47 @@
       "enableAlerts": "Washa arifa za kazi",
       "alertsHint": "Ili usikie kazi mpya hata programu ikiwa imefungwa. Arifa zikizimwa, kazi bado zinakuja kwa SMS.",
       "alertsOn": "Arifa za kazi zimewashwa"
+    },
+    "profile": {
+      "title": "Wasifu wangu",
+      "photo": "Picha ya wasifu",
+      "addPhoto": "Weka picha",
+      "changePhoto": "Badilisha picha",
+      "removePhoto": "Ondoa picha",
+      "uploading": "Inapakia…",
+      "photoFailed": "Picha hiyo haikuweza kutumika. Jaribu nyingine.",
+      "photoPending": "Inasubiri kuidhinishwa",
+      "photoPendingHint": "Wakulima wataendelea kuona picha yako ya sasa hadi timu yetu ikague mpya.",
+      "withdrawPhoto": "Ghairi picha mpya",
+      "photoRejected": "Picha yako mpya haikukubaliwa: {reason}",
+      "photoReasons": {
+        "face_not_clear": "uso wako lazima uonekane wazi.",
+        "not_same_person": "lazima ionyeshe mtu yule yule wa kitambulisho chako.",
+        "inappropriate": "haifai kuwa picha ya wasifu.",
+        "other": "tafadhali wasiliana na huduma kwa maelezo."
+      },
+      "name": "Jina",
+      "verifiedName": "Jina lililothibitishwa",
+      "verifiedNameHint": "Wakulima huona jina lako lililothibitishwa kila wakati. Ili kulibadilisha, wasiliana na huduma.",
+      "phone": "Nambari ya simu",
+      "phoneHint": "Nambari yako ya simu ndiyo kuingia kwako. Haiwezi kubadilishwa hapa.",
+      "username": "Jina la mtumiaji",
+      "usernameHint": "Si lazima. Madaktari wataliona badala ya jina lako.",
+      "vetUsernameHint": "Si lazima. Wakulima wataliona kando ya jina lako lililothibitishwa.",
+      "usernameErrors": {
+        "length": "Tumia herufi 3 hadi 30.",
+        "characters": "Tumia herufi, nambari, nafasi, nukta, vistari au mistari ya chini.",
+        "contact": "Jina la mtumiaji haliwezi kuwa na nambari ya simu au tovuti."
+      },
+      "farm": "Shamba langu",
+      "settings": "Mipangilio"
+    },
+    "empty": {
+      "noAnimals": "Bado hakuna mifugo",
+      "noBookings": "Bado hakuna maombi",
+      "noOffers": "Hakuna kazi kwa sasa",
+      "noRatings": "Bado hakuna tathmini",
+      "offline": "Hauko mtandaoni"
     }
   }
 }

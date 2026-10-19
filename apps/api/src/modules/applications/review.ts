@@ -24,6 +24,7 @@ import { DomainError } from '../../lib/errors.js';
 import { audit } from '../admin/audit.js';
 import type { AuthContext } from '../auth/access.js';
 import { TOTP_ENROL_WINDOW_MS } from '../auth/two-factor.js';
+import { avatarFromApplication } from '../media/service.js';
 import { applicationView, documentsOf, type ApplicationRow, vetTypeOf } from './service.js';
 import type { StoredData } from './steps.js';
 
@@ -334,6 +335,7 @@ export async function decideApplication(
     }
     if (input.decision === 'approve') {
       await applyApprovedApplication(tx, ctx, row, now);
+      await avatarFromApplication(tx, ctx, row.vetUserId, row.id);
       await tx
         .update(vetDocuments)
         .set({ status: 'accepted', reviewedBy: admin.userId, reviewedAt: now })

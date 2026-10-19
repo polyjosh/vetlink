@@ -108,8 +108,18 @@ export interface FarmerBookingView {
   acceptedAt: string | null;
   completedAt: string | null;
   timeline: TimelineEntry[];
-  /** Name, type and rating once matched; phone only while the job is active. */
-  vet: { name: string | null; type: VetType; rating: number | null; phone: string | null } | null;
+  /**
+   * Once matched: verified legal name (always shown, §24.1), optional username, photo, type and
+   * rating; phone only while the job is active.
+   */
+  vet: {
+    name: string | null;
+    displayName: string | null;
+    photoUrl: string | null;
+    type: VetType;
+    rating: number | null;
+    phone: string | null;
+  } | null;
   treatment: {
     diagnosis: string | null;
     drugsUsed: string | null;
@@ -136,7 +146,14 @@ export interface VetJobView {
   completedAt: string | null;
   timeline: TimelineEntry[];
   /** Phone only while the job is active. */
-  farmer: { name: string | null; phone: string | null; farmNotes: string | null };
+  /** Show `displayName` when set, else `name` (§24.1). */
+  farmer: {
+    name: string | null;
+    displayName: string | null;
+    photoUrl: string | null;
+    phone: string | null;
+    farmNotes: string | null;
+  };
   actions: BookingEvent[];
 }
 

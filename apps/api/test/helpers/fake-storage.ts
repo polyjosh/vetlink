@@ -28,4 +28,10 @@ export class FakeStorage implements ObjectStorage {
   async delete(key: string) {
     this.objects.delete(key);
   }
+
+  async copy(fromKey: string, toKey: string) {
+    const obj = this.objects.get(fromKey);
+    if (!obj) throw new Error(`no such object: ${fromKey}`);
+    this.objects.set(toKey, { ...obj });
+  }
 }

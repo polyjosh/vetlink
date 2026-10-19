@@ -85,7 +85,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         channel: restChannel(req),
         idempotencyKey: key.data,
       });
-      return reply.code(created ? 201 : 200).send(firstView(await farmerViews(ctx.db, [booking])));
+      return reply.code(created ? 201 : 200).send(firstView(await farmerViews(ctx, [booking])));
     },
   );
 
@@ -200,7 +200,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         { userId: auth.userId, channel: restChannel(req) },
         req.body.reason,
       );
-      return firstView(await farmerViews(ctx.db, [booking]));
+      return firstView(await farmerViews(ctx, [booking]));
     },
   );
 
@@ -256,7 +256,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         vetId: authOf(req).userId,
         channel: restChannel(req),
       });
-      return firstView(await vetJobViews(ctx.db, [booking]));
+      return firstView(await vetJobViews(ctx, [booking]));
     },
   );
 
@@ -299,7 +299,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
         userId: authOf(req).userId,
         channel: restChannel(req),
       });
-      return firstView(await vetJobViews(ctx.db, [booking]));
+      return firstView(await vetJobViews(ctx, [booking]));
     },
   );
 
@@ -355,7 +355,7 @@ export function bookingRoutes(app: FastifyInstance, ctx: AppContext): void {
           clientCreatedAt: body.clientCreatedAt ? new Date(body.clientCreatedAt) : undefined,
         },
       );
-      return firstView(await vetJobViews(ctx.db, [booking]));
+      return firstView(await vetJobViews(ctx, [booking]));
     },
   );
 }

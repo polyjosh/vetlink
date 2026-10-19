@@ -2,8 +2,10 @@ import {
   ADMIN_ROLES,
   type AdminRole,
   type SessionRole,
+  type Theme,
   type VerificationStatus,
 } from './domain.js';
+import type { PhotoRejectReason } from './profiles.js';
 
 /**
  * Admin permissions are the admin roles (§8.0). Every admin endpoint declares the one it needs;
@@ -24,7 +26,16 @@ export interface MeResponse {
   id: string;
   phone: string;
   name: string | null;
+  /** Display name only (§24.1). */
+  displayName: string | null;
   language: string;
+  theme: Theme;
+  /** The live profile photo (short-lived signed URL), and a vet's photo awaiting review. */
+  photo: {
+    url: string | null;
+    review:
+      { status: 'pending'; url: string } | { status: 'rejected'; reason: PhotoRejectReason } | null;
+  };
   roles: SessionRole[];
   onboarding: { consented: boolean; roleChosen: boolean };
   vet: { verificationStatus: VerificationStatus } | null;

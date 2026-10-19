@@ -21,6 +21,7 @@ import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
+import { PersonAvatar } from '@/components/pictures';
 
 /** Tracking (§8.2 step 7): timeline, vet contact once matched, cancel with policy, then rating. */
 export default function Tracking() {
@@ -105,7 +106,15 @@ export default function Tracking() {
 
         {b.vet && (
           <Card className="space-y-2">
-            <p className="font-bold">{fmt(t.web.tracking.vetComing, { vet: b.vet.name ?? '' })}</p>
+            <div className="flex items-center gap-3">
+              <PersonAvatar url={b.vet.photoUrl} name={b.vet.name} size={56} />
+              <div>
+                <p className="font-bold">
+                  {fmt(t.web.tracking.vetComing, { vet: b.vet.name ?? '' })}
+                </p>
+                {b.vet.displayName && <p className="text-muted">“{b.vet.displayName}”</p>}
+              </div>
+            </div>
             {b.vet.phone && (
               <a
                 href={`tel:+${b.vet.phone}`}

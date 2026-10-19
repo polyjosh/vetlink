@@ -13,6 +13,7 @@ import {
   text,
   unique,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import {
   APPLICATION_CREATED_VIA,
@@ -24,6 +25,7 @@ import {
   VET_TYPES,
 } from '@vetlink/shared';
 import { emptyJson, emptyTextArray, oneOf, timestamptz } from './helpers.js';
+import { media } from './bookings.js';
 import { users } from './identity.js';
 import { locations } from './reference.js';
 
@@ -75,6 +77,8 @@ export const vets = pgTable(
     liveLat: doublePrecision('live_lat'),
     liveLng: doublePrecision('live_lng'),
     liveLocationAt: timestamptz('live_location_at'),
+    // §24.1: a new photo waits here for a verifier; farmers keep seeing users.avatar_media_id.
+    pendingAvatarMediaId: uuid('pending_avatar_media_id').references((): AnyPgColumn => media.id),
   },
   (t) => [
     check('vets_type_check', oneOf(t.type, VET_TYPES)),

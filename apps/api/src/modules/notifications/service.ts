@@ -37,6 +37,8 @@ export const NOTIFICATION_KINDS = {
   vet_suspended: { critical: true },
   vet_reinstated: { critical: false },
   licence_expiring: { critical: false },
+  photo_approved: { critical: false },
+  photo_rejected: { critical: false },
 } as const;
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
 

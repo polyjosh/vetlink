@@ -12,6 +12,7 @@ import { kv } from '../../src/lib/storage';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
+import { EmptyState } from '../../src/components/pictures';
 
 function Countdown({ until }: { until: string }) {
   const { t, fmt } = useT();
@@ -103,7 +104,7 @@ export default function VetHome() {
       <ErrorText message={error} />
       <Card>
         <H2>{v.offers}</H2>
-        {(offers.data ?? []).length === 0 && <P muted>{v.noOffers}</P>}
+        {(offers.data ?? []).length === 0 && <EmptyState kind="noOffers" text={v.noOffers} />}
         {(offers.data ?? []).map((o) => (
           <View
             key={o.offerId}

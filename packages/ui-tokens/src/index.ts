@@ -44,3 +44,4 @@ export function cssVariables(): Record<string, string> {
 function kebab(s: string): string {
   return s.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 }
+export * from './illustrations.js';

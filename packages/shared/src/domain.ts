@@ -67,8 +67,21 @@ export type VetDocumentKind = (typeof VET_DOCUMENT_KINDS)[number];
 export const VET_DOCUMENT_STATUSES = ['uploaded', 'accepted', 'flagged'] as const;
 export type VetDocumentStatus = (typeof VET_DOCUMENT_STATUSES)[number];
 
-export const MEDIA_KINDS = ['animal_photo', 'booking_photo', 'treatment_photo'] as const;
+export const MEDIA_KINDS = [
+  'animal_photo',
+  'booking_photo',
+  'treatment_photo',
+  'avatar',
+  'booking_voice',
+] as const;
 export type MediaKind = (typeof MEDIA_KINDS)[number];
+
+/** Review state of a media row. Only vet avatars are reviewed (§24.1); everything else is `none`. */
+export const MEDIA_REVIEW_STATUSES = ['none', 'pending', 'approved', 'rejected'] as const;
+export type MediaReviewStatus = (typeof MEDIA_REVIEW_STATUSES)[number];
+
+export const THEMES = ['system', 'light', 'dark'] as const;
+export type Theme = (typeof THEMES)[number];
 
 export const CHANNELS = ['ussd', 'sms', 'app', 'web', 'admin'] as const;
 export type Channel = (typeof CHANNELS)[number];

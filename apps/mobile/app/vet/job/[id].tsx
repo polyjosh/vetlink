@@ -21,6 +21,7 @@ import { enqueue, useSync } from '../../../src/offline/sync';
 import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
+import { PersonAvatar } from '../../../src/components/pictures';
 
 /** Directions open in the phone's maps app (no map SDK yet: owner decision). */
 function directions(job: Schemas['VetJob']): string {
@@ -105,7 +106,14 @@ export default function Job() {
       </Card>
       {queued.length > 0 && <Notice tone="warning">{t.web.mobile.savedOffline}</Notice>}
       <Card>
-        <P>{`${v.farmer}: ${job.farmer.name ?? '-'}`}</P>
+        <View style={s.row}>
+          <PersonAvatar
+            url={job.farmer.photoUrl}
+            name={job.farmer.displayName ?? job.farmer.name}
+            size={48}
+          />
+          <P>{`${v.farmer}: ${job.farmer.displayName ?? job.farmer.name ?? '-'}`}</P>
+        </View>
         <P>{`${job.ward.ward}, ${job.ward.subCounty}`}</P>
         {job.farmer.farmNotes && <P>{`${v.landmarks}: ${job.farmer.farmNotes}`}</P>}
         <View style={s.row}>

@@ -402,6 +402,12 @@ describe.skipIf(!testServerUrl)(
         const [u] = await h.db.select().from(users).where(eq(users.id, s.userId));
         expect(u?.name).toBe('Dr. Achieng Otieno');
         expect((await view(s)).documents.every((d) => d.status === 'accepted')).toBe(true);
+        // The verified profile photo is copied to become the public photo (§24.1).
+        const me = (await h.get('/v1/me', s.accessToken)).json<{ photo: { url: string | null } }>();
+        expect(me.photo.url).toContain(`media%2F${s.userId}%2Favatar-`);
+        expect(
+          [...h.storage.objects.keys()].filter((k) => k.startsWith(`media/${s.userId}/`)),
+        ).toHaveLength(1);
         const audits = await h.db
           .select()
           .from(auditLog)

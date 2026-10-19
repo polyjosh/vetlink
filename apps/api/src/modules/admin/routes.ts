@@ -64,7 +64,7 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
         .where(and(...conditions))
         .orderBy(desc(bookings.id))
         .limit(q.limit);
-      return farmerViews(ctx.db, rows);
+      return farmerViews(ctx, rows);
     },
   );
 
@@ -84,7 +84,7 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
       const [b] = await ctx.db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
       if (!b) throw new DomainError('not_found');
       const [[view], [farmer], offers] = await Promise.all([
-        farmerViews(ctx.db, [b]),
+        farmerViews(ctx, [b]),
         ctx.db
           .select({ name: users.name, phone: users.phone })
           .from(users)
@@ -139,7 +139,7 @@ export function adminRoutes(app: FastifyInstance, ctx: AppContext): void {
         },
         ctx.clock(),
       );
-      const [view] = await farmerViews(ctx.db, [booking]);
+      const [view] = await farmerViews(ctx, [booking]);
       if (!view) throw new DomainError('not_found');
       return view;
     },

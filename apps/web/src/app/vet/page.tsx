@@ -11,6 +11,7 @@ import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
+import { EmptyState } from '@/components/pictures';
 
 function Countdown({ until }: { until: string }) {
   const { t, fmt } = useT();
@@ -113,7 +114,7 @@ export default function VetHome() {
 
         <Card className="space-y-3">
           <h2 className="text-lg font-bold">{t.web.vet.offers}</h2>
-          {offers.length === 0 && <p className="text-muted">{t.web.vet.noOffers}</p>}
+          {offers.length === 0 && <EmptyState kind="noOffers" text={t.web.vet.noOffers} />}
           {offers.map((o) => (
             <div
               key={o.offerId}

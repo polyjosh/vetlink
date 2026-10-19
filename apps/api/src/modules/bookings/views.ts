@@ -10,6 +10,7 @@ import {
   type VetJobView,
   type WardView,
 } from '@vetlink/shared';
+import type { AppContext } from '../../context.js';
 import type { Db } from '../../db/client.js';
 import {
   bookingEvents,
@@ -22,6 +23,7 @@ import {
   users,
   vets,
 } from '../../db/schema/index.js';
+import { photoUrls } from '../media/service.js';
 import { depositStates } from '../payments/service.js';
 import type { BookingRow } from './transitions.js';
 
@@ -67,7 +69,11 @@ async function timelines(db: Db, bookingIds: number[]): Promise<Map<number, Time
 }
 
 /** Farmer-facing views of their own bookings (batch, for lists). */
-export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBookingView[]> {
+export async function farmerViews(
+  ctx: Pick<AppContext, 'db' | 'storage'>,
+  rows: BookingRow[],
+): Promise<FarmerBookingView[]> {
+  const db = ctx.db;
   const ids = rows.map((b) => b.id);
   const vetIds = [...new Set(rows.map((b) => b.vetId).filter((v): v is string => v !== null))];
   const [wards, times, vetRows, treatmentRows, ratingRows, deposits] = await Promise.all([
@@ -83,6 +89,8 @@ export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBoo
             type: vets.type,
             rating: vets.rating,
             name: users.name,
+            displayName: users.displayName,
+            avatarMediaId: users.avatarMediaId,
             phone: users.phone,
           })
           .from(vets)
@@ -98,6 +106,10 @@ export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBoo
     depositStates({ db }, ids),
   ]);
   const vetById = new Map(vetRows.map((v) => [v.userId, v]));
+  const photos = await photoUrls(
+    ctx,
+    vetRows.map((v) => v.avatarMediaId),
+  );
   const treatmentByBooking = new Map(treatmentRows.map((t) => [t.bookingId, t]));
   const ratingByBooking = new Map(ratingRows.map((r) => [r.bookingId, r]));
 
@@ -125,6 +137,8 @@ export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBoo
       vet: vet
         ? {
             name: vet.name,
+            displayName: vet.displayName,
+            photoUrl: (vet.avatarMediaId && photos.get(vet.avatarMediaId)) ?? null,
             type: vet.type,
             rating: vet.rating === null ? null : Number(vet.rating),
             phone: contactVisible ? vet.phone : null,
@@ -144,7 +158,11 @@ export async function farmerViews(db: Db, rows: BookingRow[]): Promise<FarmerBoo
 }
 
 /** Views of jobs assigned to a vet (batch). */
-export async function vetJobViews(db: Db, rows: BookingRow[]): Promise<VetJobView[]> {
+export async function vetJobViews(
+  ctx: Pick<AppContext, 'db' | 'storage'>,
+  rows: BookingRow[],
+): Promise<VetJobView[]> {
+  const db = ctx.db;
   const ids = rows.map((b) => b.id);
   const farmerIds = [...new Set(rows.map((b) => b.farmerId))];
   const [wards, times, farmerRows] = await Promise.all([
@@ -159,6 +177,8 @@ export async function vetJobViews(db: Db, rows: BookingRow[]): Promise<VetJobVie
             userId: farmers.userId,
             farmNotes: farmers.farmNotes,
             name: users.name,
+            displayName: users.displayName,
+            avatarMediaId: users.avatarMediaId,
             phone: users.phone,
           })
           .from(farmers)
@@ -167,6 +187,10 @@ export async function vetJobViews(db: Db, rows: BookingRow[]): Promise<VetJobVie
       : Promise.resolve([]),
   ]);
   const farmerById = new Map(farmerRows.map((f) => [f.userId, f]));
+  const photos = await photoUrls(
+    ctx,
+    farmerRows.map((f) => f.avatarMediaId),
+  );
   return rows.map((b) => {
     const ward = wards.get(b.wardId);
     const farmer = farmerById.get(b.farmerId);
@@ -191,6 +215,8 @@ export async function vetJobViews(db: Db, rows: BookingRow[]): Promise<VetJobVie
       timeline: times.get(b.id) ?? [],
       farmer: {
         name: farmer?.name ?? null,
+        displayName: farmer?.displayName ?? null,
+        photoUrl: (farmer?.avatarMediaId && photos.get(farmer.avatarMediaId)) ?? null,
         phone: contactVisible ? (farmer?.phone ?? null) : null,
         farmNotes: contactVisible ? (farmer?.farmNotes ?? null) : null,
       },

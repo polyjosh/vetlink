@@ -3,10 +3,11 @@ import { FlatList, Pressable, Text } from 'react-native';
 import type { Schemas } from '@vetlink/api-client';
 import { space } from '@vetlink/ui-tokens';
 import { Screen } from '../../../src/components/screen';
-import { Loading, P, s } from '../../../src/components/ui';
+import { Loading, s } from '../../../src/components/ui';
 import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
+import { EmptyState } from '../../../src/components/pictures';
 
 export default function History() {
   const { t, fmt, lang } = useT();
@@ -24,7 +25,7 @@ export default function History() {
       refreshing={q.isRefetching}
     >
       {!q.data && <Loading label={t.web.common.loading} />}
-      {q.data && rows.length === 0 && <P muted>{t.web.farmer.noActive}</P>}
+      {q.data && rows.length === 0 && <EmptyState kind="noBookings" text={t.web.farmer.noActive} />}
       <FlatList
         scrollEnabled={false}
         data={rows}

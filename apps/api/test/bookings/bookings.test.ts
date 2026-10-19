@@ -201,11 +201,20 @@ describe.skipIf(!testServerUrl)('bookings (database)', { timeout: 30_000 }, () =
         90_000,
       );
 
+      await h.request('PATCH', '/v1/me', {
+        token: farmer.accessToken,
+        body: { displayName: 'Mama Daisy' },
+      });
       const accepted = await accept(vet, bookingId, offerIds[0] ?? -1);
       expect(accepted.statusCode).toBe(200);
       expect(accepted.json<VetJobView>()).toMatchObject({
         status: 'matched',
-        farmer: { phone: farmer.phone, farmNotes: 'Blue gate' },
+        farmer: {
+          displayName: 'Mama Daisy',
+          photoUrl: null,
+          phone: farmer.phone,
+          farmNotes: 'Blue gate',
+        },
         actions: ['vet_released', 'vet_en_route', 'vet_completed'],
       });
       // The farmer now sees the vet, with phone, while the job is active.
