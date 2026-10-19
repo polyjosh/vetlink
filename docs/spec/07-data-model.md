@@ -356,3 +356,5 @@ pending_payment ─(deposit ok)→ pending ─(vet accepts)→ matched → en_ro
 Enforce transitions in one function (`bookings/transitions.ts`). No direct status updates elsewhere, from any channel.
 
 The full event table (who may trigger what, from which statuses) is `BOOKING_TRANSITIONS` in `packages/shared/src/bookings.ts`. Beyond the diagram: `farmer_cancelled` from `pending_payment`/`pending`/`matched`/`en_route` (deposit forfeited after `en_route`, §8.6); `vet_released` (`matched` → `pending`, the assigned vet hands the job back); `vet_completed` also from `matched`/`en_route` (SMS vets often skip `ARR`); `admin_cancelled` from any non-terminal status. A test fails if any other source file updates `bookings`.
+
+> **Amended by §24 (Change Set 1, `15-change-set-1.md`):** new statuses `requested`, `vet_unavailable`, `awaiting_deposit` and events for the chosen-vet flow (§24.20); new columns and tables (§24.21).

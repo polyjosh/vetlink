@@ -41,6 +41,13 @@ Full routing rules are in section 8.0. Access control is enforced **on the serve
 | Vet: earnings and history | | | ✅ | ✅ |
 | Rate the vet | | ✅ (reply 1-5) | ✅ | ✅ |
 | Admin operations | | | ✅ (essentials) | ✅ (full console) |
+| Choose a specific vet (§24.6) | ✅ (3 nearest) | | ✅ | ✅ |
+| Book my last vet again (§24.9) | ✅ | | ✅ | ✅ |
+| Scheduled appointment (§24.10) | | | ✅ | ✅ |
+| Profile photo, username, animal photos (§24.1, §24.2) | | | ✅ | ✅ |
+| Voice note with request (§24.16) | | | ✅ | ✅ |
+| Animal health card PDF (§24.18) | | | ✅ | ✅ |
+| Seasonal alerts (§24.11) | | ✅ | ✅ (push) | ✅ |
 
 Rule: **anything a farmer can do on USSD must also be doable in the app and web**, but not the reverse.
 

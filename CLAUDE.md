@@ -32,6 +32,7 @@
 | `docs/spec/12-security-privacy.md` | §17 security, privacy, compliance | Auth, PII, vet documents, data protection, anything sensitive |
 | `docs/spec/13-store-release.md` | §18 App Store and Play Store release | Store submission and release |
 | `docs/spec/14-roadmap-metrics-open-questions.md` | §19 roadmap, §20 metrics, **§21 open questions** | Planning, or before any decision touching money, verification policy, hosting, or store IDs |
+| `docs/spec/15-change-set-1.md` | §24 Change Set 1: profiles, farmer chooses vet, scheduling, badges, alerts, referrals, UI upgrades (amends §8 to §17) | Any CS1 to CS10 task; anything touching profiles, booking modes, vet list, or the new statuses |
 
 ### 0.2 Operating protocol for every task
 
@@ -139,6 +140,19 @@ Tick items as they are completed and verified. Each milestone has a **Done when*
 - [x] **M10: Vet application and admin verification.** *(2026-10-15, `feat/vet-verification`)* Application draft/submit/resubmit backend, verification gating everywhere, admin queue and decisions with audit log. *Done when:* the gating tests pass and an unapproved vet can never receive an offer. **Read:** `05-vet-flows-and-onboarding.md` (8.3), `07-data-model.md`, `09-clients-mobile-web-admin.md` (13), `12-security-privacy.md`.
 - [x] **M11: Web app.** *(2026-10-16, `feat/web-app`)* Role router and guards, vet onboarding wizard and status screen, farmer flows, vet flows, admin console routes. *Done when:* the Playwright happy path (farmer books, vet accepts, job completes) passes. **Read:** `03-auth-and-roles.md`, `04-farmer-flows.md`, `05-vet-flows-and-onboarding.md`, `09-clients-mobile-web-admin.md`.
 - [ ] **M12: Mobile app.** *(code complete 2026-10-16, `feat/mobile-app`; offline sync test passes; Maestro happy path written but not yet run: needs an Android emulator, not available on the dev machine)* Auth and role router, vet onboarding wizard (camera, background upload), farmer flows, vet job flow with offline outbox and push, admin essentials (lazy-loaded). *Done when:* the Maestro happy path passes on an Android emulator and the offline sync test passes. **Read:** `09-clients-mobile-web-admin.md` (11), `03-auth-and-roles.md`, `04-farmer-flows.md`, `05-vet-flows-and-onboarding.md`.
+- [ ] **Change Set 1 (CS1 to CS10), owner-approved 2026-10-19.** Built after M12's code and before the Maestro run and M13, because it changes the mobile flows. Spec: §24 (`15-change-set-1.md`). Each item is one branch with its own plan; items touching schema, money, matching or the state machine wait for owner sign-off on the plan. Proposed dependencies are listed per item and approved in that session.
+  - [x] **CS0: Spec update.** *(2026-10-19, `chore/spec-change-set-1`)* §24 written; pointers in §2, §8.1 to §8.9, §9, §10, §11 to §13, §16, §17, §21.
+  - [ ] **CS1: Profiles and photos.** Username, avatars (vet photo re-review), animal photos, species SVG placeholders and empty-state illustrations, farmer and vet profile screens. **Read:** §24.1, §24.2, §24.13, `07-data-model.md`, `12-security-privacy.md`. *Proposed dep:* `react-native-svg`.
+  - [ ] **CS2: Vet practice and fees.** Premises, call-outs, fee per service with admin bands, working hours, vet profile page with qualifications and documents, wizard step 5 changes. **Read:** §24.3, §24.10, `05-vet-flows-and-onboarding.md`, `06-matching-payments-notifications.md`.
+  - [ ] **CS3: Ratings, follow-ups, badges.** Rating tags, vet ratings screen, follow-up alerts, nightly badges, low-rating review flags. **Read:** §24.4, §24.7, §24.8.
+  - [ ] **CS4: Farmer chooses the vet.** Booking modes, new statuses and transitions, nearby-vets and clinics lists, direct requests, STK on accept, rechoose and switch-to-auto, USSD choose screen and "My last vet", "Book again", photos before accepting. **Read:** §24.5, §24.6, §24.9, §24.15, §24.20, `04-farmer-flows.md`, `06-matching-payments-notifications.md`, `07-data-model.md`.
+  - [ ] **CS5: Scheduled appointments.** Slots by part of day, working-hours filtering, reminders, 12-hour refund rule, admin alert. **Read:** §24.10, §8.6.
+  - [ ] **CS6: Health card and public vet profile.** Animal health card with PDF export, public `/v/<slug>` page, share and QR code. **Read:** §24.14, §24.18. *Proposed deps:* `expo-print`, `expo-sharing`, a QR generator.
+  - [ ] **CS7: Seasonal alerts and referrals.** Alert campaigns with cost guard and opt-out, referral codes and partner reports. **Read:** §24.11, §24.12, §8.9.
+  - [ ] **CS8: Voice notes.** Record, upload, play after match. **Read:** §24.16. *Proposed dep:* `expo-audio`.
+  - [ ] **CS9: Modern UI pass.** Bottom tabs, skeletons, dark mode, haptics. **Read:** §24.13, §11. *Proposed dep:* `expo-haptics`.
+  - [ ] **CS10: Live vet map.** Blocked by Open Question 21.10. **Read:** §24.17.
+  - *Done when:* every item above is ticked (CS10 may stay blocked), `pnpm check` and `pnpm test:e2e` pass with the chosen-vet and emergency paths, and the Maestro flow is updated for M12.
 - [ ] **M13: Store and production readiness.** Account deletion, privacy labels, reviewer demo accounts, release checklist, production compose and CI/CD, staging, backups tested. *Done when:* `docs/store-release-checklist.md` is fully ticked. **Read:** `13-store-release.md`, `12-security-privacy.md`, `02-docker-and-environments.md`.
 
 ### 0.9 Owner prompts
@@ -202,6 +216,12 @@ Record decisions here so future sessions inherit them. Format: `YYYY-MM-DD: deci
 - 2026-10-16: Mobile offline writes use an outbox (SQLite) instead of server idempotency keys on status/complete: those transitions are naturally idempotent, so on a 409 the app re-reads the booking and treats "already there" as sent, anything else as a server-wins failure shown to the vet. Document uploads are compressed (1600 px JPEG, quality 0.7) and queued the same way; PDFs are web-only for now (no document picker dependency).
 - 2026-10-16: Shared code moved out of web: `APPLICATION_FIELDS` (wizard fields) in `@vetlink/shared` and `errorMessage` in `@vetlink/i18n`, used by web and mobile. App-only strings live in `web.mobile` (sw + en).
 - 2026-10-16: Metro resolves workspace packages with the `@vetlink/source` condition and maps their `./x.js` imports to `.ts` (`apps/mobile/metro.config.js`). CI bundles the Android app on every PR; Maestro runs on an emulator outside CI.
+- 2026-10-19: Change Set 1 approved (spec §24). Non-emergency requests let the farmer choose a vet from a list; the deposit is taken by an STK push sent when the vet accepts, so a declined request needs no refund. Emergencies and "fastest available vet" keep pay-first waves. USSD offers "fastest" or the 3 nearest vets, plus "My last vet". Owner's request; recommendations accepted.
+- 2026-10-19: Vets set a displayed "from" price per service within admin bands, plus the call-out fee. VetLink still charges only the KES 200 deposit (21.2 unchanged).
+- 2026-10-19: Username is a display name only (login stays phone + OTP). Vets are always shown with their verified legal name; a vet's new photo needs a photo-only review because it is an identity check. Farmers' photos are live immediately.
+- 2026-10-19: Vets see their ratings without farmer names. The vet list shows rounded distance from the base or premises, never coordinates or live location.
+- 2026-10-19: Species placeholders and empty-state illustrations are simple flat SVGs drawn in-house, kept in `@vetlink/ui-tokens`.
+- 2026-10-19: Clinic-visit bookings, referral rewards, and the live map are out of Change Set 1 (new Open Questions 21.19 to 21.21; 21.10 still blocks the map).
 
 ### 0.11 Quality bar
 

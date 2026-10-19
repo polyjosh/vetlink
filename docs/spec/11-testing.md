@@ -21,3 +21,4 @@ Must pass before a feature is "done":
 - **App E2E (Maestro/Playwright):** farmer books, vet accepts, job completes, farmer rates. Run on Android in CI.
 - **Cross-channel:** book by USSD, then see and cancel it in the app.
 - **Accessibility and low-end checks:** manual pass on a low-end Android before each release.
+- **Change Set 1:** see §24.23.

@@ -36,6 +36,8 @@
 
 **Security on device:** tokens in secure storage (Keychain / Keystore via `expo-secure-store`), certificate pinning considered later, no sensitive data in logs, screenshots allowed but no PII in notification previews on lock screen for payment info.
 
+> **Amended by §24:** bottom tab navigation, skeletons, illustrated empty states, dark mode, haptics (§24.13); photo upload for avatars and animals (§24.1, §24.2); voice notes (§24.16); health card PDF (§24.18); QR code (§24.14).
+
 ## 12. Web App Requirements
 
 - Responsive, mobile-first. Works on low-end Android browsers.
@@ -63,3 +65,4 @@ Available sections and actions depend on the admin's permission (`verifier`, `su
 - **Config:** matching weights, radii, fee bands, timeouts, notifiable disease list (all versioned and audit-logged).
 - **Users:** search by phone, view history, handle account deletion requests.
 - **Content:** diagnosis list, i18n string overrides if needed.
+- **Amended by §24:** vet photo review queue (`verifier`), service fee bands in config, alert campaigns (`super_admin`), referral partners and reports, low-rating review flags (§24.3, §24.7, §24.11, §24.12). Web gains public vet profiles at `/v/<slug>` (§24.14).

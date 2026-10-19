@@ -26,4 +26,5 @@
   - Vet application (admin, `verifier`): `GET /v1/admin/vet-applications` (queue), `GET /v1/admin/vet-applications/:id`, `POST /v1/admin/vet-applications/:id/claim`, `POST /v1/admin/vet-applications/:id/decision` (`approve | request_changes | reject | suspend`, with reasons and note), `GET /v1/admin/vet-documents/:id/url` (short-lived signed URL, access logged)
 - Webhooks (not for clients): `/webhooks/ussd`, `/webhooks/sms`, `/webhooks/sms/delivery`, `/webhooks/mpesa`.
 - Errors: consistent `{ code, message_key, details }`. `message_key` maps into i18n so clients show localized text.
+- **Amended by §24:** new endpoints for profiles, avatars, vet practice and fees, nearby vets, chosen bookings, ratings, follow-ups, public profiles, campaigns and referrals (§24.22).
 - Support **older app versions**: expose `GET /v1/meta/min-app-version` and force-update gracefully. Never break the API for versions in the wild without a deprecation window.

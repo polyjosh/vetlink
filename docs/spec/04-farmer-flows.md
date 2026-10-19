@@ -41,6 +41,8 @@ Rules:
 - **Emergency NOW** skips detail, uses saved location, and broadcasts to all eligible vets in range.
 - If a session drops after "confirm", the booking must still resolve via SMS.
 
+> **Amended by §24 (Change Set 1, `15-change-set-1.md`):** non-emergency USSD requests add a "choose a vet" screen (fastest, or one of the 3 nearest) and the main menu gains "5. My last vet" (§24.6, §24.9).
+
 ### 8.2 Farmer booking: Mobile and Web app
 
 **Onboarding**
@@ -64,3 +66,5 @@ Rules:
 8. After completion: treatment summary, follow-up date, rating prompt, balance payment if applicable.
 
 **Other farmer screens:** My Animals (list, detail, history, photos), Reminders, Booking history, Payments and receipts, Profile and language, Help/contact, Delete my account.
+
+> **Amended by §24 (Change Set 1, `15-change-set-1.md`):** non-emergency requests let the farmer choose the vet from a list and pay the deposit only after the vet accepts (§24.5, §24.6); "when" can be a scheduled slot (§24.10); optional voice note (§24.16). Animals get an optional photo or species placeholder and a health card (§24.2, §24.18). Profile gains photo, username, theme, alerts opt-out, referral code (§24.1, §24.11 to §24.13). "Book my vet again" (§24.9).
