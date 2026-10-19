@@ -8,6 +8,7 @@ import {
   OFFER_RESPONSES,
   PROBLEM_TYPES,
   SPECIES,
+  VET_SERVICES,
   VET_TYPES,
   type FarmerBookingView,
   type OfferView,
@@ -16,6 +17,29 @@ import {
 import { z } from 'zod';
 import { assertSameType, intId, named, type Equals } from '../../schemas/common.js';
 import { wardView } from '../users/schemas.js';
+
+/** One vet's price for one request (§24.3): all KES, computed by the server. */
+export const priceBreakdown = named(
+  z.object({
+    consultation: z.number().int(),
+    services: z.array(z.object({ service: z.enum(VET_SERVICES), fee: z.number().int() })),
+    callOut: z.number().int(),
+    total: z.number().int().describe('A starting price: medicine and extra work can cost more'),
+    bookingFee: z.number().int().describe('Paid to VetLink when booking; part of the total'),
+    payVet: z.number().int().describe('Paid to the vet on the farm: total minus booking fee'),
+  }),
+  'PriceBreakdown',
+);
+
+export const priceRange = named(
+  z.object({
+    min: z.number().int(),
+    max: z.number().int(),
+    bookingFee: z.number().int(),
+    vets: z.number().int().describe('How many nearby vets the range is built from'),
+  }),
+  'PriceRange',
+);
 
 const timelineEntry = z.object({
   event: z.enum(BOOKING_EVENTS),
@@ -34,7 +58,10 @@ export const farmerBooking = named(
     sourceChannel: z.enum(CHANNELS),
     ward: wardView,
     feeQuoted: z.number().int().describe('KES, quoted by the server'),
-    depositKes: z.number().int(),
+    depositKes: z.number().int().describe("VetLink's booking fee for this booking (§24.24)"),
+    services: z.array(z.enum(VET_SERVICES)).describe('Added to the consultation'),
+    priceRange: priceRange.nullable().describe('Before a vet accepts'),
+    price: priceBreakdown.nullable().describe("The accepting vet's price, fixed at acceptance"),
     deposit: z.object({
       status: z.enum(DEPOSIT_STATES),
       receipt: z.string().nullable(),
@@ -79,6 +106,8 @@ export const vetJob = named(
     ward: wardView,
     location: z.object({ lat: z.number(), lng: z.number(), precise: z.boolean() }).nullable(),
     feeQuoted: z.number().int(),
+    services: z.array(z.enum(VET_SERVICES)),
+    price: priceBreakdown.nullable().describe('My price for this job; payVet is what I collect'),
     acceptedAt: z.string().nullable(),
     completedAt: z.string().nullable(),
     timeline: z.array(timelineEntry),
@@ -104,6 +133,8 @@ export const offer = named(
     isEmergency: z.boolean(),
     ward: wardView,
     feeQuoted: z.number().int(),
+    services: z.array(z.enum(VET_SERVICES)),
+    price: priceBreakdown.nullable().describe('What this job pays at my current prices'),
     wave: z.number().int(),
     sentAt: z.string(),
     expiresAt: z.string(),
@@ -142,6 +173,11 @@ export const createBookingBody = z.object({
   wardId: intId.optional().describe("Defaults to the farmer's saved ward"),
   lat: z.number().min(-5).max(6).optional(), // Kenya's latitude range, with margin
   lng: z.number().min(33).max(42.5).optional(),
+  services: z
+    .array(z.enum(VET_SERVICES))
+    .max(VET_SERVICES.length)
+    .optional()
+    .describe('Services added to the consultation (§24.3); none means consultation only'),
 });
 export const idempotencyHeaders = z.object({
   'idempotency-key': z

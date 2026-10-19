@@ -7,20 +7,16 @@ import {
   APPLICATION_REASONS,
   APPLICATION_STATUSES,
   APPLICATION_STEPS,
-  SPECIES,
-  SPOKEN_LANGUAGES,
   VET_DOCUMENT_KINDS,
   VET_DOCUMENT_STATUSES,
-  VET_SERVICES,
   VET_TYPES,
 } from '@vetlink/shared';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
-import { vetApplications, vets } from '../../db/schema/index.js';
+import { vetApplications } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { intId, named, noContent, responses } from '../../schemas/common.js';
 import { access, authOf } from '../auth/access.js';
-import { getConfig } from '../config/service.js';
 import {
   claimApplication,
   decideApplication,
@@ -202,66 +198,6 @@ export function applicationRoutes(app: FastifyInstance, ctx: AppContext): void {
     'new-version',
     'Approved vets: start a reviewed change of critical details (name, ID, KVB, licence, payout)',
     (u) => startNewVersion(ctx, u),
-  );
-
-  /** Non-critical edits apply at once (§8.3): fee within bands, radius, species, services, bio. */
-  r.patch(
-    '/v1/vets/me/profile',
-    {
-      config: vetOnly,
-      schema: {
-        tags: ['vet'],
-        summary: 'Change non-critical profile details (applied immediately)',
-        body: z
-          .object({
-            serviceRadiusKm: z.number().int().min(1),
-            baseCallOutFee: z.number().int().min(0),
-            specialties: z.array(z.enum(SPECIES)).min(1),
-            services: z.array(z.enum(VET_SERVICES)).min(1),
-            languages: z.array(z.enum(SPOKEN_LANGUAGES)).min(1),
-            bio: z.string().trim().max(300),
-          })
-          .partial(),
-        response: responses({ 204: noContent }),
-      },
-    },
-    async (req, reply) => {
-      const userId = authOf(req).userId;
-      const [vet] = await ctx.db.select().from(vets).where(eq(vets.userId, userId));
-      if (vet?.verificationStatus !== 'approved' && vet?.verificationStatus !== 'suspended') {
-        throw new DomainError('application_locked'); // before approval, edit the application
-      }
-      const b = req.body;
-      const bands = await getConfig(ctx, 'vets.feeBands');
-      if (
-        b.baseCallOutFee !== undefined &&
-        (b.baseCallOutFee < bands.min || b.baseCallOutFee > bands.max)
-      ) {
-        throw new DomainError('invalid_request', {
-          fields: ['baseCallOutFee'],
-          min: bands.min,
-          max: bands.max,
-        });
-      }
-      if (
-        b.serviceRadiusKm !== undefined &&
-        b.serviceRadiusKm > (await getConfig(ctx, 'vets.maxServiceRadiusKm'))
-      ) {
-        throw new DomainError('invalid_request', { fields: ['serviceRadiusKm'] });
-      }
-      await ctx.db
-        .update(vets)
-        .set({
-          ...(b.serviceRadiusKm !== undefined && { serviceRadiusKm: b.serviceRadiusKm }),
-          ...(b.baseCallOutFee !== undefined && { baseCallOutFee: b.baseCallOutFee }),
-          ...(b.specialties && { specialties: b.specialties }),
-          ...(b.services && { services: b.services }),
-          ...(b.languages && { languages: b.languages }),
-          ...(b.bio !== undefined && { bio: b.bio }),
-        })
-        .where(eq(vets.userId, userId));
-      return reply.code(204).send(null);
-    },
   );
 
   // ---- Admin: verification (§13) ----

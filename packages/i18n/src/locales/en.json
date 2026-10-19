@@ -23,7 +23,8 @@
     "rateHow": "To rate, reply R and the request number with 1-5, e.g. R{ref} 5.",
     "rateNone": "There is no finished request to rate.",
     "tooMany": "Too many messages. Please wait a few minutes.",
-    "error": "Sorry, something went wrong. Please try again."
+    "error": "Sorry, something went wrong. Please try again.",
+    "practiceIncomplete": "VetLink: Set your consultation fee and service prices in the app before going online."
   },
   "errors": {
     "invalid_request": "Something in the request was not right. Please check and try again.",
@@ -59,7 +60,8 @@
     "application_claimed": "Another reviewer is already handling this application.",
     "upload_invalid": "That file cannot be used. Upload a clear JPG, PNG or PDF under 5 MB.",
     "photo_invalid": "That photo cannot be used. Choose a JPG or PNG photo under 500 KB.",
-    "vet_photo_required": "Vets need a profile photo. You can replace yours, but not remove it."
+    "vet_photo_required": "Vets need a profile photo. You can replace yours, but not remove it.",
+    "practice_incomplete": "Set your consultation fee and a price for each service before going online."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -72,9 +74,9 @@
     "enterWard": "Enter your ward name:",
     "wardNotFound": "No ward called \"{query}\". Enter the ward name again:",
     "chooseWard": "Choose your ward:\n{options}",
-    "confirm": "{animal}, {problem}\nWard: {ward}\nVet call-out fee KES {fee} (pay the vet)\nDeposit KES {deposit} now\n1. Confirm and pay\n2. Cancel",
-    "confirmEmergency": "EMERGENCY: {animal}\nWard: {ward}\nCall-out KES {fee} (pay the vet)\nDeposit KES {deposit} now\n1. Confirm and pay\n2. Cancel",
-    "requested": "Request {ref} sent. Enter your M-Pesa PIN when asked to pay the KES {deposit} deposit. We will SMS you when a vet accepts.",
+    "confirm": "{animal}, {problem}\nWard: {ward}\nTotal from KES {price}\nPay KES {deposit} booking fee now, rest to the vet\n1. Confirm and pay\n2. Cancel",
+    "confirmEmergency": "EMERGENCY: {animal}\nWard: {ward}\nTotal from KES {price}\nPay KES {deposit} booking fee now, rest to the vet\n1. Confirm and pay\n2. Cancel",
+    "requested": "Request {ref} sent. Enter your M-Pesa PIN when asked to pay the KES {deposit} booking fee. We will SMS you when a vet accepts.",
     "cancelled": "Request cancelled. Dial again anytime.",
     "invalid": "Invalid choice.",
     "animalsList": "Your animals:\n{list}\n1. Add animal",
@@ -120,7 +122,8 @@
       "calving": "Calving",
       "follow_up": "Follow-up"
     },
-    "requestedNoStk": "Request {ref} saved, but M-Pesa is not available now. Dial again to pay the KES {deposit} deposit, or use the VetLink app."
+    "requestedNoStk": "Request {ref} saved, but M-Pesa is not available now. Dial again to pay the KES {deposit} booking fee, or use the VetLink app.",
+    "priceUnknown": "(vet confirms)"
   },
   "notify": {
     "offer": {
@@ -160,8 +163,8 @@
     },
     "no_vet_found": {
       "title": "No vet available",
-      "body": "Sorry, no vet could take request {ref}. Your KES {deposit} deposit will be refunded.",
-      "sms": "VetLink: sorry, no vet could take request {ref}. Your KES {deposit} deposit will be refunded."
+      "body": "Sorry, no vet could take request {ref}. Your KES {deposit} booking fee will be refunded.",
+      "sms": "VetLink: sorry, no vet could take request {ref}. Your KES {deposit} booking fee will be refunded."
     },
     "booking_cancelled": {
       "title": "Job cancelled",
@@ -335,11 +338,11 @@
       "review": "Check and confirm",
       "fee": "Vet call-out fee",
       "feeHint": "Pay the vet directly when they arrive.",
-      "deposit": "Deposit now",
+      "deposit": "Booking fee now",
       "depositHint": "Paid by M-Pesa now. Refunded if no vet comes.",
       "confirmPay": "Confirm and pay KES {amount}",
       "checkPhone": "Check your phone",
-      "checkPhoneHint": "Enter your M-Pesa PIN to pay the KES {amount} deposit.",
+      "checkPhoneHint": "Enter your M-Pesa PIN to pay the KES {amount} booking fee.",
       "paymentFailed": "The payment did not go through.",
       "payAgain": "Pay again",
       "searching": "Finding a vet near you…",
@@ -354,7 +357,7 @@
       "callVet": "Call the vet",
       "cancel": "Cancel request",
       "cancelTitle": "Why are you cancelling?",
-      "cancelPolicy": "Free until the vet sets off. After that, the deposit goes to the vet.",
+      "cancelPolicy": "Free until the vet sets off: the booking fee is refunded. After that, it is not refunded.",
       "cancelConfirm": "Cancel request",
       "cancelled": "Request cancelled",
       "rateTitle": "How was the visit?",
@@ -366,12 +369,12 @@
       "drugs": "Medicine",
       "followUp": "Follow-up",
       "depositStatus": {
-        "none": "Deposit not paid",
+        "none": "Booking fee not paid",
         "pending": "Waiting for M-Pesa",
-        "paid": "Deposit paid",
-        "failed": "Deposit not paid",
+        "paid": "Booking fee paid",
+        "failed": "Booking fee not paid",
         "refund_pending": "Refund on the way",
-        "refunded": "Deposit refunded"
+        "refunded": "Booking fee refunded"
       },
       "cancelReasons": {
         "changed_mind": "I changed my mind",
@@ -436,7 +439,8 @@
       "jobHistory": "Job history",
       "shareLocation": "Share my live location",
       "shareLocationHint": "Only used to send you nearby jobs and give farmers an ETA. Never shown as a trail.",
-      "stopSharing": "Stop sharing"
+      "stopSharing": "Stop sharing",
+      "profile": "My profile"
     },
     "application": {
       "title": "Your vet application",
@@ -478,7 +482,15 @@
         "payoutMpesaPhone": "M-Pesa number for payouts",
         "acceptTerms": "I accept the Terms and Code of Conduct",
         "consentVerification": "I consent to identity and registration checks",
-        "declaration": "The information I gave is true"
+        "declaration": "The information I gave is true",
+        "consultationFee": "Consultation fee (KES)",
+        "serviceFees": "Your price for each service (from, KES)",
+        "offersCallOuts": "I travel to farms (call-outs)",
+        "hasPremises": "I have a clinic or shop farmers can visit",
+        "premisesWardId": "Clinic ward",
+        "premisesDirections": "Directions to the clinic",
+        "premisesHours": "Clinic opening hours",
+        "workingHours": "Working hours"
       },
       "kvbCategories": {
         "veterinary_surgeon": "Veterinary surgeon",
@@ -687,6 +699,59 @@
       "noOffers": "No offers right now",
       "noRatings": "No ratings yet",
       "offline": "You are offline"
+    },
+    "prices": {
+      "title": "Prices",
+      "consultation": "Consultation",
+      "consultationHint": "Included in every request.",
+      "callOut": "Call-out (trip to the farm)",
+      "services": "Your price for each service",
+      "from": "from KES {amount}",
+      "total": "Total from KES {amount}",
+      "range": "KES {min} to {max}",
+      "fromVets": "From {n} nearby vets",
+      "bookingFeeNow": "Booking fee to VetLink now",
+      "payVetOnFarm": "Pay the vet on the farm",
+      "collect": "You collect from the farmer",
+      "startingPrice": "This is a starting price: medicine and extra work found on the farm can cost more.",
+      "noPriceYet": "No nearby vet has prices yet. The vet who accepts confirms the price.",
+      "addServices": "Add services (optional)",
+      "addServicesHint": "A consultation is always included. If what you need is not listed, leave these empty.",
+      "band": "Allowed: KES {min} to {max}",
+      "bookingFeeIncluded": "Includes VetLink's KES {fee} booking fee, which the farmer pays when booking."
+    },
+    "hours": {
+      "title": "Working hours",
+      "closed": "Closed",
+      "from": "From",
+      "to": "To",
+      "days": {
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday",
+        "sun": "Sunday"
+      }
+    },
+    "vetProfile": {
+      "title": "My vet profile",
+      "practice": "Practice and prices",
+      "qualifications": "Qualifications",
+      "documents": "My documents",
+      "open": "Open",
+      "incomplete": "Finish these before you can go online:",
+      "callOuts": "I travel to farms (call-outs)",
+      "premises": "I have a clinic or shop farmers can visit",
+      "premisesWard": "Clinic ward",
+      "premisesDirections": "Directions to the clinic",
+      "premisesHours": "Clinic opening hours",
+      "criticalHint": "To change your name, ID, KVB number, licence or payout number, start a reviewed update of your application.",
+      "nationalId": "National ID",
+      "verifiedOn": "Verified on {date}",
+      "editPhoto": "Change photo in My profile",
+      "updateDetails": "Update reviewed details"
     }
   }
 }

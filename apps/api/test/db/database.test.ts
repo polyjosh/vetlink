@@ -43,6 +43,7 @@ const EXPECTED_TABLES = [
   'ussd_sessions',
   'vet_applications',
   'vet_documents',
+  'vet_service_fees',
   'vets',
 ];
 

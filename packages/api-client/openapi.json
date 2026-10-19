@@ -53,7 +53,8 @@
               "application_claimed",
               "upload_invalid",
               "photo_invalid",
-              "vet_photo_required"
+              "vet_photo_required",
+              "practice_incomplete"
             ]
           },
           "message_key": {
@@ -519,6 +520,107 @@
           "visits"
         ]
       },
+      "PriceBreakdownInput": {
+        "type": "object",
+        "properties": {
+          "consultation": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "service": {
+                  "type": "string",
+                  "enum": [
+                    "treatment",
+                    "vaccination",
+                    "artificial_insemination",
+                    "deworming",
+                    "pregnancy_diagnosis",
+                    "minor_surgery"
+                  ]
+                },
+                "fee": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "service",
+                "fee"
+              ]
+            }
+          },
+          "callOut": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "A starting price: medicine and extra work can cost more"
+          },
+          "bookingFee": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Paid to VetLink when booking; part of the total"
+          },
+          "payVet": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Paid to the vet on the farm: total minus booking fee"
+          }
+        },
+        "required": [
+          "consultation",
+          "services",
+          "callOut",
+          "total",
+          "bookingFee",
+          "payVet"
+        ]
+      },
+      "PriceRangeInput": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "max": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "bookingFee": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "vets": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "How many nearby vets the range is built from"
+          }
+        },
+        "required": [
+          "min",
+          "max",
+          "bookingFee",
+          "vets"
+        ]
+      },
       "FarmerBookingInput": {
         "type": "object",
         "properties": {
@@ -593,7 +695,45 @@
           "depositKes": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "VetLink's booking fee for this booking (§24.24)"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "description": "Added to the consultation"
+          },
+          "priceRange": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceRangeInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Before a vet accepts"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdownInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The accepting vet's price, fixed at acceptance"
           },
           "deposit": {
             "type": "object",
@@ -845,6 +985,9 @@
           "ward",
           "feeQuoted",
           "depositKes",
+          "services",
+          "priceRange",
+          "price",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -941,6 +1084,31 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            }
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdownInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "My price for this job; payVet is what I collect"
           },
           "acceptedAt": {
             "type": [
@@ -1072,6 +1240,8 @@
           "ward",
           "location",
           "feeQuoted",
+          "services",
+          "price",
           "acceptedAt",
           "completedAt",
           "timeline",
@@ -1125,6 +1295,31 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            }
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdownInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What this job pays at my current prices"
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -1145,6 +1340,8 @@
           "isEmergency",
           "ward",
           "feeQuoted",
+          "services",
+          "price",
           "wave",
           "sentAt",
           "expiresAt"
@@ -1224,7 +1421,45 @@
           "depositKes": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "VetLink's booking fee for this booking (§24.24)"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "description": "Added to the consultation"
+          },
+          "priceRange": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceRangeInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Before a vet accepts"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdownInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The accepting vet's price, fixed at acceptance"
           },
           "deposit": {
             "type": "object",
@@ -1566,6 +1801,9 @@
           "ward",
           "feeQuoted",
           "depositKes",
+          "services",
+          "priceRange",
+          "price",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -2716,7 +2954,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Call-out fee: the trip to the farm"
           },
           "specialties": {
             "type": "array",
@@ -2752,6 +2991,364 @@
               "number",
               "null"
             ]
+          },
+          "consultationFee": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serviceFees": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "offersCallOuts": {
+            "type": "boolean"
+          },
+          "hasPremises": {
+            "type": "boolean"
+          },
+          "premisesWard": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WardInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "premisesDirections": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "premisesHours": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workingHours": {
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "mon",
+                    "tue",
+                    "wed",
+                    "thu",
+                    "fri",
+                    "sat",
+                    "sun"
+                  ]
+                },
+                "additionalProperties": {
+                  "maxItems": 2,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "from": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      },
+                      "to": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      }
+                    },
+                    "required": [
+                      "from",
+                      "to"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "practiceMissing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bands": {
+            "type": "object",
+            "properties": {
+              "callOut": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "min",
+                  "max"
+                ]
+              },
+              "items": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "consultation",
+                    "treatment",
+                    "vaccination",
+                    "artificial_insemination",
+                    "deworming",
+                    "pregnancy_diagnosis",
+                    "minor_surgery"
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "max": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max"
+                  ]
+                }
+              },
+              "bookingFee": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "VetLink's fee, part of every total"
+              }
+            },
+            "required": [
+              "callOut",
+              "items",
+              "bookingFee"
+            ]
+          },
+          "qualifications": {
+            "type": "object",
+            "properties": {
+              "kvbRegNo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "kvbCategory": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "veterinary_surgeon",
+                      "veterinary_paraprofessional",
+                      "animal_health_assistant"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "licenceExpiry": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "qualification": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "institution": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "yearQualified": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "practiceType": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "independent",
+                      "clinic",
+                      "agrovet"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "practiceName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "yearsExperience": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "sw",
+                    "en",
+                    "ki",
+                    "luo",
+                    "kam",
+                    "kln",
+                    "other"
+                  ]
+                }
+              },
+              "bio": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "nationalIdLast3": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "verifiedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "kvbRegNo",
+              "kvbCategory",
+              "licenceExpiry",
+              "qualification",
+              "institution",
+              "yearQualified",
+              "practiceType",
+              "practiceName",
+              "yearsExperience",
+              "languages",
+              "bio",
+              "nationalIdLast3",
+              "verifiedAt"
+            ]
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "id_front",
+                    "id_back",
+                    "certificate",
+                    "licence",
+                    "profile_photo",
+                    "training_cert"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "uploaded",
+                    "accepted",
+                    "flagged"
+                  ]
+                },
+                "expiresAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "status",
+                "expiresAt"
+              ]
+            }
           }
         },
         "required": [
@@ -2764,7 +3361,19 @@
           "baseCallOutFee",
           "specialties",
           "services",
-          "rating"
+          "rating",
+          "consultationFee",
+          "serviceFees",
+          "offersCallOuts",
+          "hasPremises",
+          "premisesWard",
+          "premisesDirections",
+          "premisesHours",
+          "workingHours",
+          "practiceMissing",
+          "bands",
+          "qualifications",
+          "documents"
         ]
       },
       "MinAppVersionInput": {
@@ -2785,17 +3394,31 @@
           "feeQuoted": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "Call-out fee"
           },
           "depositKes": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "VetLink's booking fee"
+          },
+          "priceRange": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceRangeInput"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Totals of nearby vets; null when none is near"
           }
         },
         "required": [
           "feeQuoted",
-          "depositKes"
+          "depositKes",
+          "priceRange"
         ]
       },
       "Error": {
@@ -2837,7 +3460,8 @@
               "application_claimed",
               "upload_invalid",
               "photo_invalid",
-              "vet_photo_required"
+              "vet_photo_required",
+              "practice_incomplete"
             ]
           },
           "message_key": {
@@ -3317,6 +3941,110 @@
         ],
         "additionalProperties": false
       },
+      "PriceBreakdown": {
+        "type": "object",
+        "properties": {
+          "consultation": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "service": {
+                  "type": "string",
+                  "enum": [
+                    "treatment",
+                    "vaccination",
+                    "artificial_insemination",
+                    "deworming",
+                    "pregnancy_diagnosis",
+                    "minor_surgery"
+                  ]
+                },
+                "fee": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "service",
+                "fee"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "callOut": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "A starting price: medicine and extra work can cost more"
+          },
+          "bookingFee": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Paid to VetLink when booking; part of the total"
+          },
+          "payVet": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Paid to the vet on the farm: total minus booking fee"
+          }
+        },
+        "required": [
+          "consultation",
+          "services",
+          "callOut",
+          "total",
+          "bookingFee",
+          "payVet"
+        ],
+        "additionalProperties": false
+      },
+      "PriceRange": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "max": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "bookingFee": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "vets": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "How many nearby vets the range is built from"
+          }
+        },
+        "required": [
+          "min",
+          "max",
+          "bookingFee",
+          "vets"
+        ],
+        "additionalProperties": false
+      },
       "FarmerBooking": {
         "type": "object",
         "properties": {
@@ -3391,7 +4119,45 @@
           "depositKes": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "VetLink's booking fee for this booking (§24.24)"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "description": "Added to the consultation"
+          },
+          "priceRange": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceRange"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Before a vet accepts"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdown"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The accepting vet's price, fixed at acceptance"
           },
           "deposit": {
             "type": "object",
@@ -3648,6 +4414,9 @@
           "ward",
           "feeQuoted",
           "depositKes",
+          "services",
+          "priceRange",
+          "price",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -3746,6 +4515,31 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            }
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdown"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "My price for this job; payVet is what I collect"
           },
           "acceptedAt": {
             "type": [
@@ -3879,6 +4673,8 @@
           "ward",
           "location",
           "feeQuoted",
+          "services",
+          "price",
           "acceptedAt",
           "completedAt",
           "timeline",
@@ -3933,6 +4729,31 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            }
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdown"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What this job pays at my current prices"
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -3953,6 +4774,8 @@
           "isEmergency",
           "ward",
           "feeQuoted",
+          "services",
+          "price",
           "wave",
           "sentAt",
           "expiresAt"
@@ -4033,7 +4856,45 @@
           "depositKes": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "VetLink's booking fee for this booking (§24.24)"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "description": "Added to the consultation"
+          },
+          "priceRange": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceRange"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Before a vet accepts"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBreakdown"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The accepting vet's price, fixed at acceptance"
           },
           "deposit": {
             "type": "object",
@@ -4382,6 +5243,9 @@
           "ward",
           "feeQuoted",
           "depositKes",
+          "services",
+          "priceRange",
+          "price",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -5555,7 +6419,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Call-out fee: the trip to the farm"
           },
           "specialties": {
             "type": "array",
@@ -5591,6 +6456,370 @@
               "number",
               "null"
             ]
+          },
+          "consultationFee": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serviceFees": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "offersCallOuts": {
+            "type": "boolean"
+          },
+          "hasPremises": {
+            "type": "boolean"
+          },
+          "premisesWard": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Ward"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "premisesDirections": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "premisesHours": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workingHours": {
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "mon",
+                    "tue",
+                    "wed",
+                    "thu",
+                    "fri",
+                    "sat",
+                    "sun"
+                  ]
+                },
+                "additionalProperties": {
+                  "maxItems": 2,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "from": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      },
+                      "to": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      }
+                    },
+                    "required": [
+                      "from",
+                      "to"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "practiceMissing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bands": {
+            "type": "object",
+            "properties": {
+              "callOut": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "min",
+                  "max"
+                ],
+                "additionalProperties": false
+              },
+              "items": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "consultation",
+                    "treatment",
+                    "vaccination",
+                    "artificial_insemination",
+                    "deworming",
+                    "pregnancy_diagnosis",
+                    "minor_surgery"
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "max": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "bookingFee": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "VetLink's fee, part of every total"
+              }
+            },
+            "required": [
+              "callOut",
+              "items",
+              "bookingFee"
+            ],
+            "additionalProperties": false
+          },
+          "qualifications": {
+            "type": "object",
+            "properties": {
+              "kvbRegNo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "kvbCategory": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "veterinary_surgeon",
+                      "veterinary_paraprofessional",
+                      "animal_health_assistant"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "licenceExpiry": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "qualification": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "institution": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "yearQualified": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "practiceType": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "independent",
+                      "clinic",
+                      "agrovet"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "practiceName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "yearsExperience": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "sw",
+                    "en",
+                    "ki",
+                    "luo",
+                    "kam",
+                    "kln",
+                    "other"
+                  ]
+                }
+              },
+              "bio": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "nationalIdLast3": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "verifiedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "kvbRegNo",
+              "kvbCategory",
+              "licenceExpiry",
+              "qualification",
+              "institution",
+              "yearQualified",
+              "practiceType",
+              "practiceName",
+              "yearsExperience",
+              "languages",
+              "bio",
+              "nationalIdLast3",
+              "verifiedAt"
+            ],
+            "additionalProperties": false
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "id_front",
+                    "id_back",
+                    "certificate",
+                    "licence",
+                    "profile_photo",
+                    "training_cert"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "uploaded",
+                    "accepted",
+                    "flagged"
+                  ]
+                },
+                "expiresAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "status",
+                "expiresAt"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
@@ -5603,7 +6832,19 @@
           "baseCallOutFee",
           "specialties",
           "services",
-          "rating"
+          "rating",
+          "consultationFee",
+          "serviceFees",
+          "offersCallOuts",
+          "hasPremises",
+          "premisesWard",
+          "premisesDirections",
+          "premisesHours",
+          "workingHours",
+          "practiceMissing",
+          "bands",
+          "qualifications",
+          "documents"
         ],
         "additionalProperties": false
       },
@@ -5626,17 +6867,31 @@
           "feeQuoted": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "Call-out fee"
           },
           "depositKes": {
             "type": "integer",
             "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "VetLink's booking fee"
+          },
+          "priceRange": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceRange"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Totals of nearby vets; null when none is near"
           }
         },
         "required": [
           "feeQuoted",
-          "depositKes"
+          "depositKes",
+          "priceRange"
         ],
         "additionalProperties": false
       }
@@ -10091,6 +11346,22 @@
                     "type": "number",
                     "minimum": 33,
                     "maximum": 42.5
+                  },
+                  "services": {
+                    "description": "Services added to the consultation (§24.3); none means consultation only",
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "treatment",
+                        "vaccination",
+                        "artificial_insemination",
+                        "deworming",
+                        "pregnancy_diagnosis",
+                        "minor_surgery"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -10480,6 +11751,15 @@
             "in": "query",
             "name": "lng",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "services",
+            "required": false,
+            "description": "Comma-separated services added to the consultation"
           }
         ],
         "security": [
@@ -12012,7 +13292,7 @@
     },
     "/v1/vets/me": {
       "get": {
-        "summary": "My vet profile and status",
+        "summary": "My vet profile: status, prices, practice, qualifications and documents",
         "tags": [
           "vet"
         ],
@@ -12136,9 +13416,459 @@
         }
       }
     },
+    "/v1/vets/me/profile": {
+      "patch": {
+        "summary": "Change prices and practice details (approved vets; applied immediately)",
+        "tags": [
+          "vet"
+        ],
+        "description": "Access: role `vet`.\n\nPrices must stay within the admin bands, every offered service needs a price, and at least one of call-outs or premises. Critical details (name, ID, KVB, licence, payout) go through a reviewed new application version instead.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "serviceRadiusKm": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "baseCallOutFee": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "specialties": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "cattle",
+                        "goat",
+                        "sheep",
+                        "pig",
+                        "poultry",
+                        "dog",
+                        "other"
+                      ]
+                    }
+                  },
+                  "services": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "treatment",
+                        "vaccination",
+                        "artificial_insemination",
+                        "deworming",
+                        "pregnancy_diagnosis",
+                        "minor_surgery"
+                      ]
+                    }
+                  },
+                  "languages": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "sw",
+                        "en",
+                        "ki",
+                        "luo",
+                        "kam",
+                        "kln",
+                        "other"
+                      ]
+                    }
+                  },
+                  "bio": {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "consultationFee": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "serviceFees": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "treatment",
+                        "vaccination",
+                        "artificial_insemination",
+                        "deworming",
+                        "pregnancy_diagnosis",
+                        "minor_surgery"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "offersCallOuts": {
+                    "type": "boolean"
+                  },
+                  "hasPremises": {
+                    "type": "boolean"
+                  },
+                  "premisesWardId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "premisesDirections": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "premisesHours": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "workingHours": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "mon",
+                        "tue",
+                        "wed",
+                        "thu",
+                        "fri",
+                        "sat",
+                        "sun"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "maxItems": 2,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "from": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "to": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          }
+                        },
+                        "required": [
+                          "from",
+                          "to"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VetProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vets/me/documents/{id}/url": {
+      "get": {
+        "summary": "A short-lived link to one of my own documents (every view is logged)",
+        "tags": [
+          "vet"
+        ],
+        "description": "Access: role `vet`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url",
+                    "expiresAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vets/me/availability": {
       "patch": {
-        "summary": "Go online or offline (online only once approved)",
+        "summary": "Go online or offline (online only once approved, with prices set)",
         "tags": [
           "vet"
         ],
@@ -13395,6 +15125,106 @@
                   "availabilityHours": {
                     "type": "string",
                     "maxLength": 100
+                  },
+                  "consultationFee": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "serviceFees": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "treatment",
+                        "vaccination",
+                        "artificial_insemination",
+                        "deworming",
+                        "pregnancy_diagnosis",
+                        "minor_surgery"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "offersCallOuts": {
+                    "type": "boolean"
+                  },
+                  "hasPremises": {
+                    "type": "boolean"
+                  },
+                  "premisesWardId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "premisesDirections": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "premisesHours": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "workingHours": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "mon",
+                        "tue",
+                        "wed",
+                        "thu",
+                        "fri",
+                        "sat",
+                        "sun"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "maxItems": 2,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "from": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "to": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          }
+                        },
+                        "required": [
+                          "from",
+                          "to"
+                        ]
+                      }
+                    }
                   }
                 }
               }
@@ -14374,198 +16204,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "410": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/vets/me/profile": {
-      "patch": {
-        "summary": "Change non-critical profile details (applied immediately)",
-        "tags": [
-          "vet"
-        ],
-        "description": "Access: role `vet`.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "serviceRadiusKm": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 9007199254740991
-                  },
-                  "baseCallOutFee": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "specialties": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "cattle",
-                        "goat",
-                        "sheep",
-                        "pig",
-                        "poultry",
-                        "dog",
-                        "other"
-                      ]
-                    }
-                  },
-                  "services": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "treatment",
-                        "vaccination",
-                        "artificial_insemination",
-                        "deworming",
-                        "pregnancy_diagnosis",
-                        "minor_surgery"
-                      ]
-                    }
-                  },
-                  "languages": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "sw",
-                        "en",
-                        "ki",
-                        "luo",
-                        "kam",
-                        "kln",
-                        "other"
-                      ]
-                    }
-                  },
-                  "bio": {
-                    "type": "string",
-                    "maxLength": 300
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No content"
           },
           "400": {
             "description": "Default Response",
@@ -16724,6 +18362,106 @@
                   "availabilityHours": {
                     "type": "string",
                     "maxLength": 100
+                  },
+                  "consultationFee": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "serviceFees": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "treatment",
+                        "vaccination",
+                        "artificial_insemination",
+                        "deworming",
+                        "pregnancy_diagnosis",
+                        "minor_surgery"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "offersCallOuts": {
+                    "type": "boolean"
+                  },
+                  "hasPremises": {
+                    "type": "boolean"
+                  },
+                  "premisesWardId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "premisesDirections": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "premisesHours": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "workingHours": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "mon",
+                        "tue",
+                        "wed",
+                        "thu",
+                        "fri",
+                        "sat",
+                        "sun"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "maxItems": 2,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "from": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "to": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          }
+                        },
+                        "required": [
+                          "from",
+                          "to"
+                        ]
+                      }
+                    }
                   }
                 }
               }

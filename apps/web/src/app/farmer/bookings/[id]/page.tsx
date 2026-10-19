@@ -22,6 +22,7 @@ import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
 import { PersonAvatar } from '@/components/pictures';
+import { PriceLines, PriceRangeLines } from '@/components/prices';
 
 /** Tracking (§8.2 step 7): timeline, vet contact once matched, cancel with policy, then rating. */
 export default function Tracking() {
@@ -75,10 +76,17 @@ export default function Tracking() {
           <p>
             {t.ussd.species[b.species]}, {t.ussd.problems[b.problemType]} · {b.ward.ward}
           </p>
-          <p>
-            <strong>{t.web.request.fee}: </strong>
-            {fmt(t.web.common.kes, { amount: b.feeQuoted })}
-          </p>
+          {b.services.length > 0 && (
+            <p>
+              {t.web.prices.consultation} +{' '}
+              {b.services.map((s) => t.web.application.services[s]).join(', ')}
+            </p>
+          )}
+          {b.price ? (
+            <PriceLines price={b.price} />
+          ) : (
+            <PriceRangeLines range={b.priceRange} bookingFee={b.depositKes} />
+          )}
           <p data-testid="deposit-status">{t.web.tracking.depositStatus[b.deposit.status]}</p>
         </Card>
 

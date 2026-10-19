@@ -10,6 +10,7 @@ import {
   type ApplicationReason,
   type ApplicationStep,
   type VetDocumentKind,
+  type VetService,
   type VetType,
 } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
@@ -18,7 +19,22 @@ import { users, vetApplications, vetDocuments, vets } from '../../db/schema/inde
 import { fieldContext } from '../../lib/crypto.js';
 import { DomainError } from '../../lib/errors.js';
 import { getConfig } from '../config/service.js';
+import { practiceProblems, type PracticeState } from '../vets/practice.js';
 import { REQUIRED_FIELDS, STEP_PARTIAL, stepIndex, type StoredData } from './steps.js';
+
+/** Step 5's prices and practice, read from the wizard answers. */
+export function practiceStateOf(data: StoredData): PracticeState {
+  const sa = data.service_area ?? {};
+  return {
+    services: (data.practice?.services as VetService[] | undefined) ?? [],
+    consultationFee: sa.consultationFee as number | undefined,
+    serviceFees: sa.serviceFees as Partial<Record<VetService, number>> | undefined,
+    offersCallOuts: sa.offersCallOuts as boolean | undefined,
+    hasPremises: sa.hasPremises as boolean | undefined,
+    premisesWardId: sa.premisesWardId as number | null | undefined,
+    baseCallOutFee: sa.baseCallOutFee as number | undefined,
+  };
+}
 
 export type ApplicationRow = typeof vetApplications.$inferSelect;
 export type DocumentRow = typeof vetDocuments.$inferSelect;
@@ -130,6 +146,9 @@ export async function missingItems(
   }
   const radius = data.service_area?.serviceRadiusKm;
   if (typeof radius === 'number' && radius > maxRadius) fields.push('service_area.serviceRadiusKm');
+  for (const f of await practiceProblems(ctx, practiceStateOf(data), { complete: true })) {
+    fields.push(`service_area.${f}`);
+  }
 
   const have = new Set(docs.filter((d) => d.status !== 'flagged').map((d) => d.kind));
   const documents = REQUIRED_DOCUMENTS[type].filter((k) => !have.has(k));
@@ -186,6 +205,14 @@ export async function saveStep(
         min: bands.min,
         max: bands.max,
       });
+    }
+  }
+  if (step === 'service_area') {
+    // Prices within the admin bands (§24.3), checked as the vet types, not only at submit.
+    const merged = { ...data, service_area: { ...current, ...values } } as StoredData;
+    const bad = await practiceProblems(ctx, practiceStateOf(merged), { complete: false });
+    if (bad.length) {
+      throw new DomainError('invalid_request', { fields: bad.map((f) => `service_area.${f}`) });
     }
   }
   if (step === 'service_area' && typeof values.serviceRadiusKm === 'number') {

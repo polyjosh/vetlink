@@ -1,12 +1,15 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import {
+  DEFAULT_WORKING_HOURS,
   REVIEW_TARGET_HOURS,
   normalizePhone,
   type AdminRole,
   type ApplicationDecision,
   type ApplicationReason,
+  type VetService,
   type VetType,
+  type WorkingHours,
 } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import type { Tx } from '../../db/client.js';
@@ -25,6 +28,7 @@ import { audit } from '../admin/audit.js';
 import type { AuthContext } from '../auth/access.js';
 import { TOTP_ENROL_WINDOW_MS } from '../auth/two-factor.js';
 import { avatarFromApplication } from '../media/service.js';
+import { writeServiceFees } from '../vets/practice.js';
 import { applicationView, documentsOf, type ApplicationRow, vetTypeOf } from './service.js';
 import type { StoredData } from './steps.js';
 
@@ -421,6 +425,13 @@ async function applyApprovedApplication(tx: Tx, ctx: AppContext, app: Applicatio
       wardId: (sa.wardId as number | undefined) ?? null,
       serviceRadiusKm: (sa.serviceRadiusKm as number | undefined) ?? 20,
       baseCallOutFee: (sa.baseCallOutFee as number | undefined) ?? null,
+      consultationFee: (sa.consultationFee as number | undefined) ?? null,
+      offersCallOuts: (sa.offersCallOuts as boolean | undefined) ?? true,
+      hasPremises: (sa.hasPremises as boolean | undefined) ?? false,
+      premisesWardId: (sa.premisesWardId as number | null | undefined) ?? null,
+      premisesDirections: (sa.premisesDirections as string | null | undefined) ?? null,
+      premisesHours: (sa.premisesHours as string | null | undefined) ?? null,
+      workingHours: (sa.workingHours as WorkingHours | undefined) ?? DEFAULT_WORKING_HOURS,
       verificationStatus: 'approved',
       verifiedAt: now,
       // Approval never puts a vet online: they go online themselves (§8.3).
@@ -430,6 +441,12 @@ async function applyApprovedApplication(tx: Tx, ctx: AppContext, app: Applicatio
   if (typeof p.fullName === 'string') {
     await tx.update(users).set({ name: p.fullName }).where(eq(users.id, app.vetUserId));
   }
+  await writeServiceFees(
+    tx,
+    app.vetUserId,
+    (pr.services as VetService[] | undefined) ?? [],
+    (sa.serviceFees as Partial<Record<VetService, number>> | undefined) ?? {},
+  );
 }
 
 /**

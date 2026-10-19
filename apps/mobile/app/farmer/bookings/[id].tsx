@@ -21,6 +21,7 @@ import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
 import { PersonAvatar } from '../../../src/components/pictures';
+import { PriceLines, PriceRangeLines } from '../../../src/components/prices';
 
 /** Tracking (§8.2 step 7): progress, vet contact once matched, cancel with policy, rating. */
 export default function Tracking() {
@@ -82,9 +83,14 @@ export default function Tracking() {
         <P>
           {t.ussd.species[b.species]}, {t.ussd.problems[b.problemType]} · {b.ward.ward}
         </P>
-        <P>
-          {t.web.request.fee}: {fmt(t.web.common.kes, { amount: b.feeQuoted })}
-        </P>
+        {b.services.length > 0 && (
+          <P>{`${t.web.prices.consultation} + ${b.services.map((x) => t.web.application.services[x]).join(', ')}`}</P>
+        )}
+        {b.price ? (
+          <PriceLines price={b.price} />
+        ) : (
+          <PriceRangeLines range={b.priceRange} bookingFee={b.depositKes} />
+        )}
         <P testID="deposit-status">{tr.depositStatus[b.deposit.status]}</P>
       </Card>
       {b.status === 'pending_payment' && b.deposit.status === 'pending' && (

@@ -14,6 +14,9 @@ export function VetNav() {
       <Link className={link} href="/vet/history">
         {t.web.vet.jobHistory}
       </Link>
+      <Link className={link} href="/vet/profile">
+        {t.web.vetProfile.title}
+      </Link>
       <Link className={link} href="/vet/status">
         {t.web.application.statusTitle}
       </Link>

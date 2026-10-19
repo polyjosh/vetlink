@@ -142,7 +142,8 @@ describe.skipIf(!testServerUrl)('USSD (database)', { timeout: 60_000 }, () => {
       );
       const confirm = screens[7] ?? '';
       expect(confirm).toContain(m(lang).species.goat);
-      expect(confirm).toContain('KES 500');
+      // No vet nearby in this test: the price is confirmed by the vet who accepts (§24.3).
+      expect(confirm).toContain(m(lang).priceUnknown);
       expect(confirm).toContain('KES 200');
       expect(done).toMatch(/^END /);
 

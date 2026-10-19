@@ -12,6 +12,7 @@ import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
 import { EmptyState } from '@/components/pictures';
+import { PriceLines } from '@/components/prices';
 
 function Countdown({ until }: { until: string }) {
   const { t, fmt } = useT();
@@ -75,6 +76,14 @@ export default function VetHome() {
           <p className="text-sm text-muted">
             {approved ? t.web.vet.onlineHint : t.web.vet.notApproved}
           </p>
+          {approved && profile && profile.practiceMissing.length > 0 && (
+            <Notice tone="warning">
+              {t.errors.practice_incomplete}{' '}
+              <Link href="/vet/profile" className="font-semibold underline">
+                {t.web.vetProfile.title}
+              </Link>
+            </Notice>
+          )}
           <Button
             variant={online ? 'secondary' : 'primary'}
             disabled={!approved || busy || !profile}
@@ -129,9 +138,13 @@ export default function VetHome() {
                 <Countdown until={o.expiresAt} />
               </div>
               <p>
-                {o.ward.ward} ({o.ward.subCounty}) ·{' '}
-                {fmt(t.web.common.kes, { amount: o.feeQuoted })}
+                {o.ward.ward} ({o.ward.subCounty})
               </p>
+              {o.price ? (
+                <PriceLines price={o.price} forVet />
+              ) : (
+                <p>{fmt(t.web.common.kes, { amount: o.feeQuoted })}</p>
+              )}
               <div className="flex gap-2">
                 <Button
                   disabled={busy}

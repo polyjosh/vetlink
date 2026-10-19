@@ -1,5 +1,5 @@
-import { and, count, eq, gte, inArray, isNull, max, sql } from 'drizzle-orm';
-import { ACTIVE_JOB_STATUSES, type Species } from '@vetlink/shared';
+import { and, count, eq, gte, inArray, isNotNull, isNull, max, sql } from 'drizzle-orm';
+import { ACTIVE_JOB_STATUSES, type Species, type VetService } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import { bookingOffers, bookings, locations, users, vets } from '../../db/schema/index.js';
 import { distanceKm } from '../../lib/geo.js';
@@ -35,6 +35,8 @@ export interface BookingTarget {
   wardId: number;
   lat: number | null;
   lng: number | null;
+  /** Services added to the consultation (§24.3): the vet must offer every one. */
+  services?: readonly VetService[];
 }
 
 /** The farm: pinned coordinates (app/web) or the ward centroid (USSD). */
@@ -52,7 +54,7 @@ export async function bookingPosition(
 
 /**
  * Vets who may be offered this job, best first (§8.5). Hard rules: approved (invariant 2), online,
- * treats the species, within both their own service radius and `radiusKm`, under the active-job
+ * does call-outs with a consultation fee set, offers every added service (§24.3), treats the species, within both their own service radius and `radiusKm`, under the active-job
  * limit, and not already offered this booking. Then scored with the configured weights.
  */
 export async function rankCandidates(
@@ -81,7 +83,10 @@ export async function rankCandidates(
       and(
         eq(vets.verificationStatus, 'approved'), // invariant 2: nobody else, ever
         eq(vets.isAvailable, true),
+        eq(vets.offersCallOuts, true),
+        isNotNull(vets.consultationFee),
         isNull(users.deletedAt),
+        ...(target.services?.length ? [sql`${vets.services} @> ${sqlArray(target.services)}`] : []),
         sql`${vets.specialties} && ${sqlArray(SPECIES_GROUPS[target.species])}`,
       ),
     );

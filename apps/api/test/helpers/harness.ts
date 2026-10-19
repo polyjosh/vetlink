@@ -9,7 +9,14 @@ import {
 } from '@vetlink/shared';
 import { buildApp, type AppOptions } from '../../src/app.js';
 import { createContext, type AppContext } from '../../src/context.js';
-import { adminProfiles, farmers, locations, users, vets } from '../../src/db/schema/index.js';
+import {
+  adminProfiles,
+  farmers,
+  locations,
+  users,
+  vetServiceFees,
+  vets,
+} from '../../src/db/schema/index.js';
 import { inlineJobs } from '../../src/jobs/queue.js';
 import { memoryCounters } from '../../src/lib/counters.js';
 import { fieldContext } from '../../src/lib/crypto.js';
@@ -198,6 +205,9 @@ export class Harness {
       radiusKm?: number;
       online?: boolean;
       rating?: string | null;
+      consultationFee?: number | null;
+      serviceFees?: Partial<Record<string, number>>;
+      offersCallOuts?: boolean;
     } = {},
   ): Promise<Session> {
     const s = await this.login();
@@ -212,8 +222,18 @@ export class Harness {
       baseCallOutFee: options.fee === undefined ? 600 : options.fee,
       serviceRadiusKm: options.radiusKm ?? 50,
       rating: options.rating ?? null,
+      consultationFee: options.consultationFee === undefined ? 500 : options.consultationFee,
+      offersCallOuts: options.offersCallOuts ?? true,
+      hasPremises: options.offersCallOuts === false,
       isAvailable: status === 'approved' && (options.online ?? true),
     });
+    const fees = options.serviceFees ?? { treatment: 300, vaccination: 200 };
+    const rows = Object.entries(fees).map(([service, feeFromKes]) => ({
+      vetId: s.userId,
+      service: service as 'treatment',
+      feeFromKes: feeFromKes ?? 0,
+    }));
+    if (rows.length) await this.db.insert(vetServiceFees).values(rows);
     return s;
   }
 

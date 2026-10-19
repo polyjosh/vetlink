@@ -83,6 +83,7 @@ export async function handleInboundSms(
   } catch (err) {
     if (err instanceof DomainError) {
       if (err.code === 'vet_not_approved') return t(lang).notVerified;
+      if (err.code === 'practice_incomplete') return t(lang).practiceIncomplete;
       if (err.code === 'already_rated') return interpolate(t(lang).rated, { ref: refOf(command) });
       if (err.code === 'offer_taken') return interpolate(t(lang).taken, { ref: refOf(command) });
       if (err.code === 'not_found') return interpolate(t(lang).noJob, { ref: refOf(command) });

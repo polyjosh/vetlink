@@ -10,6 +10,7 @@ import {
   type ApplicationStep,
 } from '@vetlink/shared';
 import { z } from 'zod';
+import { practiceFields } from '../vets/practice.js';
 
 /**
  * The wizard's steps (§8.3). Each step validates on autosave (every field optional) and on
@@ -50,6 +51,8 @@ export const STEP_INPUT = {
     baseCallOutFee: z.number().int().min(0),
     emergencyCallouts: z.boolean(),
     availabilityHours: z.string().trim().max(100).optional(),
+    // §24.3, §24.10: prices, call-outs and premises, working hours.
+    ...practiceFields,
   }),
   payout: z.object({
     payoutMpesaPhone: z.string().transform((v, c) => {
@@ -76,7 +79,17 @@ export const REQUIRED_FIELDS: Record<ApplicationStep, readonly string[]> = {
   personal: ['fullName', 'nationalIdEnc'],
   credentials: ['kvbRegNo', 'kvbCategory', 'qualification', 'institution', 'yearQualified'],
   practice: ['practiceType', 'yearsExperience', 'species', 'services', 'languages'],
-  service_area: ['wardId', 'serviceRadiusKm', 'baseCallOutFee', 'emergencyCallouts'],
+  // Prices per service and premises details are checked by `practiceProblems` (they depend on
+  // the services chosen in the practice step).
+  // The call-out fee is required only of vets who do call-outs (also in `practiceProblems`).
+  service_area: [
+    'wardId',
+    'serviceRadiusKm',
+    'consultationFee',
+    'offersCallOuts',
+    'hasPremises',
+    'workingHours',
+  ],
   payout: ['payoutMpesaPhone'],
   declaration: ['acceptTerms', 'consentVerification', 'declaration'],
 };

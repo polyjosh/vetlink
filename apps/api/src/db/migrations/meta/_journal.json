@@ -71,6 +71,13 @@
       "when": 1792400442906,
       "tag": "0009_profiles_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792407299097,
+      "tag": "0010_vet_practice_prices",
+      "breakpoints": true
     }
   ]
 }

@@ -23,7 +23,8 @@
     "rateHow": "Kutoa tathmini, jibu R na namba ya ombi na 1-5, mfano R{ref} 5.",
     "rateNone": "Hakuna ombi lililokamilika la kutathmini.",
     "tooMany": "Ujumbe mwingi mno. Tafadhali subiri dakika chache.",
-    "error": "Samahani, hitilafu imetokea. Tafadhali jaribu tena."
+    "error": "Samahani, hitilafu imetokea. Tafadhali jaribu tena.",
+    "practiceIncomplete": "VetLink: Weka ada ya ushauri na bei za huduma kwenye programu kabla ya kuingia mtandaoni."
   },
   "errors": {
     "invalid_request": "Kuna kitu hakiko sawa katika ombi. Tafadhali angalia na ujaribu tena.",
@@ -59,7 +60,8 @@
     "application_claimed": "Mkaguzi mwingine tayari anashughulikia maombi haya.",
     "upload_invalid": "Faili hiyo haiwezi kutumika. Pakia JPG, PNG au PDF iliyo wazi chini ya MB 5.",
     "photo_invalid": "Picha hiyo haiwezi kutumika. Chagua picha ya JPG au PNG iliyo chini ya KB 500.",
-    "vet_photo_required": "Daktari anahitaji picha ya wasifu. Unaweza kuibadilisha, lakini si kuiondoa."
+    "vet_photo_required": "Daktari anahitaji picha ya wasifu. Unaweza kuibadilisha, lakini si kuiondoa.",
+    "practice_incomplete": "Weka ada yako ya ushauri na bei ya kila huduma kabla ya kuingia mtandaoni."
   },
   "ussd": {
     "welcome": "Karibu VetLink / Welcome\n1. Kiswahili\n2. English",
@@ -72,9 +74,9 @@
     "enterWard": "Andika jina la wadi yako:",
     "wardNotFound": "Hakuna wadi \"{query}\". Andika jina la wadi tena:",
     "chooseWard": "Chagua wadi yako:\n{options}",
-    "confirm": "{animal}, {problem}\nWadi: {ward}\nAda ya daktari KES {fee} (mlipe daktari)\nAmana KES {deposit} sasa\n1. Thibitisha na ulipe\n2. Ghairi",
-    "confirmEmergency": "DHARURA: {animal}\nWadi: {ward}\nAda KES {fee} (mlipe daktari)\nAmana KES {deposit} sasa\n1. Thibitisha na ulipe\n2. Ghairi",
-    "requested": "Ombi {ref} limetumwa. Weka PIN ya M-Pesa ukiombwa kulipa amana ya KES {deposit}. Tutakutumia SMS daktari akikubali.",
+    "confirm": "{animal}, {problem}\nWadi: {ward}\nJumla kuanzia KES {price}\nLipa KES {deposit} sasa, salio kwa daktari\n1. Thibitisha na ulipe\n2. Ghairi",
+    "confirmEmergency": "DHARURA: {animal}\nWadi: {ward}\nJumla kuanzia KES {price}\nLipa KES {deposit} sasa, salio kwa daktari\n1. Thibitisha na ulipe\n2. Ghairi",
+    "requested": "Ombi {ref} limetumwa. Weka PIN ya M-Pesa ukiombwa kulipa ada ya kuhifadhi ya KES {deposit}. Tutakutumia SMS daktari akikubali.",
     "cancelled": "Ombi limeghairiwa. Piga tena wakati wowote.",
     "invalid": "Chaguo si sahihi.",
     "animalsList": "Mifugo yako:\n{list}\n1. Ongeza mnyama",
@@ -120,7 +122,8 @@
       "calving": "Kuzaa",
       "follow_up": "Ufuatiliaji"
     },
-    "requestedNoStk": "Ombi {ref} limehifadhiwa, lakini M-Pesa haipatikani sasa. Piga tena kulipa amana ya KES {deposit}, au tumia programu ya VetLink."
+    "requestedNoStk": "Ombi {ref} limehifadhiwa, lakini M-Pesa haipatikani sasa. Piga tena kulipa ada ya kuhifadhi ya KES {deposit}, au tumia programu ya VetLink.",
+    "priceUnknown": "(daktari atathibitisha)"
   },
   "notify": {
     "offer": {
@@ -160,8 +163,8 @@
     },
     "no_vet_found": {
       "title": "Hakuna daktari",
-      "body": "Samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Amana yako ya KES {deposit} itarudishwa.",
-      "sms": "VetLink: samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Amana yako ya KES {deposit} itarudishwa."
+      "body": "Samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Ada yako ya kuhifadhi ya KES {deposit} itarudishwa.",
+      "sms": "VetLink: samahani, hakuna daktari aliyeweza kuchukua ombi {ref}. Ada yako ya kuhifadhi ya KES {deposit} itarudishwa."
     },
     "booking_cancelled": {
       "title": "Kazi imeghairiwa",
@@ -335,11 +338,11 @@
       "review": "Angalia na uthibitishe",
       "fee": "Ada ya daktari kufika",
       "feeHint": "Mlipe daktari moja kwa moja akifika.",
-      "deposit": "Amana sasa",
+      "deposit": "Ada ya kuhifadhi sasa",
       "depositHint": "Inalipwa kwa M-Pesa sasa. Inarudishwa daktari asipokuja.",
       "confirmPay": "Thibitisha na ulipe KES {amount}",
       "checkPhone": "Angalia simu yako",
-      "checkPhoneHint": "Weka PIN ya M-Pesa kulipa amana ya KES {amount}.",
+      "checkPhoneHint": "Weka PIN ya M-Pesa kulipa ada ya kuhifadhi ya KES {amount}.",
       "paymentFailed": "Malipo hayakufanikiwa.",
       "payAgain": "Lipa tena",
       "searching": "Tunatafuta daktari karibu nawe…",
@@ -354,7 +357,7 @@
       "callVet": "Mpigie daktari",
       "cancel": "Ghairi ombi",
       "cancelTitle": "Kwa nini unaghairi?",
-      "cancelPolicy": "Bure hadi daktari aanze safari. Baada ya hapo, amana inakwenda kwa daktari.",
+      "cancelPolicy": "Bure hadi daktari aanze safari: ada ya kuhifadhi inarudishwa. Baada ya hapo, hairudishwi.",
       "cancelConfirm": "Ghairi ombi",
       "cancelled": "Ombi limeghairiwa",
       "rateTitle": "Ziara ilikuwaje?",
@@ -366,12 +369,12 @@
       "drugs": "Dawa",
       "followUp": "Ufuatiliaji",
       "depositStatus": {
-        "none": "Amana haijalipwa",
+        "none": "Ada ya kuhifadhi haijalipwa",
         "pending": "Inasubiri M-Pesa",
-        "paid": "Amana imelipwa",
-        "failed": "Amana haijalipwa",
+        "paid": "Ada ya kuhifadhi imelipwa",
+        "failed": "Ada ya kuhifadhi haijalipwa",
         "refund_pending": "Marejesho yako njiani",
-        "refunded": "Amana imerudishwa"
+        "refunded": "Ada ya kuhifadhi imerudishwa"
       },
       "cancelReasons": {
         "changed_mind": "Nimebadilisha nia",
@@ -436,7 +439,8 @@
       "jobHistory": "Historia ya kazi",
       "shareLocation": "Shiriki eneo langu la sasa",
       "shareLocationHint": "Linatumika tu kukutumia kazi za karibu na kuwapa wafugaji muda wa kufika. Halionyeshwi kama njia.",
-      "stopSharing": "Acha kushiriki"
+      "stopSharing": "Acha kushiriki",
+      "profile": "Wasifu wangu"
     },
     "application": {
       "title": "Maombi yako ya daktari",
@@ -478,7 +482,15 @@
         "payoutMpesaPhone": "Namba ya M-Pesa ya malipo",
         "acceptTerms": "Nakubali Masharti na Kanuni za Maadili",
         "consentVerification": "Nakubali ukaguzi wa utambulisho na usajili",
-        "declaration": "Taarifa nilizotoa ni za kweli"
+        "declaration": "Taarifa nilizotoa ni za kweli",
+        "consultationFee": "Ada ya ushauri (KES)",
+        "serviceFees": "Bei yako kwa kila huduma (kuanzia, KES)",
+        "offersCallOuts": "Ninasafiri hadi mashambani",
+        "hasPremises": "Nina kliniki au duka ambalo wakulima wanaweza kutembelea",
+        "premisesWardId": "Wadi ya kliniki",
+        "premisesDirections": "Maelekezo ya kufika kliniki",
+        "premisesHours": "Saa za kufungua kliniki",
+        "workingHours": "Saa za kazi"
       },
       "kvbCategories": {
         "veterinary_surgeon": "Daktari wa mifugo",
@@ -687,6 +699,59 @@
       "noOffers": "Hakuna kazi kwa sasa",
       "noRatings": "Bado hakuna tathmini",
       "offline": "Hauko mtandaoni"
+    },
+    "prices": {
+      "title": "Bei",
+      "consultation": "Ushauri",
+      "consultationHint": "Imejumuishwa katika kila ombi.",
+      "callOut": "Ada ya safari (kufika shambani)",
+      "services": "Bei yako kwa kila huduma",
+      "from": "kuanzia KES {amount}",
+      "total": "Jumla kuanzia KES {amount}",
+      "range": "KES {min} hadi {max}",
+      "fromVets": "Kutoka kwa madaktari {n} walio karibu",
+      "bookingFeeNow": "Ada ya kuhifadhi kwa VetLink sasa",
+      "payVetOnFarm": "Mlipe daktari shambani",
+      "collect": "Utapokea kutoka kwa mkulima",
+      "startingPrice": "Hii ni bei ya kuanzia: dawa na kazi ya ziada inayopatikana shambani inaweza kugharimu zaidi.",
+      "noPriceYet": "Bado hakuna daktari wa karibu mwenye bei. Daktari atakayekubali atathibitisha bei.",
+      "addServices": "Ongeza huduma (si lazima)",
+      "addServicesHint": "Ushauri umejumuishwa kila wakati. Ikiwa unachohitaji hakipo, acha hizi tupu.",
+      "band": "Inaruhusiwa: KES {min} hadi {max}",
+      "bookingFeeIncluded": "Inajumuisha ada ya kuhifadhi ya VetLink ya KES {fee}, ambayo mkulima hulipa anapohifadhi."
+    },
+    "hours": {
+      "title": "Saa za kazi",
+      "closed": "Imefungwa",
+      "from": "Kuanzia",
+      "to": "Hadi",
+      "days": {
+        "mon": "Jumatatu",
+        "tue": "Jumanne",
+        "wed": "Jumatano",
+        "thu": "Alhamisi",
+        "fri": "Ijumaa",
+        "sat": "Jumamosi",
+        "sun": "Jumapili"
+      }
+    },
+    "vetProfile": {
+      "title": "Wasifu wangu wa daktari",
+      "practice": "Huduma na bei",
+      "qualifications": "Sifa",
+      "documents": "Hati zangu",
+      "open": "Fungua",
+      "incomplete": "Kamilisha haya kabla ya kuingia mtandaoni:",
+      "callOuts": "Ninasafiri hadi mashambani",
+      "premises": "Nina kliniki au duka ambalo wakulima wanaweza kutembelea",
+      "premisesWard": "Wadi ya kliniki",
+      "premisesDirections": "Maelekezo ya kufika kliniki",
+      "premisesHours": "Saa za kufungua kliniki",
+      "criticalHint": "Ili kubadilisha jina, kitambulisho, nambari ya KVB, leseni au nambari ya malipo, anza sasisho la ombi lako litakalokaguliwa.",
+      "nationalId": "Kitambulisho",
+      "verifiedOn": "Amethibitishwa {date}",
+      "editPhoto": "Badilisha picha kwenye Wasifu wangu",
+      "updateDetails": "Sasisha maelezo yanayokaguliwa"
     }
   }
 }

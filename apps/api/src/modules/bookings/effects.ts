@@ -1,6 +1,6 @@
 import { eq, max } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
-import { DEPOSIT_KES, type BookingEvent } from '@vetlink/shared';
+import type { BookingEvent } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import { bookingOffers, bookings, users } from '../../db/schema/index.js';
 import type { TransitionResult } from './transitions.js';
@@ -91,7 +91,7 @@ export async function runBookingEffects(
       await toFarmer('booking_completed', { vet: (await vetName()).name });
       return;
     case 'no_vet_found':
-      await toFarmer('no_vet_found', { deposit: DEPOSIT_KES });
+      await toFarmer('no_vet_found', { deposit: b.bookingFeeKes });
       return;
     case 'farmer_cancelled':
     case 'admin_cancelled':

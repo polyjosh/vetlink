@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, gte, ilike, isNull, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import { interpolate, messages, type Locale } from '@vetlink/i18n';
-import { DEPOSIT_KES, type ProblemType, type Species } from '@vetlink/shared';
+import { servicesForProblem, type ProblemType, type Species } from '@vetlink/shared';
 import type { AppContext } from '../../context.js';
 import {
   animals,
@@ -14,7 +14,7 @@ import {
 } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
 import { maskPhone } from '../../lib/phone.js';
-import { quoteCallOutFee } from '../bookings/pricing.js';
+import { currentBookingFee, quotePriceRange } from '../bookings/pricing.js';
 import { createBooking } from '../bookings/service.js';
 import { requestDeposit } from '../payments/service.js';
 import { chooseRole, giveConsent } from '../users/service.js';
@@ -221,13 +221,26 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
     if (!ward) return end(t().error);
     const chosenWard = ward;
 
+    // USSD cannot tick extra services in 160 characters: the problem implies them (§24.3).
+    const services = servicesForProblem(problemType);
+    const bookingFee = await currentBookingFee(ctx);
+    // The same server-side quote the booking stores (§8.6: fees are shown before commitment).
+    const range = await quotePriceRange(
+      ctx,
+      { wardId: chosenWard.id, species, services },
+      bookingFee,
+    );
+    const kes = (n: number) => n.toLocaleString('en-KE');
     const vars = {
       animal: t().species[species],
       problem: t().problems[problemType],
       ward: chosenWard.name,
-      // The same server-side quote the booking stores (§8.6: fees are shown before commitment).
-      fee: await quoteCallOutFee(ctx, { wardId: chosenWard.id, species }),
-      deposit: DEPOSIT_KES,
+      price: !range
+        ? t().priceUnknown
+        : range.min === range.max
+          ? kes(range.min)
+          : `${kes(range.min)}-${kes(range.max)}`,
+      deposit: bookingFee,
     };
     const confirmed = ask(
       () => interpolate(isEmergency ? t().confirmEmergency : t().confirm, vars),
@@ -244,6 +257,7 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
       problemType,
       isEmergency,
       wardId: chosenWard.id,
+      services,
     });
     // First booking from a new number: remember the ward for next time.
     if (!snap.savedWard) {
@@ -258,9 +272,11 @@ async function run(ctx: AppContext, req: UssdRequest, log: FastifyBaseLogger): P
       await requestDeposit(ctx, { bookingId: booking.id, farmerId: userId }, log);
     } catch (err) {
       if (!(err instanceof DomainError && err.code === 'payment_unavailable')) throw err;
-      return end(interpolate(t().requestedNoStk, { ref: booking.id, deposit: DEPOSIT_KES }));
+      return end(
+        interpolate(t().requestedNoStk, { ref: booking.id, deposit: booking.bookingFeeKes }),
+      );
     }
-    return end(interpolate(t().requested, { ref: booking.id, deposit: DEPOSIT_KES }));
+    return end(interpolate(t().requested, { ref: booking.id, deposit: booking.bookingFeeKes }));
   }
 
   /** Search wards by name until the farmer picks one. */

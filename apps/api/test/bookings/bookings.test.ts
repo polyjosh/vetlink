@@ -121,13 +121,24 @@ describe.skipIf(!testServerUrl)('bookings (database)', { timeout: 30_000 }, () =
 
       const before = await quote('species=cattle');
       expect(before.statusCode).toBe(200);
-      expect(before.json()).toEqual({ feeQuoted: DEFAULT_CALL_OUT_FEE_KES, depositKes: 200 });
+      expect(before.json()).toEqual({
+        feeQuoted: DEFAULT_CALL_OUT_FEE_KES,
+        depositKes: 200,
+        priceRange: null,
+      });
 
       await h.vet(wardId);
-      const quoted = (await quote(`species=cattle&wardId=${wardId}`)).json<{ feeQuoted: number }>();
+      const quoted = (await quote(`species=cattle&wardId=${wardId}`)).json<{
+        feeQuoted: number;
+        priceRange: unknown;
+      }>();
       expect(quoted.feeQuoted).toBe(600);
+      // Consultation 500 + call-out 600 (§24.3); the booking fee is part of the total.
+      expect(quoted.priceRange).toEqual({ min: 1100, max: 1100, bookingFee: 200, vets: 1 });
       const booked = (await book(farmer)).json<FarmerBookingView>();
       expect(booked.feeQuoted).toBe(quoted.feeQuoted);
+      expect(booked.priceRange).toEqual(quoted.priceRange);
+      expect(booked.depositKes).toBe(200);
 
       expect((await quote('species=unicorn')).statusCode).toBe(400);
       const vet = await h.vet(wardId);
