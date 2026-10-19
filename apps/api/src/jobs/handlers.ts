@@ -1,5 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import type { AppContext } from '../context.js';
+import { sweepDeadlines } from '../modules/bookings/choose.js';
 import { runBookingEffects } from '../modules/bookings/effects.js';
 import { dispatchWave, giveUp, waveTimedOut } from '../modules/matching/dispatch.js';
 import { deliver, notify, smsFallback } from '../modules/notifications/service.js';
@@ -30,6 +31,7 @@ export const jobHandlers: { [N in JobName]: Handler<N> } = {
   'reminders.morning': (ctx, _data, log) => morningReminders(ctx, log),
   'reminders.evening': (ctx, _data, log) => sendVetFollowUpAlerts(ctx, 'evening', log),
   'vets.badges': (ctx, _data, log) => updateBadges(ctx, log),
+  'bookings.deadlines': (ctx, _data, log) => sweepDeadlines(ctx, log),
 };
 
 export async function runJob<N extends JobName>(

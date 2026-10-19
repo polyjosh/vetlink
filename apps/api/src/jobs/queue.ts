@@ -38,6 +38,11 @@ export async function scheduleRepeatingJobs(queue: Queue): Promise<void> {
     { every: 60_000 },
     { name: 'payments.reconcile', data: {} },
   );
+  await queue.upsertJobScheduler(
+    'bookings.deadlines',
+    { every: 60_000 },
+    { name: 'bookings.deadlines', data: {} },
+  );
   // 06:00 Nairobi (03:00 UTC), before vets start their day.
   await queue.upsertJobScheduler(
     'vets.licence-check',

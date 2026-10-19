@@ -42,6 +42,8 @@ export const ERROR_STATUS = {
   photo_invalid: 422,
   vet_photo_required: 409,
   practice_incomplete: 409,
+  vet_unavailable_now: 409,
+  at_capacity: 409,
 } as const;
 export type ErrorCode = keyof typeof ERROR_STATUS;
 

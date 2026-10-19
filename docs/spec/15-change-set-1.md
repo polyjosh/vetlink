@@ -84,10 +84,10 @@ Emergency requests are always `auto` (speed beats choice).
    - Vet position for distance is the base ward centroid, or the premises pin. **Live location is never used for the list**, so it can never leak a vet's position. Vet coordinates are never sent to the client, only the rounded distance.
    - New vets with no rating are shown as "New" and are not pushed to the bottom (sorting by rating puts them after rated vets, but the default sort is distance).
 4. **Review:** the vet, the call-out fee, the service fee ("from"), the KES 200 deposit, and the policy text "You pay the deposit only after the vet accepts."
-5. **Send request.** The booking is created in status `requested` with an `Idempotency-Key`. The chosen vet gets a **direct request** (push, SMS fallback, the same offer row as today with `wave = 0`). Response window: **10 minutes** for "as soon as possible", **2 hours** for scheduled (capped at 1 hour before the slot). Both in config.
-6. **Vet accepts** → status `awaiting_deposit`, the vet is held, and the server **immediately sends the STK push** to the farmer's phone. The farmer also gets a push/SMS: "Dr X accepted. Enter your M-Pesa PIN to pay the KES 200 deposit." The app shows "Pay deposit" (resend the STK push). The farmer has **10 minutes** (config) to pay.
+5. **Send request.** The booking is created in status `requested` with an `Idempotency-Key`. The chosen vet gets a **direct request** (push, SMS fallback, the same offer row as today with `wave = 0`). Response window: **5 minutes** for "as soon as possible", **2 hours** for scheduled (capped at 1 hour before the slot). Both in config.
+6. **Vet accepts** → status `awaiting_deposit`, the vet is held, and the server **immediately sends the STK push** to the farmer's phone. The farmer also gets a push/SMS: "Dr X accepted. Enter your M-Pesa PIN to pay the KES 200 deposit." The app shows "Pay deposit" (resend the STK push). The farmer has **5 minutes** (config `booking.chooseFlowMinutes`) to pay.
 7. **Deposit confirmed** → `matched`. From here the flow is unchanged (en route, arrived, completed, rating).
-8. **Vet declines or does not answer** → status `vet_unavailable`. The farmer is told and is offered: choose another vet (back to step 3, same booking; the declined vet is hidden), switch to "Fastest available vet" (`auto`, pay first), or cancel. Nothing was paid, so there is nothing to refund. After 3 declined/expired choices the farmer is nudged to "Fastest available vet". A booking left in `vet_unavailable` for 30 minutes expires.
+8. **Vet declines or does not answer** → status `vet_unavailable`. The farmer is told and is offered: choose another vet (back to step 3, same booking; the declined vet is hidden), switch to "Fastest available vet" (`auto`, pay first), or cancel. Nothing was paid, so there is nothing to refund. After 3 declined/expired choices the farmer is nudged to "Fastest available vet". A booking left in `vet_unavailable` for 10 minutes expires.
 9. **Deposit not paid in time** (or it fails and the window passes) → `expired`; the vet is released and told.
 10. **Farmer cancels** in `requested`, `vet_unavailable` or `awaiting_deposit`: no money involved. After `matched` the §8.6 rules apply.
 
@@ -241,7 +241,7 @@ chosen: requested ─vet_accepted→ awaiting_deposit ─deposit_confirmed→ ma
  declined / │  │ farmer_rechose        └─deposit_timed_out→ expired
   timeout   ↓  │
         vet_unavailable ─farmer_switched_to_auto→ pending_payment → (auto flow)
-            └─request_abandoned (30 min)→ expired
+            └─request_abandoned (10 min)→ expired
 ```
 
 ### 24.21 Data model additions (amends §9)

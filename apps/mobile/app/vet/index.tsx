@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { TERMINAL_BOOKING_STATUSES } from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
@@ -12,24 +12,10 @@ import { kv } from '../../src/lib/storage';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
+import { Countdown } from '../../src/components/countdown';
 import { EmptyState } from '../../src/components/pictures';
 import { PriceLines } from '../../src/components/prices';
 import { FollowUpList } from '../../src/components/follow-ups';
-
-function Countdown({ until }: { until: string }) {
-  const { t, fmt } = useT();
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const left = Math.max(0, Math.round((Date.parse(until) - now) / 1000));
-  return (
-    <Badge tone={left > 0 ? 'warning' : 'danger'}>
-      {left > 0 ? fmt(t.web.vet.timeLeft, { seconds: left }) : t.web.vet.expired}
-    </Badge>
-  );
-}
 
 /** Vet home (§8.3): online toggle, live offers with countdown, active jobs. */
 export default function VetHome() {
@@ -134,6 +120,7 @@ export default function VetHome() {
                 style={{ fontWeight: '700' }}
               >{`${t.ussd.species[o.species]}, ${t.ussd.problems[o.problemType]}`}</Text>
               <Countdown until={o.expiresAt} />
+              {o.kind === 'direct' && <Badge tone="success">{t.web.choose.farmerChoseYou}</Badge>}
             </View>
             <P>{`${o.ward.ward} (${o.ward.subCounty})`}</P>
             {o.price ? (

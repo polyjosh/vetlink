@@ -54,7 +54,9 @@
               "upload_invalid",
               "photo_invalid",
               "vet_photo_required",
-              "practice_incomplete"
+              "practice_incomplete",
+              "vet_unavailable_now",
+              "at_capacity"
             ]
           },
           "message_key": {
@@ -446,7 +448,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "problemType": {
@@ -639,7 +644,10 @@
               "in_service",
               "done",
               "cancelled",
-              "expired"
+              "expired",
+              "requested",
+              "vet_unavailable",
+              "awaiting_deposit"
             ]
           },
           "species": {
@@ -735,6 +743,58 @@
             ],
             "description": "The accepting vet's price, fixed at acceptance"
           },
+          "dispatchMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "chosen"
+            ]
+          },
+          "requestedVet": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "photoUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "photoUrl"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The vet the farmer chose (§24.6)"
+          },
+          "statusDeadlineAt": {
+            "description": "When the booking moves on by itself: vet answer, booking fee, choosing again",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "directChoices": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -806,7 +866,13 @@
                     "vet_completed",
                     "farmer_cancelled",
                     "no_vet_found",
-                    "admin_cancelled"
+                    "admin_cancelled",
+                    "vet_declined_request",
+                    "request_timed_out",
+                    "farmer_rechose",
+                    "farmer_switched_to_auto",
+                    "deposit_timed_out",
+                    "request_abandoned"
                   ]
                 },
                 "status": {
@@ -819,7 +885,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "at": {
@@ -1003,7 +1072,13 @@
                 "vet_completed",
                 "farmer_cancelled",
                 "no_vet_found",
-                "admin_cancelled"
+                "admin_cancelled",
+                "vet_declined_request",
+                "request_timed_out",
+                "farmer_rechose",
+                "farmer_switched_to_auto",
+                "deposit_timed_out",
+                "request_abandoned"
               ]
             },
             "description": "Events the farmer can trigger now"
@@ -1023,6 +1098,10 @@
           "services",
           "priceRange",
           "price",
+          "dispatchMode",
+          "requestedVet",
+          "statusDeadlineAt",
+          "directChoices",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -1052,7 +1131,10 @@
               "in_service",
               "done",
               "cancelled",
-              "expired"
+              "expired",
+              "requested",
+              "vet_unavailable",
+              "awaiting_deposit"
             ]
           },
           "species": {
@@ -1174,7 +1256,13 @@
                     "vet_completed",
                     "farmer_cancelled",
                     "no_vet_found",
-                    "admin_cancelled"
+                    "admin_cancelled",
+                    "vet_declined_request",
+                    "request_timed_out",
+                    "farmer_rechose",
+                    "farmer_switched_to_auto",
+                    "deposit_timed_out",
+                    "request_abandoned"
                   ]
                 },
                 "status": {
@@ -1187,7 +1275,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "at": {
@@ -1259,7 +1350,13 @@
                 "vet_completed",
                 "farmer_cancelled",
                 "no_vet_found",
-                "admin_cancelled"
+                "admin_cancelled",
+                "vet_declined_request",
+                "request_timed_out",
+                "farmer_rechose",
+                "farmer_switched_to_auto",
+                "deposit_timed_out",
+                "request_abandoned"
               ]
             },
             "description": "Events the vet can trigger now"
@@ -1355,6 +1452,14 @@
             ],
             "description": "What this job pays at my current prices"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "wave",
+              "direct"
+            ],
+            "description": "direct: the farmer chose you"
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -1377,6 +1482,7 @@
           "feeQuoted",
           "services",
           "price",
+          "kind",
           "wave",
           "sentAt",
           "expiresAt"
@@ -1400,7 +1506,10 @@
               "in_service",
               "done",
               "cancelled",
-              "expired"
+              "expired",
+              "requested",
+              "vet_unavailable",
+              "awaiting_deposit"
             ]
           },
           "species": {
@@ -1496,6 +1605,58 @@
             ],
             "description": "The accepting vet's price, fixed at acceptance"
           },
+          "dispatchMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "chosen"
+            ]
+          },
+          "requestedVet": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "photoUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "photoUrl"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The vet the farmer chose (§24.6)"
+          },
+          "statusDeadlineAt": {
+            "description": "When the booking moves on by itself: vet answer, booking fee, choosing again",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "directChoices": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -1567,7 +1728,13 @@
                     "vet_completed",
                     "farmer_cancelled",
                     "no_vet_found",
-                    "admin_cancelled"
+                    "admin_cancelled",
+                    "vet_declined_request",
+                    "request_timed_out",
+                    "farmer_rechose",
+                    "farmer_switched_to_auto",
+                    "deposit_timed_out",
+                    "request_abandoned"
                   ]
                 },
                 "status": {
@@ -1580,7 +1747,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "at": {
@@ -1764,7 +1934,13 @@
                 "vet_completed",
                 "farmer_cancelled",
                 "no_vet_found",
-                "admin_cancelled"
+                "admin_cancelled",
+                "vet_declined_request",
+                "request_timed_out",
+                "farmer_rechose",
+                "farmer_switched_to_auto",
+                "deposit_timed_out",
+                "request_abandoned"
               ]
             },
             "description": "Events the farmer can trigger now"
@@ -1874,6 +2050,10 @@
           "services",
           "priceRange",
           "price",
+          "dispatchMode",
+          "requestedVet",
+          "statusDeadlineAt",
+          "directChoices",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -2701,7 +2881,12 @@
               "photo_rejected",
               "reminder_due",
               "followup_tomorrow",
-              "followup_today"
+              "followup_today",
+              "request",
+              "vet_accepted_pay",
+              "request_declined",
+              "request_unpaid",
+              "request_confirmed"
             ]
           },
           "title": {
@@ -2884,6 +3069,384 @@
           "updatedAt",
           "resultCode",
           "resultDesc"
+        ]
+      },
+      "ChoosableVetInput": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "description": "Verified legal name",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "vet",
+              "paravet"
+            ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            }
+          },
+          "rating": {
+            "description": "null: new vet, no ratings yet",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "distanceKm": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Whole km from the base or clinic, 0 = under 1 km; never live location"
+          },
+          "price": {
+            "$ref": "#/components/schemas/PriceBreakdownInput"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsExperience": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "displayName",
+          "photoUrl",
+          "type",
+          "badges",
+          "rating",
+          "distanceKm",
+          "price",
+          "languages",
+          "yearsExperience"
+        ]
+      },
+      "VetCardInput": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "vet",
+              "paravet"
+            ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            }
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "species": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "cattle",
+                "goat",
+                "sheep",
+                "pig",
+                "poultry",
+                "dog",
+                "other"
+              ]
+            }
+          },
+          "consultationFee": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "callOutFee": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serviceFees": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "yearsExperience": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sw",
+                "en",
+                "ki",
+                "luo",
+                "kam",
+                "kln",
+                "other"
+              ]
+            }
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "premises": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "ward": {
+                    "type": "string"
+                  },
+                  "directions": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hours": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "ward",
+                  "directions",
+                  "hours"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "displayName",
+          "photoUrl",
+          "type",
+          "badges",
+          "rating",
+          "species",
+          "consultationFee",
+          "callOutFee",
+          "serviceFees",
+          "yearsExperience",
+          "languages",
+          "bio",
+          "premises"
+        ]
+      },
+      "ClinicInput": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            }
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "distanceKm": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ward": {
+            "type": "string"
+          },
+          "directions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hours": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "lat",
+              "lng"
+            ]
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "photoUrl",
+          "badges",
+          "rating",
+          "distanceKm",
+          "ward",
+          "directions",
+          "hours",
+          "location"
         ]
       },
       "PresignedUploadInput": {
@@ -3854,7 +4417,9 @@
               "upload_invalid",
               "photo_invalid",
               "vet_photo_required",
-              "practice_incomplete"
+              "practice_incomplete",
+              "vet_unavailable_now",
+              "at_capacity"
             ]
           },
           "message_key": {
@@ -4257,7 +4822,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "problemType": {
@@ -4456,7 +5024,10 @@
               "in_service",
               "done",
               "cancelled",
-              "expired"
+              "expired",
+              "requested",
+              "vet_unavailable",
+              "awaiting_deposit"
             ]
           },
           "species": {
@@ -4552,6 +5123,59 @@
             ],
             "description": "The accepting vet's price, fixed at acceptance"
           },
+          "dispatchMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "chosen"
+            ]
+          },
+          "requestedVet": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "photoUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "photoUrl"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The vet the farmer chose (§24.6)"
+          },
+          "statusDeadlineAt": {
+            "description": "When the booking moves on by itself: vet answer, booking fee, choosing again",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "directChoices": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -4624,7 +5248,13 @@
                     "vet_completed",
                     "farmer_cancelled",
                     "no_vet_found",
-                    "admin_cancelled"
+                    "admin_cancelled",
+                    "vet_declined_request",
+                    "request_timed_out",
+                    "farmer_rechose",
+                    "farmer_switched_to_auto",
+                    "deposit_timed_out",
+                    "request_abandoned"
                   ]
                 },
                 "status": {
@@ -4637,7 +5267,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "at": {
@@ -4825,7 +5458,13 @@
                 "vet_completed",
                 "farmer_cancelled",
                 "no_vet_found",
-                "admin_cancelled"
+                "admin_cancelled",
+                "vet_declined_request",
+                "request_timed_out",
+                "farmer_rechose",
+                "farmer_switched_to_auto",
+                "deposit_timed_out",
+                "request_abandoned"
               ]
             },
             "description": "Events the farmer can trigger now"
@@ -4845,6 +5484,10 @@
           "services",
           "priceRange",
           "price",
+          "dispatchMode",
+          "requestedVet",
+          "statusDeadlineAt",
+          "directChoices",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -4875,7 +5518,10 @@
               "in_service",
               "done",
               "cancelled",
-              "expired"
+              "expired",
+              "requested",
+              "vet_unavailable",
+              "awaiting_deposit"
             ]
           },
           "species": {
@@ -4998,7 +5644,13 @@
                     "vet_completed",
                     "farmer_cancelled",
                     "no_vet_found",
-                    "admin_cancelled"
+                    "admin_cancelled",
+                    "vet_declined_request",
+                    "request_timed_out",
+                    "farmer_rechose",
+                    "farmer_switched_to_auto",
+                    "deposit_timed_out",
+                    "request_abandoned"
                   ]
                 },
                 "status": {
@@ -5011,7 +5663,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "at": {
@@ -5085,7 +5740,13 @@
                 "vet_completed",
                 "farmer_cancelled",
                 "no_vet_found",
-                "admin_cancelled"
+                "admin_cancelled",
+                "vet_declined_request",
+                "request_timed_out",
+                "farmer_rechose",
+                "farmer_switched_to_auto",
+                "deposit_timed_out",
+                "request_abandoned"
               ]
             },
             "description": "Events the vet can trigger now"
@@ -5182,6 +5843,14 @@
             ],
             "description": "What this job pays at my current prices"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "wave",
+              "direct"
+            ],
+            "description": "direct: the farmer chose you"
+          },
           "wave": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -5204,6 +5873,7 @@
           "feeQuoted",
           "services",
           "price",
+          "kind",
           "wave",
           "sentAt",
           "expiresAt"
@@ -5228,7 +5898,10 @@
               "in_service",
               "done",
               "cancelled",
-              "expired"
+              "expired",
+              "requested",
+              "vet_unavailable",
+              "awaiting_deposit"
             ]
           },
           "species": {
@@ -5324,6 +5997,59 @@
             ],
             "description": "The accepting vet's price, fixed at acceptance"
           },
+          "dispatchMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "chosen"
+            ]
+          },
+          "requestedVet": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "photoUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "photoUrl"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The vet the farmer chose (§24.6)"
+          },
+          "statusDeadlineAt": {
+            "description": "When the booking moves on by itself: vet answer, booking fee, choosing again",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "directChoices": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "deposit": {
             "type": "object",
             "properties": {
@@ -5396,7 +6122,13 @@
                     "vet_completed",
                     "farmer_cancelled",
                     "no_vet_found",
-                    "admin_cancelled"
+                    "admin_cancelled",
+                    "vet_declined_request",
+                    "request_timed_out",
+                    "farmer_rechose",
+                    "farmer_switched_to_auto",
+                    "deposit_timed_out",
+                    "request_abandoned"
                   ]
                 },
                 "status": {
@@ -5409,7 +6141,10 @@
                     "in_service",
                     "done",
                     "cancelled",
-                    "expired"
+                    "expired",
+                    "requested",
+                    "vet_unavailable",
+                    "awaiting_deposit"
                   ]
                 },
                 "at": {
@@ -5597,7 +6332,13 @@
                 "vet_completed",
                 "farmer_cancelled",
                 "no_vet_found",
-                "admin_cancelled"
+                "admin_cancelled",
+                "vet_declined_request",
+                "request_timed_out",
+                "farmer_rechose",
+                "farmer_switched_to_auto",
+                "deposit_timed_out",
+                "request_abandoned"
               ]
             },
             "description": "Events the farmer can trigger now"
@@ -5709,6 +6450,10 @@
           "services",
           "priceRange",
           "price",
+          "dispatchMode",
+          "requestedVet",
+          "statusDeadlineAt",
+          "directChoices",
           "deposit",
           "createdAt",
           "acceptedAt",
@@ -6554,7 +7299,12 @@
               "photo_rejected",
               "reminder_due",
               "followup_tomorrow",
-              "followup_today"
+              "followup_today",
+              "request",
+              "vet_accepted_pay",
+              "request_declined",
+              "request_unpaid",
+              "request_confirmed"
             ]
           },
           "title": {
@@ -6739,6 +7489,389 @@
           "updatedAt",
           "resultCode",
           "resultDesc"
+        ],
+        "additionalProperties": false
+      },
+      "ChoosableVet": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "description": "Verified legal name",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "vet",
+              "paravet"
+            ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            }
+          },
+          "rating": {
+            "description": "null: new vet, no ratings yet",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "distanceKm": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Whole km from the base or clinic, 0 = under 1 km; never live location"
+          },
+          "price": {
+            "$ref": "#/components/schemas/PriceBreakdown"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsExperience": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "displayName",
+          "photoUrl",
+          "type",
+          "badges",
+          "rating",
+          "distanceKm",
+          "price",
+          "languages",
+          "yearsExperience"
+        ],
+        "additionalProperties": false
+      },
+      "VetCard": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "vet",
+              "paravet"
+            ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            }
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "species": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "cattle",
+                "goat",
+                "sheep",
+                "pig",
+                "poultry",
+                "dog",
+                "other"
+              ]
+            }
+          },
+          "consultationFee": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "callOutFee": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serviceFees": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "treatment",
+                "vaccination",
+                "artificial_insemination",
+                "deworming",
+                "pregnancy_diagnosis",
+                "minor_surgery"
+              ]
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "yearsExperience": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sw",
+                "en",
+                "ki",
+                "luo",
+                "kam",
+                "kln",
+                "other"
+              ]
+            }
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "premises": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "ward": {
+                    "type": "string"
+                  },
+                  "directions": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hours": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "ward",
+                  "directions",
+                  "hours"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "displayName",
+          "photoUrl",
+          "type",
+          "badges",
+          "rating",
+          "species",
+          "consultationFee",
+          "callOutFee",
+          "serviceFees",
+          "yearsExperience",
+          "languages",
+          "bio",
+          "premises"
+        ],
+        "additionalProperties": false
+      },
+      "Clinic": {
+        "type": "object",
+        "properties": {
+          "vetId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "verified",
+                "top_rated",
+                "fast_responder",
+                "jobs_50",
+                "jobs_100",
+                "jobs_500",
+                "vaccinations_100"
+              ]
+            }
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "distanceKm": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ward": {
+            "type": "string"
+          },
+          "directions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hours": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "lat",
+              "lng"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "vetId",
+          "name",
+          "photoUrl",
+          "badges",
+          "rating",
+          "distanceKm",
+          "ward",
+          "directions",
+          "hours",
+          "location"
         ],
         "additionalProperties": false
       },
@@ -12074,6 +13207,955 @@
         }
       }
     },
+    "/v1/vets/choose": {
+      "get": {
+        "summary": "Vets I can choose for a request (up to 20), with their price for it",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.\n\nThe same rules as matching: approved, online, call-outs, every added service, room for another job. Distance is rounded and never from live location (§24.6, §17).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "cattle",
+                "goat",
+                "sheep",
+                "pig",
+                "poultry",
+                "dog",
+                "other"
+              ]
+            },
+            "in": "query",
+            "name": "species",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "services",
+            "required": false,
+            "description": "Comma-separated services added to the consultation"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "query",
+            "name": "wardId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": -5,
+              "maximum": 6
+            },
+            "in": "query",
+            "name": "lat",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 33,
+              "maximum": 42.5
+            },
+            "in": "query",
+            "name": "lng",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "distance",
+                "rating",
+                "price"
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChoosableVet"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bookings/{id}/vets": {
+      "get": {
+        "summary": "Vets I can choose again for this request (vets already asked are left out)",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "distance",
+                "rating",
+                "price"
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChoosableVet"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bookings/{id}/rechoose": {
+      "post": {
+        "summary": "Ask another vet after the last one declined or did not answer",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vetId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "vetId"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerBooking"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bookings/{id}/switch-to-auto": {
+      "post": {
+        "summary": "Stop choosing: pay the booking fee and let the fastest available vet take it",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.\n\nThen pay with POST /v1/payments/stk, as for any automatic booking.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerBooking"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vets/{vetId}/card": {
+      "get": {
+        "summary": "A vet's profile as farmers see it (approved vets only)",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.\n\nOnly what §8.3 \"What farmers see\" allows: never IDs, documents or payout.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "vetId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VetCard"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vets/clinics": {
+      "get": {
+        "summary": "Clinics and agrovets near the farm that farmers can visit (§24.3)",
+        "tags": [
+          "bookings (farmer)"
+        ],
+        "description": "Access: role `farmer`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 2147483647
+            },
+            "in": "query",
+            "name": "wardId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": -5,
+              "maximum": 6
+            },
+            "in": "query",
+            "name": "lat",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 33,
+              "maximum": 42.5
+            },
+            "in": "query",
+            "name": "lng",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Clinic"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/bookings": {
       "post": {
         "summary": "Request a vet (created in pending_payment)",
@@ -12154,6 +14236,20 @@
                         "minor_surgery"
                       ]
                     }
+                  },
+                  "dispatchMode": {
+                    "default": "auto",
+                    "description": "chosen: only vetId is asked, and the booking fee follows acceptance (§24.6)",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "chosen"
+                    ]
+                  },
+                  "vetId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   }
                 },
                 "required": [
@@ -21162,7 +23258,10 @@
                 "in_service",
                 "done",
                 "cancelled",
-                "expired"
+                "expired",
+                "requested",
+                "vet_unavailable",
+                "awaiting_deposit"
               ]
             },
             "in": "query",

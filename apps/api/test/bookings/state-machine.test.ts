@@ -9,6 +9,7 @@ import {
   TERMINAL_BOOKING_STATUSES,
   availableEvents,
   canTransition,
+  transitionTarget,
 } from '@vetlink/shared';
 
 describe('booking state machine (table)', () => {
@@ -36,12 +37,28 @@ describe('booking state machine (table)', () => {
     for (const actor of BOOKING_ACTOR_KINDS) {
       for (const status of BOOKING_STATUSES) {
         expect(canTransition(status, 'deposit_confirmed', actor)).toBe(
-          actor === 'system' && status === 'pending_payment',
+          actor === 'system' && (status === 'pending_payment' || status === 'awaiting_deposit'),
         );
         for (const e of ['vet_accepted', 'vet_en_route', 'vet_arrived', 'vet_completed'] as const) {
           if (canTransition(status, e, actor)) expect(actor).toBe('vet');
         }
       }
+    }
+  });
+
+  it('the chosen-vet flow (§24.20): one event, two targets; the farmer chooses again', () => {
+    expect(transitionTarget('vet_accepted', 'pending')).toBe('matched');
+    expect(transitionTarget('vet_accepted', 'requested')).toBe('awaiting_deposit');
+    expect(transitionTarget('deposit_confirmed', 'pending_payment')).toBe('pending');
+    expect(transitionTarget('deposit_confirmed', 'awaiting_deposit')).toBe('matched');
+    expect(canTransition('requested', 'vet_declined_request', 'vet')).toBe(true);
+    expect(canTransition('vet_unavailable', 'farmer_rechose', 'farmer')).toBe(true);
+    expect(canTransition('vet_unavailable', 'farmer_switched_to_auto', 'farmer')).toBe(true);
+    expect(canTransition('requested', 'request_timed_out', 'farmer')).toBe(false);
+    expect(canTransition('awaiting_deposit', 'deposit_timed_out', 'system')).toBe(true);
+    // Nothing was paid before acceptance, so the farmer may always walk away.
+    for (const s of ['requested', 'vet_unavailable', 'awaiting_deposit'] as const) {
+      expect(canTransition(s, 'farmer_cancelled', 'farmer')).toBe(true);
     }
   });
 
@@ -55,6 +72,10 @@ describe('booking state machine (table)', () => {
     expect(Object.keys(BOOKING_TRANSITIONS).sort()).toEqual([...BOOKING_EVENTS].sort());
     for (const rule of Object.values(BOOKING_TRANSITIONS)) {
       expect(BOOKING_STATUSES).toContain(rule.to);
+      for (const [from, to] of Object.entries(rule.toFrom ?? {})) {
+        expect(rule.from).toContain(from);
+        expect(BOOKING_STATUSES).toContain(to);
+      }
       expect(rule.from.length).toBeGreaterThan(0);
     }
   });

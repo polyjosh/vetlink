@@ -24,8 +24,10 @@ import {
   vets,
 } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
+import { getConfig } from '../config/service.js';
 import { depositOutcomeOnCancel } from '../payments/policy.js';
 import { createRefundIfPaid } from '../payments/refunds.js';
+import { assertChoosable, sendDirectRequest, vetHasRoom } from './choose.js';
 import { afterCommit } from './effects.js';
 import { currentBookingFee, quoteCallOutFee, quotePriceRange } from './pricing.js';
 import { transition, type BookingActor, type BookingRow } from './transitions.js';
@@ -52,6 +54,9 @@ export interface CreateBookingInput {
   lng?: number | undefined;
   /** Services added to the consultation (§24.3); USSD derives them from the problem. */
   services?: readonly VetService[] | undefined;
+  /** §24.5: `chosen` sends the request to `vetId` only; the booking fee follows acceptance. */
+  dispatchMode?: 'auto' | 'chosen' | undefined;
+  vetId?: string | undefined;
 }
 
 /** Keys are scoped per farmer, so one farmer's key can never return another farmer's booking. */
@@ -64,6 +69,8 @@ function sameRequest(b: BookingRow, input: CreateBookingInput, wardId: number): 
     b.isEmergency === input.isEmergency &&
     b.wardId === wardId &&
     (b.animalId ?? undefined) === input.animalId &&
+    b.dispatchMode === (input.dispatchMode ?? 'auto') &&
+    (b.dispatchMode === 'auto' || (b.requestedVetId ?? undefined) === input.vetId) &&
     [...b.services].sort().join() === [...(input.services ?? [])].sort().join()
   );
 }
@@ -127,6 +134,15 @@ export async function createBooking(
     services,
   };
   const bookingFeeKes = await currentBookingFee(ctx);
+  // §24.5: emergencies always go to everyone; a chosen vet must be choosable right now.
+  const chosen = input.dispatchMode === 'chosen';
+  if (chosen && (input.isEmergency || !input.vetId)) {
+    throw new DomainError('invalid_request', { fields: ['dispatchMode', 'vetId'] });
+  }
+  if (chosen && input.vetId) {
+    await assertChoosable(ctx, target, input.vetId, bookingFeeKes);
+  }
+  const requestMinutes = (await getConfig(ctx, 'booking.chooseFlowMinutes')).request;
   const [inserted] = await ctx.db
     .insert(bookings)
     .values({
@@ -144,13 +160,22 @@ export async function createBooking(
       services,
       bookingFeeKes,
       priceRange: await quotePriceRange(ctx, target, bookingFeeKes),
+      ...(chosen && {
+        dispatchMode: 'chosen' as const,
+        status: 'requested' as const, // created waiting for the chosen vet (§24.20)
+        requestedVetId: input.vetId ?? null,
+        statusDeadlineAt: new Date(now.getTime() + requestMinutes * 60_000),
+      }),
       idempotencyKey: key,
       createdAt: now,
     })
     // A concurrent retry with the same key: one insert wins, the other replays it.
     .onConflictDoNothing({ target: bookings.idempotencyKey })
     .returning();
-  if (inserted) return { booking: inserted, created: true };
+  if (inserted) {
+    if (chosen && input.vetId) await sendDirectRequest(ctx, inserted, input.vetId);
+    return { booking: inserted, created: true };
+  }
   const raced = await replay();
   if (!raced) throw new Error('idempotent insert conflicted but no booking found');
   return raced;
@@ -446,7 +471,13 @@ export async function cancelByAdmin(
  */
 export async function createOffer(
   ctx: AppContext,
-  input: { bookingId: number; vetId: string; wave: number; channel: 'push' | 'sms' | 'both' },
+  input: {
+    bookingId: number;
+    vetId: string;
+    wave: number;
+    channel: 'push' | 'sms' | 'both';
+    kind?: 'wave' | 'direct';
+  },
 ): Promise<number | null> {
   const [row] = await ctx.db
     .insert(bookingOffers)
@@ -483,6 +514,14 @@ export async function acceptOffer(
     if (offer.response === 'declined') {
       throw new DomainError('invalid_transition', { event: 'vet_accepted', offer: 'declined' });
     }
+    // A direct request holds the vet until the booking fee is paid: they need room for it.
+    if (
+      offer.kind === 'direct' &&
+      offer.response !== 'accepted' &&
+      !(await vetHasRoom(ctx, input.vetId))
+    ) {
+      throw new DomainError('at_capacity');
+    }
     let result;
     try {
       result = await transition(
@@ -513,7 +552,7 @@ export async function acceptOffer(
 /** Decline an offer. Idempotent; cannot decline an offer already accepted. */
 export async function declineOffer(
   ctx: AppContext,
-  input: { offerId: number; bookingId: number; vetId: string },
+  input: { offerId: number; bookingId: number; vetId: string; channel?: Channel },
 ): Promise<void> {
   const [offer] = await ctx.db
     .select()
@@ -530,6 +569,26 @@ export async function declineOffer(
   if (offer.response === 'declined') return;
   if (offer.response === 'accepted') {
     throw new DomainError('invalid_transition', { event: 'decline', offer: 'accepted' });
+  }
+  if (offer.kind === 'direct') {
+    // The chosen vet says no: the farmer chooses again (§24.6 step 8).
+    const now = ctx.clock();
+    const result = await ctx.db.transaction(async (tx) => {
+      const r = await transition(
+        tx,
+        offer.bookingId,
+        'vet_declined_request',
+        { kind: 'vet', userId: input.vetId, channel: input.channel ?? 'app' },
+        now,
+      );
+      await tx
+        .update(bookingOffers)
+        .set({ response: 'declined', respondedAt: now })
+        .where(eq(bookingOffers.id, offer.id));
+      return r;
+    });
+    await afterCommit(ctx, result, 'vet_declined_request');
+    return;
   }
   await ctx.db
     .update(bookingOffers)

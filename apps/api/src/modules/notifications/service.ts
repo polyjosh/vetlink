@@ -43,6 +43,12 @@ export const NOTIFICATION_KINDS = {
   reminder_due: { critical: true },
   followup_tomorrow: { critical: true },
   followup_today: { critical: true },
+  // §24.6: the chosen-vet flow.
+  request: { critical: true },
+  vet_accepted_pay: { critical: true },
+  request_declined: { critical: true },
+  request_unpaid: { critical: false },
+  request_confirmed: { critical: true },
 } as const;
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
 

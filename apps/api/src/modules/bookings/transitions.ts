@@ -1,13 +1,15 @@
 import { and, desc, eq, inArray, type SQL } from 'drizzle-orm';
 import {
   BOOKING_TRANSITIONS,
+  transitionTarget,
   type BookingEvent,
   type BookingStatus,
   type Channel,
 } from '@vetlink/shared';
-import type { Tx } from '../../db/client.js';
+import type { Db, Tx } from '../../db/client.js';
 import { bookingEvents, bookingOffers, bookings, vets } from '../../db/schema/index.js';
 import { DomainError } from '../../lib/errors.js';
+import { getConfig } from '../config/service.js';
 import { vetPrice } from './pricing.js';
 
 /**
@@ -35,7 +37,16 @@ export interface TransitionResult {
 export interface TransitionOptions {
   /** Shown in the event log (cancellation reason, failure cause). Never PII. */
   reason?: string;
+  /** `farmer_rechose`: the vet the farmer chose this time (§24.6). */
+  requestedVetId?: string;
 }
+
+/** Statuses the system moves on by itself when their deadline passes (§24.6). */
+const DEADLINE_MINUTES_KEY = {
+  requested: 'request',
+  awaiting_deposit: 'deposit',
+  vet_unavailable: 'abandon',
+} as const;
 
 function actorUserId(actor: BookingActor): string | null {
   return actor.kind === 'system' ? null : actor.userId;
@@ -82,7 +93,12 @@ export async function transition(
   if (actor.kind === 'farmer' && current.farmerId !== actor.userId) {
     throw new DomainError('not_found');
   }
-  if (actor.kind === 'vet' && event !== 'vet_accepted' && current.vetId !== actor.userId) {
+  // The vet a farmer chose may turn the request down before it is theirs (§24.6).
+  const vetOwns =
+    event === 'vet_declined_request'
+      ? current.requestedVetId === (actor.kind === 'vet' ? actor.userId : null)
+      : current.vetId === (actor.kind === 'vet' ? actor.userId : null);
+  if (actor.kind === 'vet' && event !== 'vet_accepted' && !vetOwns) {
     throw new DomainError('not_found');
   }
   if (event === 'vet_accepted' && actor.kind === 'vet') {
@@ -104,11 +120,30 @@ export async function transition(
 
   const conditions: SQL[] = [eq(bookings.id, bookingId), inArray(bookings.status, rule.from)];
   if (actor.kind === 'farmer') conditions.push(eq(bookings.farmerId, actor.userId));
-  if (actor.kind === 'vet' && event !== 'vet_accepted') {
+  if (actor.kind === 'vet' && event === 'vet_declined_request') {
+    conditions.push(eq(bookings.requestedVetId, actor.userId));
+  } else if (actor.kind === 'vet' && event !== 'vet_accepted') {
     conditions.push(eq(bookings.vetId, actor.userId));
   }
 
-  const set: Partial<typeof bookings.$inferInsert> = { status: rule.to };
+  const to = transitionTarget(event, current.status);
+  const set: Partial<typeof bookings.$inferInsert> = { status: to };
+  // Entering a waiting status starts its clock; leaving one stops it (§24.6).
+  const deadlineKey = DEADLINE_MINUTES_KEY[to as keyof typeof DEADLINE_MINUTES_KEY];
+  if (deadlineKey) {
+    const minutes = (await getConfig({ db: tx as unknown as Db }, 'booking.chooseFlowMinutes'))[
+      deadlineKey
+    ];
+    set.statusDeadlineAt = new Date(now.getTime() + minutes * 60_000);
+  } else {
+    set.statusDeadlineAt = null;
+  }
+  if (event === 'farmer_rechose') {
+    if (!options.requestedVetId) throw new Error('farmer_rechose needs requestedVetId');
+    set.requestedVetId = options.requestedVetId;
+  }
+  // Going to waves: the chosen vet handed a paid job back, or the farmer asked for anyone.
+  if (event === 'vet_released' || event === 'farmer_switched_to_auto') set.dispatchMode = 'auto';
   if (event === 'vet_accepted' && actor.kind === 'vet') {
     set.vetId = actor.userId;
     set.acceptedAt = now;
@@ -131,7 +166,7 @@ export async function transition(
   if (!updated) {
     // Wrong state. If this exact event already put the booking where the caller wants it (by
     // the same actor), treat it as an idempotent retry.
-    if (current.status === rule.to) {
+    if (current.status === rule.to || Object.values(rule.toFrom ?? {}).includes(current.status)) {
       const [last] = await tx
         .select()
         .from(bookingEvents)
@@ -152,7 +187,7 @@ export async function transition(
       bookingId,
       event,
       fromStatus: from,
-      toStatus: rule.to,
+      toStatus: to,
       actorKind: actor.kind,
       actorUserId: actorUserId(actor),
       channel: actorChannel(actor),
