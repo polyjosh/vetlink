@@ -35,6 +35,7 @@ After OTP signup and choosing the Vet/Paravet role, the vet completes a step-by-
 | 3. Credentials | KVB registration number, registration category, licence expiry date, qualification and institution, year qualified. **Uploads:** certificate, practising licence, ID photo (front and back). Paravets: training certificate, plus employer/supervising vet name if applicable | Expiry date drives re-verification |
 | 4. Practice details | Independent / clinic / agrovet-attached, practice name (optional), years of experience, species treated, services offered (treatment, vaccination, AI, deworming, pregnancy diagnosis, minor surgery), languages spoken, short bio | Species and services feed matching |
 | 5. Service area and fees | Base location (county → sub-county → ward, or pin on map), service radius, extra wards served, base call-out fee and distance bands (within admin-set min/max), typical availability hours, emergency callouts yes/no | Fee bands validated against admin config |
+| 5b. (§24.3) | Physical premises yes/no (ward, pin, directions, hours), call-outs yes/no, a "from" fee per service within admin bands, working hours (§24.10) | At least one of premises or call-outs |
 | 6. Payout details | M-Pesa number for payouts (defaults to login number) | Registered name should match the applicant's name |
 | 7. Review and declare | Read-only summary with an "Edit" link per section, accept Terms and Code of Conduct, consent to identity and registration verification, declare information is true | Submit button disabled until everything required is complete |
 
@@ -148,6 +149,8 @@ Per state:
 
 **Other vet screens:** Job history, Earnings (per job, weekly, payout status), Ratings and feedback, Coverage and fee settings, Profile and documents, Support, Delete my account.
 
+> **Amended by §24 (Change Set 1, `15-change-set-1.md`):** vets get a full profile screen (photo with re-review, username, qualifications, practice, fees per service), a ratings screen without farmer names, follow-up alerts, badges, an optional public profile with QR code, and direct requests from farmers who chose them (§24.1, §24.3, §24.4, §24.6, §24.8, §24.14, §24.15).
+
 **SMS fallback for vets:** a vet who is offline or without data still receives offers by SMS and can reply with commands (see 8.4). Everything a vet does by SMS must produce the same result as the app.
 
 ### 8.4 Vet SMS commands
@@ -171,3 +174,5 @@ Reply Y4821 to accept, N4821 to decline
 | `HELP` | List commands | Menu |
 
 Parsing rules: forgiving on spacing and case (`y 4821`, `yes 4821`); store raw text first, then parse best-effort; never reject a completion because parsing failed; unknown commands get a short help reply.
+
+> **Amended by §24 (Change Set 1, `15-change-set-1.md`):** a farmer's direct request to one vet uses the same SMS with "REQUEST" instead of "JOB" and a longer window; `Y`/`N` work unchanged. Farmers can reply `STOP ALERTS` to seasonal alerts (§24.6, §24.11).

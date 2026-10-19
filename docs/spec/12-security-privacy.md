@@ -16,3 +16,4 @@
 - Least-privilege DB roles, encrypted backups, tested restores.
 - Media: private buckets, signed URLs, strip EXIF location metadata from animal photos unless explicitly needed.
 - Use aggregated/anonymized data for outbreak sharing.
+- **Change Set 1 (§24):** the vet list never exposes vet coordinates or live location, only rounded distance from the base or premises; public vet profiles are opt-in and show only the §8.3 farmer-visible fields; vets' rating views never show farmer names; voice notes are visible only after a match; avatars and animal photos are re-encoded on the device to drop EXIF; vet avatar changes are reviewed because the photo is an identity check.
