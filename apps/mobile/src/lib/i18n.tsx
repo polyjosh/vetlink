@@ -42,5 +42,6 @@ export function useT() {
     (e: { code?: string; message_key?: string } | null | undefined) => errorMessage(lang, e),
     [lang],
   );
-  return { t: messages[lang], fmt, err, lang };
+  // `alt`: the other language, for bilingual labels ("Ng'ombe / Cow") that help low literacy.
+  return { t: messages[lang], alt: messages[lang === 'sw' ? 'en' : 'sw'], fmt, err, lang };
 }

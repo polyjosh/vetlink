@@ -408,7 +408,27 @@
       "noActive": "No active request.",
       "myAnimals": "My animals",
       "history": "History",
-      "seeAll": "See all"
+      "seeAll": "See all",
+      "greeting": "Habari,",
+      "heroTitle": "Is an animal sick?",
+      "heroHint": "A verified vet near you, usually within minutes.",
+      "heroHintWeb": "Tell us what's wrong. We'll send it to verified vets near you and show the fee before you confirm.",
+      "routineVisit": "Book a routine visit",
+      "animalsOnRecord": "{n} animals on record",
+      "comingUp": "Coming up",
+      "comingUpEmpty": "Nothing planned yet.",
+      "visitItem": "{problem} · {animal}",
+      "followUpItem": "Follow-up · {animal}",
+      "visitHint": "We'll remind you the evening before",
+      "followUpHint": "We'll remind you that morning",
+      "withVet": "Booked with {vet}",
+      "recentVisits": "Recent visits",
+      "allBookings": "All bookings",
+      "colAnimal": "Animal",
+      "colReason": "Reason",
+      "colVet": "Vet",
+      "track": "Track",
+      "activeLine": "{animal}, {problem}"
     },
     "request": {
       "title": "Request a vet",
@@ -998,7 +1018,16 @@
         "followUps": "Follow-ups"
       },
       "adminBrand": "VetLink Admin",
-      "account": "Account"
+      "account": "Account",
+      "speciesPlural": {
+        "cattle": "Cows",
+        "goat": "Goats",
+        "sheep": "Sheep",
+        "pig": "Pigs",
+        "poultry": "Poultry",
+        "dog": "Dogs",
+        "other": "Other"
+      }
     }
   }
 }

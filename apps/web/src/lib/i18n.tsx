@@ -73,5 +73,6 @@ export function useT() {
     (template: string, params: Record<string, string | number>) => interpolate(template, params),
     [],
   );
-  return { t: m, fmt, lang };
+  // `alt`: the other language, for bilingual labels ("Ng'ombe / Cow") that help low literacy.
+  return { t: m, alt: messages[lang === 'sw' ? 'en' : 'sw'], fmt, lang };
 }

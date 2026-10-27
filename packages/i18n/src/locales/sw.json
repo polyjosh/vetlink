@@ -408,7 +408,27 @@
       "noActive": "Hakuna ombi linaloendelea.",
       "myAnimals": "Mifugo yangu",
       "history": "Historia",
-      "seeAll": "Ona yote"
+      "seeAll": "Ona yote",
+      "greeting": "Habari,",
+      "heroTitle": "Mnyama anaumwa?",
+      "heroHint": "Daktari aliyethibitishwa karibu nawe, mara nyingi ndani ya dakika chache.",
+      "heroHintWeb": "Tuambie tatizo. Tutalituma kwa madaktari waliothibitishwa karibu nawe, na utaona ada kabla ya kuthibitisha.",
+      "routineVisit": "Panga ziara ya kawaida",
+      "animalsOnRecord": "Wanyama {n} kwenye rekodi",
+      "comingUp": "Yanayokuja",
+      "comingUpEmpty": "Hakuna kilichopangwa bado.",
+      "visitItem": "{problem} · {animal}",
+      "followUpItem": "Ufuatiliaji · {animal}",
+      "visitHint": "Tutakukumbusha jioni ya kabla",
+      "followUpHint": "Tutakukumbusha asubuhi ya siku hiyo",
+      "withVet": "Umepanga na {vet}",
+      "recentVisits": "Ziara za hivi karibuni",
+      "allBookings": "Maombi yote",
+      "colAnimal": "Mnyama",
+      "colReason": "Sababu",
+      "colVet": "Daktari",
+      "track": "Fuatilia",
+      "activeLine": "{animal}, {problem}"
     },
     "request": {
       "title": "Omba daktari",
@@ -998,7 +1018,16 @@
         "followUps": "Ufuatiliaji"
       },
       "adminBrand": "VetLink Utawala",
-      "account": "Akaunti"
+      "account": "Akaunti",
+      "speciesPlural": {
+        "cattle": "Ng'ombe",
+        "goat": "Mbuzi",
+        "sheep": "Kondoo",
+        "pig": "Nguruwe",
+        "poultry": "Kuku",
+        "dog": "Mbwa",
+        "other": "Wengine"
+      }
     }
   }
 }

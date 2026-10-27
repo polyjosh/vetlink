@@ -7,3 +7,4 @@ export * from './applications.js';
 export * from './profiles.js';
 export * from './pricing.js';
 export * from './schedule.js';
+export * from './home.js';

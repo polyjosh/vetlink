@@ -63,7 +63,7 @@ function AdminFrame({ nav, children }: { nav: ReactNode; children: ReactNode }) 
   const { t, fmt } = useT();
   const { me } = useSession();
   const admin = me?.admin;
-  const roleName = admin?.permissions[0] ? t.web.admin.adminRoles[admin.permissions[0]] : '';
+  const roleName = admin ? t.web.admin.adminRoles[admin.role] : '';
   return (
     <div className="flex min-h-screen flex-wrap">
       <aside className="flex max-w-full flex-[1_1_240px] flex-col gap-6 bg-ink px-4 py-5 text-on-primary wrap:max-w-72">
