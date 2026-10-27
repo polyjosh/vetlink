@@ -5,7 +5,8 @@ import { useT } from '@/lib/i18n';
 import { Badge } from './ui';
 
 /** Time left until `until`, ticking every second (minutes:seconds above 90 s). */
-export function Countdown({ until }: { until: string }) {
+/** `plain`: the text alone, for a coloured band that already says it is urgent. */
+export function Countdown({ until, plain }: { until: string; plain?: boolean }) {
   const { t, fmt } = useT();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -22,5 +23,6 @@ export function Countdown({ until }: { until: string }) {
             seconds: String(s % 60).padStart(2, '0'),
           })
         : fmt(t.web.vet.timeLeft, { seconds: s });
+  if (plain) return <span role="timer">{text}</span>;
   return <Badge tone={s > 0 ? 'warning' : 'danger'}>{text}</Badge>;
 }

@@ -5,7 +5,7 @@ import { useLang, useT } from '../../lib/i18n';
 import { Text } from './text';
 
 /** EN / SW segmented pill wired to the app's language switch. */
-export function LanguageToggle({ inverse }: { inverse?: boolean }) {
+export function LanguageToggle({ inverse }: { inverse?: boolean | undefined }) {
   const { t } = useT();
   const { lang, setLang } = useLang();
   const options: { value: Locale; short: string; name: string }[] = [

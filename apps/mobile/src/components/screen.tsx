@@ -11,14 +11,28 @@ import { ROUTE_PATHS, rememberRole } from '../lib/role';
 import { useSession } from '../lib/session';
 import { Badge, H1, Icon, LanguageToggle, Loading, LogoMark, Text } from './ui';
 
-function HeaderLink({ label, onPress }: { label: string; onPress: () => void }) {
+function HeaderLink({
+  label,
+  onPress,
+  inverse,
+}: {
+  label: string;
+  onPress: () => void;
+  inverse?: boolean | undefined;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       style={{ minHeight: size.touchMin, justifyContent: 'center', paddingHorizontal: space[2] }}
     >
-      <Text style={{ color: color.primary, fontWeight: '700', fontSize: type.small.size }}>
+      <Text
+        style={{
+          color: inverse ? color.onPrimary : color.primary,
+          fontWeight: '700',
+          fontSize: type.small.size,
+        }}
+      >
         {label}
       </Text>
     </Pressable>
@@ -26,7 +40,7 @@ function HeaderLink({ label, onPress }: { label: string; onPress: () => void }) 
 }
 
 /** The app bar: wordmark, language toggle, other roles, profile. */
-export function AppBar({ role }: { role?: SessionRole | undefined }) {
+export function AppBar({ role, inverse }: { role?: SessionRole | undefined; inverse?: boolean }) {
   const { t } = useT();
   const { me } = useSession();
   return (
@@ -41,15 +55,24 @@ export function AppBar({ role }: { role?: SessionRole | undefined }) {
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2], flex: 1 }}>
-        <LogoMark crossColor={color.primary} />
-        <Text style={{ fontSize: type.heading.size, fontWeight: '800' }}>VetLink</Text>
+        <LogoMark crossColor={inverse ? color.onPrimary : color.primary} />
+        <Text
+          style={{
+            fontSize: type.heading.size,
+            fontWeight: '800',
+            color: inverse ? color.onPrimary : color.ink,
+          }}
+        >
+          VetLink
+        </Text>
       </View>
-      <LanguageToggle />
+      <LanguageToggle inverse={inverse} />
       {(me?.roles ?? [])
         .filter((r) => r !== role)
         .map((r) => (
           <HeaderLink
             key={r}
+            inverse={inverse}
             label={`${t.web.common.switchRole} ${t.web.roles[r]}`}
             onPress={() => {
               rememberRole(r);
@@ -69,7 +92,7 @@ export function AppBar({ role }: { role?: SessionRole | undefined }) {
             justifyContent: 'center',
           }}
         >
-          <Icon name="settings" color={color.inkMuted} />
+          <Icon name="settings" color={inverse ? color.inkInverseMuted : color.inkMuted} />
         </Pressable>
       )}
     </View>

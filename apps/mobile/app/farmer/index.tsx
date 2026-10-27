@@ -81,7 +81,7 @@ export default function FarmerHome() {
         const vet = b.vet?.name ?? b.requestedVet?.name;
         const what = fmt(f.activeLine, {
           animal: t.ussd.species[b.species],
-          problem: t.ussd.problems[b.problemType].toLowerCase(),
+          problem: t.ussd.problems[b.problemType],
         });
         return (
           <Pressable

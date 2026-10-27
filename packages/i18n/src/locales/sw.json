@@ -568,7 +568,14 @@
       "shareLocation": "Shiriki eneo langu la sasa",
       "shareLocationHint": "Linatumika tu kukutumia kazi za karibu na kuwapa wafugaji muda wa kufika. Halionyeshwi kama njia.",
       "stopSharing": "Acha kushiriki",
-      "profile": "Wasifu wangu"
+      "profile": "Wasifu wangu",
+      "jobsToday": "Kazi za leo",
+      "ratingStat": "Ukadiriaji",
+      "radiusStat": "Umbali wa huduma",
+      "radiusKm": "km {km}",
+      "newRequest": "Ombi jipya",
+      "smsHint": "Huna data? Jibu Y au N kwa SMS. Inafanya kazi vivyo hivyo.",
+      "availability": "Napatikana kwa kazi"
     },
     "application": {
       "title": "Maombi yako ya daktari",

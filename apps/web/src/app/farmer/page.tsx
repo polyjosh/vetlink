@@ -50,7 +50,7 @@ export default function FarmerHome() {
   const what = (b: Schemas['FarmerBooking']) =>
     fmt(f.activeLine, {
       animal: t.ussd.species[b.species],
-      problem: t.ussd.problems[b.problemType].toLowerCase(),
+      problem: t.ussd.problems[b.problemType],
     });
 
   return (

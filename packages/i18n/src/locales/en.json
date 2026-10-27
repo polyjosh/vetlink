@@ -568,7 +568,14 @@
       "shareLocation": "Share my live location",
       "shareLocationHint": "Only used to send you nearby jobs and give farmers an ETA. Never shown as a trail.",
       "stopSharing": "Stop sharing",
-      "profile": "My profile"
+      "profile": "My profile",
+      "jobsToday": "Jobs today",
+      "ratingStat": "Rating",
+      "radiusStat": "Service radius",
+      "radiusKm": "{km} km",
+      "newRequest": "New request",
+      "smsHint": "No data? Reply Y or N to the SMS. It works the same way.",
+      "availability": "Available for jobs"
     },
     "application": {
       "title": "Your vet application",
