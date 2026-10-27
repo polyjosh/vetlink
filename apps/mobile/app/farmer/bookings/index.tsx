@@ -3,7 +3,7 @@ import { FlatList, Pressable } from 'react-native';
 import type { Schemas } from '@vetlink/api-client';
 import { space } from '@vetlink/ui-tokens';
 import { Screen } from '../../../src/components/screen';
-import { Loading, s, Text } from '../../../src/components/ui';
+import { Loading, s, StatusChip, Text } from '../../../src/components/ui';
 import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';
@@ -39,7 +39,7 @@ export default function History() {
             <Text
               style={{ flex: 1 }}
             >{`${fmt(t.web.tracking.title, { ref: b.id })} · ${t.ussd.species[b.species]} · ${new Date(b.createdAt).toLocaleDateString(lang)}`}</Text>
-            <Text style={{ fontWeight: '700' }}>{t.ussd.statuses[b.status]}</Text>
+            <StatusChip status={b.status} />
           </Pressable>
         )}
       />

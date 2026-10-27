@@ -6,7 +6,7 @@ import { BOOKING_STATUSES, type BookingStatus } from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { AdminNav } from '@/components/admin-nav';
 import { Shell } from '@/components/shell';
-import { Badge, Card, Select, Spinner } from '@/components/ui';
+import { Badge, Card, Select, Spinner, StatusChip } from '@/components/ui';
 import { useT } from '@/lib/i18n';
 import { usePoll } from '@/lib/poll';
 import { useSession } from '@/lib/session';
@@ -68,7 +68,7 @@ export default function AdminBookings() {
                       {new Date(b.createdAt).toLocaleString(lang)}
                     </span>
                     <span className="flex-1" />
-                    <span className="font-semibold">{t.ussd.statuses[b.status]}</span>
+                    <StatusChip status={b.status} />
                   </Link>
                 </li>
               ))}

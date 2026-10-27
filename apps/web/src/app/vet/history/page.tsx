@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { Schemas } from '@vetlink/api-client';
 import { Shell } from '@/components/shell';
-import { Card, Spinner } from '@/components/ui';
+import { Card, Spinner, StatusChip } from '@/components/ui';
 import { VetNav } from '@/components/vet-nav';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
@@ -36,7 +36,7 @@ export default function JobHistory() {
                     {fmt(t.web.tracking.title, { ref: j.id })} · {t.ussd.species[j.species]} ·{' '}
                     {j.acceptedAt && new Date(j.acceptedAt).toLocaleDateString(lang)}
                   </span>
-                  <span className="font-semibold">{t.ussd.statuses[j.status]}</span>
+                  <StatusChip status={j.status} />
                 </Link>
               </li>
             ))}

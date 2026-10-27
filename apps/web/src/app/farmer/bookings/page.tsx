@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import type { Schemas } from '@vetlink/api-client';
 import { FarmerNav } from '@/components/farmer-nav';
 import { Shell } from '@/components/shell';
-import { Card, Spinner } from '@/components/ui';
+import { Card, Spinner, StatusChip } from '@/components/ui';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
 import { EmptyState } from '@/components/pictures';
@@ -37,7 +37,7 @@ export default function BookingHistory() {
                     {fmt(t.web.tracking.title, { ref: b.id })} · {t.ussd.species[b.species]} ·{' '}
                     {new Date(b.createdAt).toLocaleDateString(lang)}
                   </span>
-                  <span className="font-semibold">{t.ussd.statuses[b.status]}</span>
+                  <StatusChip status={b.status} />
                 </Link>
               </li>
             ))}
