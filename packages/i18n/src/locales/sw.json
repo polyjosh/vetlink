@@ -352,7 +352,8 @@
       "open": "Fungua",
       "details": "Maelezo",
       "status": "Hali",
-      "date": "Tarehe"
+      "date": "Tarehe",
+      "continue": "Endelea"
     },
     "roles": {
       "farmer": "Mfugaji",
@@ -738,7 +739,9 @@
         "repeated_low_ratings": "Tathmini 3 za chini kwa siku 30"
       },
       "clearFlag": "Weka kuwa imekaguliwa",
-      "clearNote": "Ulichokagua"
+      "clearNote": "Ulichokagua",
+      "twoFactorActive": "Kipindi cha 2FA kiko hai · {role}",
+      "navLabel": "Sehemu za utawala"
     },
     "mobile": {
       "pendingSync": "{n} vinasubiri kutumwa",
@@ -965,6 +968,31 @@
       "upcomingTitle": "Miadi ijayo",
       "laterHint": "Ni madaktari wanaofanya kazi wakati huo tu wanaoonyeshwa. Wana hadi saa 2 kujibu.",
       "overdue": "Daktari amechelewa"
+    },
+    "ui": {
+      "verifiedVet": "Daktari aliyethibitishwa",
+      "verifiedHint": "Ni madaktari walioidhinishwa pekee wanaopata maombi",
+      "langEn": "EN",
+      "langSw": "SW",
+      "menu": "Menyu",
+      "callPerson": "Mpigie {name}",
+      "stepDone": "Imekamilika",
+      "stepNow": "Sasa",
+      "stepUpcoming": "Inafuata",
+      "stepOf": "Hatua {n} kati ya {total}",
+      "mainNav": "Menyu kuu",
+      "nav": {
+        "home": "Nyumbani",
+        "animals": "Wanyama",
+        "bookings": "Maombi",
+        "profile": "Wasifu",
+        "jobs": "Kazi",
+        "history": "Historia",
+        "ratings": "Tathmini",
+        "followUps": "Ufuatiliaji"
+      },
+      "adminBrand": "VetLink Utawala",
+      "account": "Akaunti"
     }
   }
 }

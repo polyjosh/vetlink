@@ -1,84 +1,96 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
 import { resolveHomeRoute, type SessionRole } from '@vetlink/shared';
-import { useLang, useT } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 import { ROUTE_PATHS, lastRole, rememberRole } from '@/lib/role';
 import { useSession } from '@/lib/session';
-import { Spinner } from './ui';
-import { PersonAvatar } from './pictures';
+import { AccountMenu, Icon, LanguageToggle, Logo, Spinner, TopBar } from './ui';
 
-/** Page frame: title bar, language toggle, role switcher for multi-role users, log out. */
+/**
+ * Page frame. Farmer, vet and signed-out pages: the top bar and a centred column (`wide` for
+ * dashboards, up to the 1200 px content width). Admin pages: the dark sidebar with the 2FA state.
+ */
 export function Shell({
   title,
+  subtitle,
   role,
   children,
   nav,
+  wide,
+  actions,
 }: {
   title: string;
+  subtitle?: ReactNode;
   role?: SessionRole;
   children: ReactNode;
   nav?: ReactNode;
+  wide?: boolean;
+  actions?: ReactNode;
 }) {
-  const { t } = useT();
-  const { lang, setLang } = useLang();
-  const { me, logout } = useSession();
-  const router = useRouter();
-  const otherRoles = (me?.roles ?? []).filter((r) => r !== role);
+  const heading = (
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 className="text-title sm:text-display sm:tracking-tight">{title}</h1>
+        {subtitle && <p className="mt-1 text-ink-muted">{subtitle}</p>}
+      </div>
+      {actions}
+    </div>
+  );
+  if (role === 'admin' && nav) {
+    return (
+      <AdminFrame nav={nav}>
+        {heading}
+        {children}
+      </AdminFrame>
+    );
+  }
   return (
-    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16">
-      <header className="flex flex-wrap items-center gap-3 py-4">
-        <Link href="/" className="text-xl font-bold text-brand">
-          VetLink
-        </Link>
-        <span className="flex-1" />
-        <button
-          type="button"
-          className="min-h-touch px-2 text-sm underline"
-          onClick={() => setLang(lang === 'sw' ? 'en' : 'sw')}
-        >
-          {lang === 'sw' ? t.web.common.english : t.web.common.swahili}
-        </button>
-        {otherRoles.map((r) => (
-          <button
-            key={r}
-            type="button"
-            className="min-h-touch px-2 text-sm underline"
-            onClick={() => {
-              rememberRole(r);
-              router.push('/');
-            }}
-          >
-            {t.web.common.switchRole} {t.web.roles[r]}
-          </button>
-        ))}
-        {me && (
-          <Link
-            href="/settings"
-            className="flex min-h-touch items-center gap-2 px-2 text-sm underline"
-          >
-            <PersonAvatar url={me.photo.url} name={me.displayName ?? me.name} size={32} />
-            {t.web.profile.title}
-          </Link>
+    <div className="min-h-screen">
+      <TopBar nav={nav} role={role} />
+      <main
+        className={`mx-auto px-4 pt-6 pb-16 sm:px-6 sm:pt-8 ${wide ? 'max-w-content' : 'max-w-3xl'}`}
+      >
+        {heading}
+        {children}
+      </main>
+    </div>
+  );
+}
+
+function AdminFrame({ nav, children }: { nav: ReactNode; children: ReactNode }) {
+  const { t, fmt } = useT();
+  const { me } = useSession();
+  const admin = me?.admin;
+  const roleName = admin?.permissions[0] ? t.web.admin.adminRoles[admin.permissions[0]] : '';
+  return (
+    <div className="flex min-h-screen flex-wrap">
+      <aside className="flex max-w-full flex-[1_1_240px] flex-col gap-6 bg-ink px-4 py-5 text-on-primary wrap:max-w-72">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-2">
+          <Logo boxed={false} label={t.web.ui.adminBrand} />
+          <div className="flex items-center gap-2 wrap:hidden">
+            <LanguageToggle inverse />
+            <AccountMenu role="admin" />
+          </div>
+        </div>
+        <nav aria-label={t.web.admin.navLabel} className="flex flex-col gap-0.5">
+          {nav}
+        </nav>
+        {admin?.twoFactorVerified && (
+          <p className="mt-auto flex items-center gap-2 rounded-md bg-on-primary/5 p-3 text-small text-on-primary-muted">
+            <span className="text-online">
+              <Icon name="shieldCheck" size={16} />
+            </span>
+            {fmt(t.web.admin.twoFactorActive, { role: roleName })}
+          </p>
         )}
-        {me && (
-          <button
-            type="button"
-            className="min-h-touch px-2 text-sm underline"
-            onClick={async () => {
-              await logout();
-              router.replace('/login');
-            }}
-          >
-            {t.web.common.logout}
-          </button>
-        )}
-      </header>
-      {nav && <nav className="mb-4 flex flex-wrap gap-2">{nav}</nav>}
-      <main>
-        <h1 className="mb-4 text-2xl font-bold">{title}</h1>
+      </aside>
+      <main className="min-w-0 flex-[999_1_640px] px-4 pt-7 pb-12 sm:px-8">
+        <div className="mb-4 hidden justify-end gap-3 wrap:flex">
+          <LanguageToggle />
+          <AccountMenu role="admin" />
+        </div>
         {children}
       </main>
     </div>

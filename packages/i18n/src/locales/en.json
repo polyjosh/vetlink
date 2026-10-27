@@ -352,7 +352,8 @@
       "open": "Open",
       "details": "Details",
       "status": "Status",
-      "date": "Date"
+      "date": "Date",
+      "continue": "Continue"
     },
     "roles": {
       "farmer": "Farmer",
@@ -738,7 +739,9 @@
         "repeated_low_ratings": "3 low ratings in 30 days"
       },
       "clearFlag": "Mark reviewed",
-      "clearNote": "What you checked"
+      "clearNote": "What you checked",
+      "twoFactorActive": "2FA session active · {role}",
+      "navLabel": "Admin sections"
     },
     "mobile": {
       "pendingSync": "{n} waiting to send",
@@ -965,6 +968,31 @@
       "upcomingTitle": "Upcoming appointments",
       "laterHint": "Only vets who work at that time are listed. They have up to 2 hours to answer.",
       "overdue": "Vet is late"
+    },
+    "ui": {
+      "verifiedVet": "Verified vet",
+      "verifiedHint": "Only approved vets get requests",
+      "langEn": "EN",
+      "langSw": "SW",
+      "menu": "Menu",
+      "callPerson": "Call {name}",
+      "stepDone": "Done",
+      "stepNow": "Now",
+      "stepUpcoming": "Coming up",
+      "stepOf": "Step {n} of {total}",
+      "mainNav": "Main menu",
+      "nav": {
+        "home": "Home",
+        "animals": "Animals",
+        "bookings": "Bookings",
+        "profile": "Profile",
+        "jobs": "Jobs",
+        "history": "History",
+        "ratings": "Ratings",
+        "followUps": "Follow-ups"
+      },
+      "adminBrand": "VetLink Admin",
+      "account": "Account"
     }
   }
 }

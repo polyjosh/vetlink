@@ -1,31 +1,20 @@
 'use client';
 
-import Link from 'next/link';
 import { useT } from '@/lib/i18n';
+import { NavLink } from './ui';
 
 export function VetNav() {
   const { t } = useT();
-  const link = 'rounded-full border border-line bg-surface px-3 py-2 text-sm font-semibold';
   return (
     <>
-      <Link className={link} href="/vet">
-        {t.web.common.home}
-      </Link>
-      <Link className={link} href="/vet/history">
-        {t.web.vet.jobHistory}
-      </Link>
-      <Link className={link} href="/vet/ratings">
-        {t.web.ratings.title}
-      </Link>
-      <Link className={link} href="/vet/follow-ups">
-        {t.web.followUps.title}
-      </Link>
-      <Link className={link} href="/vet/profile">
-        {t.web.vetProfile.title}
-      </Link>
-      <Link className={link} href="/vet/status">
-        {t.web.application.statusTitle}
-      </Link>
+      <NavLink href="/vet" exact>
+        {t.web.ui.nav.jobs}
+      </NavLink>
+      <NavLink href="/vet/history">{t.web.ui.nav.history}</NavLink>
+      <NavLink href="/vet/ratings">{t.web.ui.nav.ratings}</NavLink>
+      <NavLink href="/vet/follow-ups">{t.web.ui.nav.followUps}</NavLink>
+      <NavLink href="/vet/profile">{t.web.ui.nav.profile}</NavLink>
+      <NavLink href="/vet/status">{t.web.application.statusTitle}</NavLink>
     </>
   );
 }

@@ -1,42 +1,112 @@
 @import 'tailwindcss';
 
-/* Colours and sizes come from @vetlink/ui-tokens (injected as --vl-* variables by the layout). */
+/*
+ * Design system v1 (docs/design). Colours and sizes come from @vetlink/ui-tokens, injected as
+ * --vl-* variables by the root layout; this block only names them for Tailwind, so no hex value
+ * is ever typed here.
+ */
 @theme inline {
+  /* Colours: every key of `color`, plus the pre-v1 aliases (bg-brand, text-muted, …). */
+  --color-primary: var(--vl-color-primary);
+  --color-primary-pressed: var(--vl-color-primary-pressed);
+  --color-primary-soft: var(--vl-color-primary-soft);
+  --color-on-primary: var(--vl-color-on-primary);
+  --color-on-primary-muted: var(--vl-color-on-primary-muted);
+  --color-accent: var(--vl-color-accent);
+  --color-ink: var(--vl-color-ink);
+  --color-ink-muted: var(--vl-color-ink-muted);
+  --color-ink-inverse-muted: var(--vl-color-ink-inverse-muted);
+  --color-ground: var(--vl-color-ground);
+  --color-surface: var(--vl-color-surface);
+  --color-border: var(--vl-color-border);
+  --color-divider: var(--vl-color-divider);
+  --color-success: var(--vl-color-success);
+  --color-success-soft: var(--vl-color-success-soft);
+  --color-info: var(--vl-color-info);
+  --color-info-soft: var(--vl-color-info-soft);
+  --color-warning: var(--vl-color-warning);
+  --color-warning-soft: var(--vl-color-warning-soft);
+  --color-danger: var(--vl-color-danger);
+  --color-danger-soft: var(--vl-color-danger-soft);
+  --color-neutral-soft: var(--vl-color-neutral-soft);
+  --color-online: var(--vl-color-online);
   --color-brand: var(--vl-color-brand);
   --color-brand-dark: var(--vl-color-brand-dark);
   --color-brand-light: var(--vl-color-brand-light);
   --color-emergency: var(--vl-color-emergency);
   --color-emergency-light: var(--vl-color-emergency-light);
-  --color-warning: var(--vl-color-warning);
   --color-warning-light: var(--vl-color-warning-light);
-  --color-info: var(--vl-color-info);
   --color-info-light: var(--vl-color-info-light);
-  --color-ink: var(--vl-color-ink);
   --color-muted: var(--vl-color-muted);
   --color-line: var(--vl-color-line);
-  --color-surface: var(--vl-color-surface);
   --color-canvas: var(--vl-color-canvas);
+
+  --radius-sm: var(--vl-radius-sm);
+  --radius-md: var(--vl-radius-md);
+  --radius-tile: var(--vl-radius-tile);
+  --radius-lg: var(--vl-radius-lg);
+  --radius-xl: var(--vl-radius-xl);
+  --radius-sheet: var(--vl-radius-sheet);
   --radius-card: var(--vl-radius-lg);
   --radius-control: var(--vl-radius-md);
-  --spacing-touch: var(--vl-touch);
-}
 
-html {
-  font-size: var(--vl-font-md);
+  --text-display: var(--vl-text-display);
+  --text-display--line-height: var(--vl-text-display-line);
+  --text-display--font-weight: var(--vl-text-display-weight);
+  --text-title: var(--vl-text-title);
+  --text-title--line-height: var(--vl-text-title-line);
+  --text-title--font-weight: var(--vl-text-title-weight);
+  --text-heading: var(--vl-text-heading);
+  --text-heading--line-height: var(--vl-text-heading-line);
+  --text-heading--font-weight: var(--vl-text-heading-weight);
+  --text-body: var(--vl-text-body);
+  --text-body--line-height: var(--vl-text-body-line);
+  --text-body--font-weight: var(--vl-text-body-weight);
+  --text-small: var(--vl-text-small);
+  --text-small--line-height: var(--vl-text-small-line);
+  --text-small--font-weight: var(--vl-text-small-weight);
+  --text-label: var(--vl-text-label);
+  --text-label--line-height: var(--vl-text-label-line);
+  --text-label--font-weight: var(--vl-text-label-weight);
+  --text-button: var(--vl-text-button);
+  --text-button--line-height: var(--vl-text-button-line);
+  --text-button--font-weight: var(--vl-text-button-weight);
+
+  --shadow-raised: var(--vl-shadow-raised);
+  --shadow-overlay: var(--vl-shadow-overlay);
+
+  --container-content: var(--vl-size-content);
+  --breakpoint-wrap: 900px; /* layout.webWrap: side-by-side panels below this stack */
+
+  --font-sans: var(--font-figtree), system-ui, -apple-system, Roboto, 'Segoe UI', sans-serif;
+
+  --spacing-touch: var(--vl-touch);
+  --spacing-button-lg: var(--vl-size-button-lg);
+  --spacing-button-md: var(--vl-size-button-md);
+  --spacing-button-xl: var(--vl-size-button-xl);
+  --spacing-input: var(--vl-size-input);
+  --spacing-chip: var(--vl-size-chip);
+  --spacing-tile: var(--vl-size-tile);
+  --spacing-avatar: var(--vl-size-avatar);
+  --spacing-nav-item: var(--vl-size-nav-item);
+  --spacing-icon: var(--vl-size-icon);
+  --spacing-icon-sm: var(--vl-size-icon-sm);
+  --spacing-progress: var(--vl-size-progress);
 }
 
 body {
-  background: var(--vl-color-canvas);
+  background: var(--vl-color-ground);
   color: var(--vl-color-ink);
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-size: var(--vl-text-body);
+  line-height: var(--vl-text-body-line);
 }
 
 :focus-visible {
   outline: 3px solid var(--vl-color-info);
   outline-offset: 2px;
+}
+
+/* 1.5 px borders on inputs, chips and outline buttons (size.borderStrong). */
+@utility border-strong {
+  border-width: var(--vl-size-border-strong);
 }

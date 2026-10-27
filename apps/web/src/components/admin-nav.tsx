@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import type { AdminRole } from '@vetlink/shared';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
+import { NavLink } from './ui';
 
 /** Only the sections this admin's permissions allow (UX; the API enforces each one). */
 const SECTIONS: {
@@ -24,13 +24,12 @@ export function AdminNav() {
   const { t } = useT();
   const { me } = useSession();
   const perms = me?.admin?.permissions ?? [];
-  const link = 'rounded-full border border-line bg-surface px-3 py-2 text-sm font-semibold';
   return (
     <>
       {SECTIONS.filter((s) => perms.includes(s.needs)).map((s) => (
-        <Link key={s.href} className={link} href={s.href}>
+        <NavLink key={s.href} href={s.href} inverse>
           {t.web.admin.nav[s.key]}
-        </Link>
+        </NavLink>
       ))}
     </>
   );

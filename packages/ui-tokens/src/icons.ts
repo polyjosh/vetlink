@@ -66,3 +66,9 @@ export const icons = {
 } as const satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof icons;
+
+/** The VetLink mark: a map pin (drawn in `accent`) with a cross (drawn in `onPrimary`). */
+export const logoMark = {
+  pin: 'M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z',
+  cross: 'M12 7v6M9 10h6',
+} as const;

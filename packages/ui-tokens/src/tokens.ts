@@ -84,7 +84,7 @@ export const type = {
   button: { size: 17, line: 24, weight: '700' },
 } as const;
 
-export const radius = { sm: 8, md: 12, lg: 16, xl: 20, sheet: 24, pill: 999 } as const;
+export const radius = { sm: 8, md: 12, tile: 14, lg: 16, xl: 20, sheet: 24, pill: 999 } as const;
 
 export const size = {
   touchMin: 48, // every tappable thing

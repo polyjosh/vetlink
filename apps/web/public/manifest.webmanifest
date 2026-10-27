@@ -3,7 +3,7 @@
   "short_name": "VetLink",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F5F7F6",
-  "theme_color": "#1F7A4D",
+  "background_color": "#F5F6F2",
+  "theme_color": "#1F5F3F",
   "icons": []
 }

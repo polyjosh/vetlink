@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
+import { Figtree } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { cssVariables } from '@vetlink/ui-tokens';
+import { color, cssVariables } from '@vetlink/ui-tokens';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -10,7 +11,19 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1F7A4D' };
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: color.primary,
+};
+
+// Self-hosted at build time by next/font (no request to Google from the browser).
+const figtree = Figtree({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-figtree',
+});
 
 // Design tokens (packages/ui-tokens) as CSS variables: the one source for colours and sizes.
 const tokens = `:root{${Object.entries(cssVariables())
@@ -19,11 +32,11 @@ const tokens = `:root{${Object.entries(cssVariables())
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="sw">
+    <html lang="sw" className={figtree.variable}>
       <head>
         <style>{tokens}</style>
       </head>
-      <body>
+      <body className="font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
