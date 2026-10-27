@@ -11,3 +11,6 @@ apps/web/next-env.d.ts
 apps/web/test-results
 apps/web/playwright-report
 apps/mobile/expo-env.d.ts
+
+# Design handoff reference files (docs/design/handoff/HANDOFF.md): kept as delivered.
+docs/design/
