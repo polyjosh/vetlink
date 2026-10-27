@@ -1,4 +1,13 @@
-import { bigserial, index, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import {
+  bigserial,
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { createdAt, emptyJson, timestamptz } from './helpers.js';
 import { users } from './identity.js';
 
@@ -11,9 +20,14 @@ export const notifications = pgTable(
       .references(() => users.id),
     kind: text('kind').notNull(),
     payload: jsonb('payload').notNull(),
+    // Critical notifications fall back to SMS if the app does not confirm the push (§8.7).
+    critical: boolean('critical').notNull().default(false),
     pushSentAt: timestamptz('push_sent_at'),
+    pushTicketId: text('push_ticket_id'), // Expo ticket, for receipts
+    pushError: text('push_error'),
     smsSentAt: timestamptz('sms_sent_at'),
-    readAt: timestamptz('read_at'),
+    readAt: timestamptz('read_at'), // the app confirmed it (also stops the SMS fallback)
+    createdAt: createdAt(),
   },
   (t) => [index('notifications_user_id_idx').on(t.userId)],
 );
@@ -36,3 +50,35 @@ export const auditLog = pgTable('audit_log', {
   meta: jsonb('meta'),
   createdAt: createdAt(),
 });
+
+/**
+ * Runtime settings an admin can change without a deploy (matching weights, radii, waves).
+ * Code holds the defaults and the validation; a row here overrides one key.
+ */
+export const appConfig = pgTable('app_config', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedBy: uuid('updated_by').references(() => users.id),
+  updatedAt: timestamptz('updated_at').notNull().defaultNow(),
+});
+
+/**
+ * Every inbound SMS, stored before it is parsed (§8.4: "store raw text first"). The provider's
+ * message id makes webhook retries no-ops.
+ */
+export const smsInbound = pgTable(
+  'sms_inbound',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    providerMessageId: text('provider_message_id').notNull(),
+    phone: text('phone').notNull(),
+    text: text('text').notNull(),
+    userId: uuid('user_id').references(() => users.id),
+    command: text('command'), // parsed kind, e.g. accept, done, unknown
+    receivedAt: timestamptz('received_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('sms_inbound_provider_message_id_key').on(t.providerMessageId),
+    index('sms_inbound_phone_idx').on(t.phone),
+  ],
+);

@@ -38,16 +38,32 @@ CREATE TABLE otp_codes (
   code_hash TEXT NOT NULL,               -- never store plain OTPs
   expires_at TIMESTAMPTZ NOT NULL,
   attempts INT NOT NULL DEFAULT 0,
-  consumed_at TIMESTAMPTZ
+  consumed_at TIMESTAMPTZ,               -- also set when superseded or burned after 5 attempts
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- One login on one device. Logout or refresh-token reuse revokes the whole session.
+-- Admin 2FA and step-up state live here (server-side), never in the client.
+CREATE TABLE auth_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id),
+  device_id UUID REFERENCES devices(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at TIMESTAMPTZ,
+  revoked_reason TEXT CHECK (revoked_reason IN ('logout','refresh_token_reuse')),
+  mfa_verified_at TIMESTAMPTZ,           -- admin TOTP satisfied on this session (valid 8 h)
+  step_up_at TIMESTAMPTZ                 -- fresh TOTP for sensitive admin actions (valid 5 min)
 );
 
 CREATE TABLE refresh_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id),
-  token_hash TEXT NOT NULL,
-  device_id UUID,
+  session_id UUID NOT NULL REFERENCES auth_sessions(id),
+  token_hash TEXT NOT NULL UNIQUE,       -- SHA-256 of a random 256-bit opaque token
   expires_at TIMESTAMPTZ NOT NULL,
-  revoked_at TIMESTAMPTZ
+  revoked_at TIMESTAMPTZ,
+  replaced_by_id UUID REFERENCES refresh_tokens(id),  -- set on rotation
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE devices (
@@ -127,6 +143,11 @@ CREATE TABLE vet_applications (
   checklist JSONB                        -- reviewer's verification checklist results
 );
 
+-- vet_applications.data holds the wizard answers by step (professional_type, personal,
+-- credentials, practice, service_area, payout, declaration). The national ID is never stored
+-- there in plain text: personal.nationalIdEnc (AES-GCM bound to the application row),
+-- nationalIdHash (keyed HMAC, duplicate detection), nationalIdLast3 (shown to the vet).
+-- flagged_fields lists `step.field` / `doc.<kind>` the vet must fix in changes_requested.
 CREATE TABLE vet_documents (
   id SERIAL PRIMARY KEY,
   application_id INT NOT NULL REFERENCES vet_applications(id),
@@ -148,6 +169,8 @@ CREATE TABLE admin_profiles (
   totp_secret_enc TEXT,                  -- encrypted at rest
   totp_enabled BOOLEAN NOT NULL DEFAULT false,
   recovery_codes_hash TEXT[],
+  totp_enrol_expires_at TIMESTAMPTZ,     -- TOTP enrolment allowed only before this; set on grant
+                                         -- or super-admin 2FA reset (72 h), cleared on enrolment
   granted_by UUID REFERENCES users(id),
   granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   revoked_at TIMESTAMPTZ
@@ -197,6 +220,20 @@ CREATE TABLE bookings (
   completed_at TIMESTAMPTZ
 );
 
+-- Every status change, written by bookings/transitions.ts in the same transaction (append-only).
+CREATE TABLE booking_events (
+  id SERIAL PRIMARY KEY,
+  booking_id INT NOT NULL REFERENCES bookings(id),
+  event TEXT NOT NULL,                   -- BOOKING_EVENTS in packages/shared
+  from_status TEXT NOT NULL,
+  to_status TEXT NOT NULL,
+  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('farmer','vet','admin','system')),
+  actor_user_id UUID REFERENCES users(id),
+  channel TEXT,                          -- ussd | sms | app | web | admin
+  reason TEXT,                           -- cancellation reason (fixed list), never PII
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE booking_offers (
   id SERIAL PRIMARY KEY,
   booking_id INT NOT NULL REFERENCES bookings(id),
@@ -212,13 +249,22 @@ CREATE TABLE payments (
   id SERIAL PRIMARY KEY,
   booking_id INT NOT NULL REFERENCES bookings(id),
   type TEXT NOT NULL CHECK (type IN ('deposit','balance','refund')),
-  amount INT NOT NULL,
-  checkout_request_id TEXT UNIQUE,
+  amount INT NOT NULL CHECK (amount > 0),     -- KES; direction comes from type
+  checkout_request_id TEXT UNIQUE,            -- Daraja STK push id
+  merchant_request_id TEXT,
   mpesa_receipt TEXT UNIQUE,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending','success','failed','cancelled','refunded')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  phone TEXT,                                 -- payer (deposit) / payee (refund)
+  result_code INT,                            -- Daraja ResultCode
+  result_desc TEXT,
+  refund_of INT UNIQUE REFERENCES payments(id), -- set iff type = 'refund'
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- At most one STK push in flight per booking, and never two paid deposits:
+CREATE UNIQUE INDEX ON payments (booking_id) WHERE type = 'deposit' AND status = 'pending';
+CREATE UNIQUE INDEX ON payments (booking_id) WHERE type = 'deposit' AND status IN ('success','refunded');
 
 CREATE TABLE treatments (
   id SERIAL PRIMARY KEY,
@@ -253,10 +299,22 @@ CREATE TABLE notifications (
   id BIGSERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id),
   kind TEXT NOT NULL,
-  payload JSONB NOT NULL,
+  payload JSONB NOT NULL,                -- params (rendered in the recipient's language), data
+  critical BOOLEAN NOT NULL DEFAULT false, -- push then SMS fallback; ignores quiet hours
   push_sent_at TIMESTAMPTZ,
-  sms_sent_at TIMESTAMPTZ,
-  read_at TIMESTAMPTZ
+  push_ticket_id TEXT,                   -- Expo ticket
+  push_error TEXT,
+  sms_sent_at TIMESTAMPTZ,               -- claimed before sending: never texts twice
+  read_at TIMESTAMPTZ,                   -- app confirmed (stops the SMS fallback)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Runtime settings an admin can change (matching weights, radii, waves); defaults in code.
+CREATE TABLE app_config (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_by UUID REFERENCES users(id),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE ussd_sessions (
@@ -283,6 +341,8 @@ CREATE INDEX ON booking_offers (booking_id);
 CREATE INDEX ON vets (ward_id) WHERE verification_status = 'approved' AND is_available;
 CREATE INDEX ON treatments (diagnosis_code, created_at);
 CREATE INDEX ON devices (user_id);
+CREATE INDEX ON auth_sessions (user_id);
+CREATE INDEX ON refresh_tokens (session_id);
 ```
 
 **Booking state machine:**
@@ -294,3 +354,7 @@ pending_payment ─(deposit ok)→ pending ─(vet accepts)→ matched → en_ro
   expired                     cancelled + refund
 ```
 Enforce transitions in one function (`bookings/transitions.ts`). No direct status updates elsewhere, from any channel.
+
+The full event table (who may trigger what, from which statuses) is `BOOKING_TRANSITIONS` in `packages/shared/src/bookings.ts`. Beyond the diagram: `farmer_cancelled` from `pending_payment`/`pending`/`matched`/`en_route` (deposit forfeited after `en_route`, §8.6); `vet_released` (`matched` → `pending`, the assigned vet hands the job back); `vet_completed` also from `matched`/`en_route` (SMS vets often skip `ARR`); `admin_cancelled` from any non-terminal status. A test fails if any other source file updates `bookings`.
+
+> **Amended by §24 (Change Set 1, `15-change-set-1.md`):** new statuses `requested`, `vet_unavailable`, `awaiting_deposit` and events for the chosen-vet flow (§24.20); new columns and tables (§24.21).

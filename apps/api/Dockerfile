@@ -9,6 +9,7 @@ COPY apps/api/package.json apps/api/
 # Add every workspace package the API imports.
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
+COPY packages/api-client/package.json packages/api-client/
 RUN pnpm install --frozen-lockfile --filter "api..."
 
 FROM deps AS dev

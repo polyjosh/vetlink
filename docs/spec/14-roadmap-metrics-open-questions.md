@@ -36,7 +36,7 @@ WhatsApp channel, county integrations, B2B (co-ops, processors, agrovets), multi
 ## 21. Open Questions (ask the owner before assuming)
 
 1. Pilot county and partner co-op?
-2. Balance payment: through the platform (we hold funds) or direct farmer-to-vet M-Pesa with commission collected separately?
+2. **Decided 2026-10-19: VetLink keeps the whole KES 200 deposit as its fee; it counts towards the vet's bill; no subscriptions or payouts (§24.24).** Original question: Balance payment: through the platform (we hold funds) or direct farmer-to-vet M-Pesa with commission collected separately?
 3. Commission model at launch: 10 to 15% of call-out fee only, or also treatment fees?
 4. Shortcode: shared USSD code vs dedicated (cost and timeline)?
 5. Which diseases count as "notifiable" for outbreak alerts?
@@ -44,7 +44,7 @@ WhatsApp channel, county integrations, B2B (co-ops, processors, agrovets), multi
 7. Pricing bands for call-out fees by distance.
 8. ~~One app or separate apps?~~ **Decided: one app for farmer, vet, and admin with role-based routing.** Revisit only if bundle size, store review, or security forces a split.
 9. Legal entity and developer accounts for Apple/Google: who owns them?
-10. Map provider preference and budget (Google Maps vs Mapbox)?
+10. Map provider preference and budget (Google Maps vs Mapbox)? Also blocks the live vet map (§24.17).
 11. Do we want in-app chat or masked calling between farmer and vet (later phase), or is direct phone call enough?
 12. Vet payouts: schedule, method (M-Pesa B2C), and minimum threshold?
 13. Brand name, domain, and app ID, since these are hard to change after store publication.
@@ -53,3 +53,6 @@ WhatsApp channel, county integrations, B2B (co-ops, processors, agrovets), multi
 16. Vet verification policy: target review time (48h assumed), exact documents required for vets vs paravets, how KVB registration is checked (manual register lookup assumed), reapplication cooldown after rejection, and how licence renewals are handled.
 17. Who are the initial verifiers, and is second-reviewer approval required for every vet or only for assisted onboarding?
 18. Production hosting: a single VPS with Docker Compose or a managed container platform, which cloud, and which region (consider Data Protection Act rules on cross-border data)?
+19. Referral rewards: should referrers (farmers, co-ops, agrovets) earn anything, and what (airtime, deposit waiver, cash)? Attribution is tracked from Change Set 1 (§24.12).
+20. Which admin permission should create and send farmer alert campaigns? `super_admin` only until decided (§24.11).
+21. Clinic-visit bookings (farmer brings the animal to the vet's premises): deposit or not, and fee rules (§24.3).

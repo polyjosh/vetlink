@@ -1,0 +1,97 @@
+import { Redis } from 'ioredis';
+import type { Logger } from 'pino';
+import type { Config } from './config.js';
+import { createContext, type AppContext } from './context.js';
+import { createDb } from './db/client.js';
+import { bullJobs } from './jobs/queue.js';
+import { redisCounters } from './lib/counters.js';
+import { createSmsSender } from './lib/sms.js';
+import { s3Storage } from './lib/storage.js';
+import { darajaGateway } from './modules/payments/daraja.js';
+import type { PaymentsGateway } from './modules/payments/gateway.js';
+import { mockGateway } from './modules/payments/mock.js';
+import { expoPushSender, logPushSender } from './modules/notifications/push.js';
+
+export interface Runtime {
+  ctx: AppContext;
+  /** BullMQ needs its own connection with no per-command retry limit. */
+  queueConnection: Redis;
+  close(): Promise<void>;
+}
+
+/** The services the API and the worker share, built from config. */
+export function buildRuntime(config: Config, log: Logger): Runtime {
+  const db = createDb(config.DATABASE_URL);
+  const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: 2 });
+  const queueConnection = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null });
+  const jobs = bullJobs(queueConnection);
+
+  let payments: PaymentsGateway;
+  if (config.PAYMENTS_MODE === 'mock') {
+    // Simulated callbacks go through the same job as real Daraja callbacks.
+    payments = mockGateway({
+      deliver: (result) =>
+        jobs.add('payments.stk-result', result, {
+          jobId: `stk-${result.checkoutRequestId}-${result.resultCode}`,
+        }),
+    });
+  } else {
+    const token = encodeURIComponent(config.WEBHOOK_SECRET ?? '');
+    payments = darajaGateway({
+      env: config.PAYMENTS_MODE,
+      consumerKey: config.DARAJA_CONSUMER_KEY ?? '',
+      consumerSecret: config.DARAJA_CONSUMER_SECRET ?? '',
+      shortcode: config.DARAJA_SHORTCODE ?? '',
+      passkey: config.DARAJA_PASSKEY ?? '',
+      callbackUrl: new URL(`/webhooks/mpesa?token=${token}`, config.PUBLIC_BASE_URL).toString(),
+    });
+  }
+
+  const storage = s3Storage({
+    endpoint: config.S3_ENDPOINT,
+    publicEndpoint: config.S3_PUBLIC_ENDPOINT,
+    bucket: config.S3_BUCKET,
+    accessKeyId: config.S3_ACCESS_KEY,
+    secretAccessKey: config.S3_SECRET_KEY,
+  });
+  if (config.APP_ENV !== 'production') {
+    // Dev convenience: create the local bucket on first run. Production buckets are provisioned.
+    void storage
+      .ensureBucket()
+      .catch((err: unknown) => log.warn({ err }, 'could not create bucket'));
+  }
+
+  const ctx = createContext({
+    db: db.db,
+    counters: redisCounters(redis),
+    sms: createSmsSender(
+      config.SMS_MODE,
+      log,
+      config.APP_ENV,
+      config.AT_USERNAME && config.AT_API_KEY
+        ? { username: config.AT_USERNAME, apiKey: config.AT_API_KEY, senderId: config.AT_SENDER_ID }
+        : undefined,
+    ),
+    push:
+      config.PUSH_MODE === 'expo'
+        ? expoPushSender({ accessToken: config.EXPO_ACCESS_TOKEN })
+        : logPushSender(log),
+    payments,
+    jobs,
+    storage,
+    dataEncryptionKey: config.DATA_ENCRYPTION_KEY,
+    jwtSecret: config.JWT_SECRET,
+    otpFixedCode: config.OTP_FIXED_CODE,
+  });
+
+  return {
+    ctx,
+    queueConnection,
+    close: async () => {
+      await jobs.close();
+      queueConnection.disconnect();
+      redis.disconnect();
+      await db.close();
+    },
+  };
+}

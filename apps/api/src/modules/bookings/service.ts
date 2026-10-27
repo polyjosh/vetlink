@@ -1,0 +1,758 @@
+import {
+  and,
+  avg,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  type SQL,
+} from 'drizzle-orm';
+import {
+  scheduledAnswerDeadline,
+  servicesForProblem,
+  slotProblem,
+  slotWindow,
+  type SchedulePart,
+} from '@vetlink/shared';
+import type {
+  CancelReason,
+  Channel,
+  FarmerBookingView,
+  ProblemType,
+  Species,
+  RatingTag,
+  ReviewFlagReason,
+  VetJobView,
+  VetService,
+} from '@vetlink/shared';
+import type { AppContext } from '../../context.js';
+import type { Tx } from '../../db/client.js';
+import {
+  animals,
+  bookingOffers,
+  bookings,
+  farmers,
+  locations,
+  ratings,
+  reminders,
+  treatments,
+  users,
+  vets,
+} from '../../db/schema/index.js';
+import { DomainError } from '../../lib/errors.js';
+import { getConfig } from '../config/service.js';
+import { depositOutcomeOnCancel } from '../payments/policy.js';
+import { creditBookingFee } from '../wallet/service.js';
+import { photoUrls } from '../media/service.js';
+import { assertChoosable, choosableVets, sendDirectRequest, vetHasRoom } from './choose.js';
+import { afterCommit } from './effects.js';
+import { currentBookingFee, quoteCallOutFee, quotePriceRange } from './pricing.js';
+import { transition, type BookingActor, type BookingRow } from './transitions.js';
+import { farmerViews, vetJobViews } from './views.js';
+
+/**
+ * Channel-agnostic booking operations. REST, USSD (M6), SMS (M9) and admin tools all call these
+ * with an actor; none of them write booking rows themselves.
+ */
+
+export interface CreateBookingInput {
+  farmerId: string;
+  channel: Channel;
+  /** Client-generated, reused on retries (mobile generates it when the user taps). */
+  idempotencyKey: string;
+  species: Species;
+  problemType: ProblemType;
+  isEmergency: boolean;
+  animalId?: string | undefined;
+  note?: string | undefined;
+  /** Defaults to the farmer's saved ward. */
+  wardId?: number | undefined;
+  lat?: number | undefined;
+  lng?: number | undefined;
+  /** Services added to the consultation (§24.3); USSD derives them from the problem. */
+  services?: readonly VetService[] | undefined;
+  /** §24.5: `chosen` sends the request to `vetId` only; the booking fee follows acceptance. */
+  dispatchMode?: 'auto' | 'chosen' | undefined;
+  vetId?: string | undefined;
+  /** §24.9: this request rebooks the follow-up of one of my treatments (its alerts stop). */
+  followUpOfTreatmentId?: number | undefined;
+  /** §24.10: a scheduled visit (chosen vet only): a Nairobi date and part of the day. */
+  schedule?: { date: string; part: SchedulePart } | undefined;
+}
+
+/** Keys are scoped per farmer, so one farmer's key can never return another farmer's booking. */
+const scopedKey = (farmerId: string, key: string) => `${farmerId}:${key}`;
+
+function sameRequest(b: BookingRow, input: CreateBookingInput, wardId: number): boolean {
+  return (
+    b.species === input.species &&
+    b.problemType === input.problemType &&
+    b.isEmergency === input.isEmergency &&
+    b.wardId === wardId &&
+    (b.animalId ?? undefined) === input.animalId &&
+    b.dispatchMode === (input.dispatchMode ?? 'auto') &&
+    (b.scheduledFor?.getTime() ?? null) ===
+      (input.schedule
+        ? slotWindow(input.schedule.date, input.schedule.part).start.getTime()
+        : null) &&
+    (b.dispatchMode === 'auto' || (b.requestedVetId ?? undefined) === input.vetId) &&
+    [...b.services].sort().join() === [...(input.services ?? [])].sort().join()
+  );
+}
+
+/**
+ * Create a booking in `pending_payment`. Idempotent per (farmer, key): a retry returns the same
+ * booking (`created: false`); reusing a key for a different request is refused. The fee is
+ * always quoted by the server.
+ */
+export async function createBooking(
+  ctx: AppContext,
+  input: CreateBookingInput,
+): Promise<{ booking: BookingRow; created: boolean }> {
+  const key = scopedKey(input.farmerId, input.idempotencyKey);
+  const [farmer] = await ctx.db
+    .select()
+    .from(farmers)
+    .where(eq(farmers.userId, input.farmerId))
+    .limit(1);
+  if (!farmer) throw new DomainError('farmer_profile_required');
+  const wardId = input.wardId ?? farmer.wardId;
+  if (wardId === null || wardId === undefined) {
+    throw new DomainError('invalid_request', { fields: ['wardId'] });
+  }
+
+  const replay = async () => {
+    const [existing] = await ctx.db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.idempotencyKey, key))
+      .limit(1);
+    if (!existing) return null;
+    if (!sameRequest(existing, input, wardId)) throw new DomainError('idempotency_key_reused');
+    return { booking: existing, created: false };
+  };
+  const earlier = await replay();
+  if (earlier) return earlier;
+
+  const [ward] = await ctx.db
+    .select({ id: locations.id })
+    .from(locations)
+    .where(eq(locations.id, wardId))
+    .limit(1);
+  if (!ward) throw new DomainError('invalid_request', { fields: ['wardId'] });
+  if (input.animalId) {
+    const [animal] = await ctx.db
+      .select({ id: animals.id })
+      .from(animals)
+      .where(and(eq(animals.id, input.animalId), eq(animals.farmerId, input.farmerId)))
+      .limit(1);
+    if (!animal) throw new DomainError('not_found');
+  }
+
+  const now = ctx.clock();
+  const services = [...new Set(input.services ?? [])];
+  const target = {
+    wardId,
+    species: input.species,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
+    services,
+    slot: input.schedule ?? null,
+  };
+  const bookingFeeKes = await currentBookingFee(ctx);
+  // §24.5: emergencies always go to everyone; a chosen vet must be choosable right now.
+  const chosen = input.dispatchMode === 'chosen';
+  if (chosen && (input.isEmergency || !input.vetId)) {
+    throw new DomainError('invalid_request', { fields: ['dispatchMode', 'vetId'] });
+  }
+  // §24.10: only a chosen, non-emergency request can be booked ahead, inside the window.
+  const schedule = input.schedule ?? null;
+  if (schedule) {
+    if (!chosen) throw new DomainError('invalid_request', { fields: ['schedule', 'dispatchMode'] });
+    const problem = slotProblem(schedule.date, schedule.part, now);
+    if (problem)
+      throw new DomainError('invalid_request', { fields: ['schedule'], reason: problem });
+  }
+  const slot = schedule ? slotWindow(schedule.date, schedule.part) : null;
+  if (chosen && input.vetId) {
+    await assertChoosable(ctx, target, input.vetId, bookingFeeKes);
+  }
+  const requestMinutes = (await getConfig(ctx, 'booking.chooseFlowMinutes')).request;
+  const [inserted] = await ctx.db
+    .insert(bookings)
+    .values({
+      farmerId: input.farmerId,
+      animalId: input.animalId ?? null,
+      species: input.species,
+      problemType: input.problemType,
+      note: input.note ?? null,
+      isEmergency: input.isEmergency,
+      sourceChannel: input.channel,
+      wardId,
+      lat: input.lat ?? null,
+      lng: input.lng ?? null,
+      feeQuoted: await quoteCallOutFee(ctx, target),
+      services,
+      bookingFeeKes,
+      priceRange: await quotePriceRange(ctx, target, bookingFeeKes),
+      ...(chosen && {
+        dispatchMode: 'chosen' as const,
+        status: 'requested' as const, // created waiting for the chosen vet (§24.20)
+        requestedVetId: input.vetId ?? null,
+        statusDeadlineAt: slot
+          ? scheduledAnswerDeadline(now, slot.start)
+          : new Date(now.getTime() + requestMinutes * 60_000),
+        ...(slot && schedule && { scheduledFor: slot.start, scheduledPart: schedule.part }),
+      }),
+      idempotencyKey: key,
+      createdAt: now,
+    })
+    // A concurrent retry with the same key: one insert wins, the other replays it.
+    .onConflictDoNothing({ target: bookings.idempotencyKey })
+    .returning();
+  if (inserted) {
+    if (input.followUpOfTreatmentId) {
+      await linkFollowUp(ctx, input.farmerId, input.followUpOfTreatmentId, inserted.id);
+    }
+    if (chosen && input.vetId) await sendDirectRequest(ctx, inserted, input.vetId);
+    return { booking: inserted, created: true };
+  }
+  const raced = await replay();
+  if (!raced) throw new Error('idempotent insert conflicted but no booking found');
+  return raced;
+}
+
+export type BookingViewer = { kind: 'farmer'; userId: string } | { kind: 'vet'; userId: string };
+
+/** One booking as the viewer may see it. Anyone else gets "not found" (no existence leak). */
+export async function viewBooking(
+  ctx: AppContext,
+  bookingId: number,
+  viewer: BookingViewer,
+): Promise<FarmerBookingView | VetJobView> {
+  const [b] = await ctx.db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+  if (viewer.kind === 'farmer' && b?.farmerId === viewer.userId) {
+    const [view] = await farmerViews(ctx, [b]);
+    if (view) return view;
+  }
+  if (viewer.kind === 'vet' && b && b.vetId === viewer.userId) {
+    const [view] = await vetJobViews(ctx, [b]);
+    if (view) return view;
+  }
+  throw new DomainError('not_found');
+}
+
+export interface Page {
+  limit: number;
+  /** Return bookings with an id lower than this (newest first). */
+  before?: number | undefined;
+}
+
+function pageConditions(page: Page, ...base: SQL[]): SQL | undefined {
+  return and(...base, ...(page.before ? [lt(bookings.id, page.before)] : []));
+}
+
+export async function listFarmerBookings(
+  ctx: AppContext,
+  farmerId: string,
+  page: Page,
+): Promise<FarmerBookingView[]> {
+  const rows = await ctx.db
+    .select()
+    .from(bookings)
+    .where(pageConditions(page, eq(bookings.farmerId, farmerId)))
+    .orderBy(desc(bookings.id))
+    .limit(page.limit);
+  return farmerViews(ctx, rows);
+}
+
+export async function listVetJobs(
+  ctx: AppContext,
+  vetId: string,
+  page: Page,
+): Promise<VetJobView[]> {
+  const rows = await ctx.db
+    .select()
+    .from(bookings)
+    .where(pageConditions(page, eq(bookings.vetId, vetId)))
+    .orderBy(desc(bookings.id))
+    .limit(page.limit);
+  return vetJobViews(ctx, rows);
+}
+
+export async function cancelByFarmer(
+  ctx: AppContext,
+  bookingId: number,
+  farmer: { userId: string; channel: Channel },
+  reason: CancelReason,
+): Promise<BookingRow> {
+  const now = ctx.clock();
+  const result = await ctx.db.transaction(async (tx) => {
+    const r = await transition(
+      tx,
+      bookingId,
+      'farmer_cancelled',
+      { kind: 'farmer', ...farmer },
+      now,
+      { reason },
+    );
+    // Refund or forfeit, per payments/policy.ts, in the same transaction as the cancellation.
+    if (r.changed && depositOutcomeOnCancel(r.from, 'farmer_cancelled') === 'credit') {
+      await creditBookingFee(tx, ctx, bookingId, now, 'credit_cancelled');
+    }
+    return r;
+  });
+  await afterCommit(ctx, result, 'farmer_cancelled');
+  return result.booking;
+}
+
+/** Vet job steps: on my way, arrived. Idempotent on retry. */
+export async function vetStep(
+  ctx: AppContext,
+  bookingId: number,
+  step: 'en_route' | 'in_service',
+  vet: { userId: string; channel: Channel },
+): Promise<BookingRow> {
+  const event = step === 'en_route' ? 'vet_en_route' : 'vet_arrived';
+  const now = ctx.clock();
+  const result = await ctx.db.transaction((tx) =>
+    transition(tx, bookingId, event, { kind: 'vet', ...vet }, now),
+  );
+  await afterCommit(ctx, result, event);
+  return result.booking;
+}
+
+/** The assigned vet hands the job back before setting off; it goes back to searching. */
+export async function releaseByVet(
+  ctx: AppContext,
+  bookingId: number,
+  vet: { userId: string; channel: Channel },
+): Promise<BookingRow> {
+  const now = ctx.clock();
+  const result = await ctx.db.transaction((tx) =>
+    transition(tx, bookingId, 'vet_released', { kind: 'vet', ...vet }, now),
+  );
+  await afterCommit(ctx, result, 'vet_released');
+  return result.booking;
+}
+
+export interface CompletionInput {
+  diagnosis?: string | undefined;
+  diagnosisCode?: string | undefined;
+  drugsUsed?: string | undefined;
+  /** Original text (form notes or the SMS body). Stored even if nothing else parses. */
+  rawNotes: string;
+  followUpDate?: string | undefined;
+  /** When the vet completed it on the device, if logged offline. */
+  clientCreatedAt?: Date | undefined;
+}
+
+/**
+ * Complete a job and record the treatment, exactly once: the treatment is written in the same
+ * transaction as the transition, and a retry of an already-completed job writes nothing.
+ */
+export async function completeByVet(
+  ctx: AppContext,
+  bookingId: number,
+  vet: { userId: string; channel: Channel },
+  input: CompletionInput,
+): Promise<BookingRow> {
+  const now = ctx.clock();
+  const done = await ctx.db.transaction(async (tx) => {
+    const result = await transition(tx, bookingId, 'vet_completed', { kind: 'vet', ...vet }, now);
+    if (result.changed) {
+      await tx.insert(treatments).values({
+        bookingId,
+        animalId: result.booking.animalId,
+        diagnosis: input.diagnosis ?? null,
+        diagnosisCode: input.diagnosisCode ?? null,
+        drugsUsed: input.drugsUsed ?? null,
+        rawNotes: input.rawNotes,
+        followUpDate: input.followUpDate ?? null,
+        clientCreatedAt: input.clientCreatedAt ?? null,
+        createdAt: now,
+      });
+      // A follow-up date becomes a reminder for the animal, when we know which one (§8.8).
+      if (input.followUpDate && result.booking.animalId) {
+        await tx.insert(reminders).values({
+          animalId: result.booking.animalId,
+          type: 'follow_up',
+          dueDate: input.followUpDate,
+        });
+      }
+    }
+    return result;
+  });
+  await afterCommit(ctx, done, 'vet_completed');
+  return done.booking;
+}
+
+/**
+ * The farmer rates a completed visit once. A retry with the same stars succeeds; a different
+ * rating is refused. Updates the vet's average rating in the same transaction.
+ */
+export async function rateBooking(
+  ctx: AppContext,
+  bookingId: number,
+  farmerId: string,
+  input: { stars: number; comment?: string | undefined; tags?: readonly RatingTag[] | undefined },
+): Promise<void> {
+  const now = ctx.clock();
+  await ctx.db.transaction(async (tx) => {
+    const [b] = await tx
+      .select()
+      .from(bookings)
+      .where(and(eq(bookings.id, bookingId), eq(bookings.farmerId, farmerId)))
+      .limit(1);
+    if (!b) throw new DomainError('not_found');
+    if (b.status !== 'done' || !b.vetId) {
+      throw new DomainError('invalid_transition', { event: 'rate', status: b.status });
+    }
+    const inserted = await tx
+      .insert(ratings)
+      .values({
+        bookingId,
+        stars: input.stars,
+        comment: input.comment ?? null,
+        tags: [...new Set(input.tags ?? [])],
+        createdAt: now,
+      })
+      .onConflictDoNothing({ target: ratings.bookingId })
+      .returning({ id: ratings.id });
+    if (inserted.length === 0) {
+      const [existing] = await tx.select().from(ratings).where(eq(ratings.bookingId, bookingId));
+      if (existing?.stars === input.stars) return;
+      throw new DomainError('already_rated');
+    }
+    const [agg] = await tx
+      .select({ average: avg(ratings.stars) })
+      .from(ratings)
+      .innerJoin(bookings, eq(bookings.id, ratings.bookingId))
+      .where(eq(bookings.vetId, b.vetId));
+    const average =
+      agg?.average === null || agg?.average === undefined ? null : Number(agg.average);
+    await tx
+      .update(vets)
+      .set({ rating: average === null ? null : average.toFixed(1) })
+      .where(eq(vets.userId, b.vetId));
+    await flagIfNeeded(tx, b.vetId, input, now);
+  });
+}
+
+/** Link a rebooked follow-up to its treatment, once, and only the farmer's own (§24.9). */
+async function linkFollowUp(
+  ctx: AppContext,
+  farmerId: string,
+  treatmentId: number,
+  bookingId: number,
+): Promise<void> {
+  const [t] = await ctx.db
+    .select({ id: treatments.id })
+    .from(treatments)
+    .innerJoin(bookings, eq(bookings.id, treatments.bookingId))
+    .where(and(eq(treatments.id, treatmentId), eq(bookings.farmerId, farmerId)));
+  if (!t) return;
+  await ctx.db
+    .update(treatments)
+    .set({ followUpBookingId: bookingId })
+    .where(and(eq(treatments.id, treatmentId), isNull(treatments.followUpBookingId)));
+}
+
+/**
+ * Vets this farmer finished jobs with, most recent first (§24.9 "Book again"), each with the
+ * last animal and whether they can be asked right now.
+ */
+export async function recentVets(ctx: AppContext, farmerId: string, limit = 3) {
+  const rows = await ctx.db
+    .select()
+    .from(bookings)
+    .where(
+      and(eq(bookings.farmerId, farmerId), eq(bookings.status, 'done'), isNotNull(bookings.vetId)),
+    )
+    .orderBy(desc(bookings.completedAt))
+    .limit(50);
+  const latest = new Map<string, BookingRow>();
+  for (const b of rows) if (b.vetId && !latest.has(b.vetId)) latest.set(b.vetId, b);
+  const picked = [...latest.values()].slice(0, limit);
+  if (picked.length === 0) return [];
+  const ids = picked.map((b) => b.vetId as string);
+  const people = await ctx.db
+    .select({ id: users.id, name: users.name, avatar: users.avatarMediaId })
+    .from(users)
+    .where(inArray(users.id, ids));
+  const photos = await photoUrls(
+    ctx,
+    people.map((p) => p.avatar),
+  );
+  const byId = new Map(people.map((p) => [p.id, p]));
+  const fee = await currentBookingFee(ctx);
+  const out = [];
+  for (const b of picked) {
+    const vetId = b.vetId as string;
+    const list = await choosableVets(
+      ctx,
+      {
+        species: b.species,
+        wardId: b.wardId,
+        lat: b.lat,
+        lng: b.lng,
+        services: servicesForProblem(b.problemType),
+      },
+      { bookingFee: fee },
+    );
+    const p = byId.get(vetId);
+    out.push({
+      vetId,
+      name: p?.name ?? null,
+      photoUrl: (p?.avatar && photos.get(p.avatar)) ?? null,
+      lastBookingId: b.id,
+      animalId: b.animalId,
+      species: b.species,
+      problemType: b.problemType,
+      available: list.some((v) => v.vetId === vetId),
+    });
+  }
+  return out;
+}
+
+/** Low ratings in this window count towards a review flag (§24.7). */
+const LOW_RATING_WINDOW_MS = 30 * 24 * 3600 * 1000;
+const LOW_RATING_STARS = 2;
+const LOW_RATINGS_TO_FLAG = 3;
+
+/**
+ * Complaints or repeated low ratings flag the vet for an admin review (§24.7): a "rude" rating
+ * of 2 stars or less, or 3 low ratings within 30 days. The flag only draws attention; the vet
+ * stays online until an admin acts. An existing flag is kept (its first reason and time).
+ */
+async function flagIfNeeded(
+  tx: Tx,
+  vetId: string,
+  input: { stars: number; tags?: readonly RatingTag[] | undefined },
+  now: Date,
+): Promise<void> {
+  if (input.stars > LOW_RATING_STARS) return;
+  let reason: ReviewFlagReason | null = input.tags?.includes('rude') ? 'rude_rating' : null;
+  if (!reason) {
+    const [low] = await tx
+      .select({ n: count() })
+      .from(ratings)
+      .innerJoin(bookings, eq(bookings.id, ratings.bookingId))
+      .where(
+        and(
+          eq(bookings.vetId, vetId),
+          lte(ratings.stars, LOW_RATING_STARS),
+          gte(ratings.createdAt, new Date(now.getTime() - LOW_RATING_WINDOW_MS)),
+        ),
+      );
+    if (Number(low?.n ?? 0) >= LOW_RATINGS_TO_FLAG) reason = 'repeated_low_ratings';
+  }
+  if (!reason) return;
+  await tx
+    .update(vets)
+    .set({ reviewFlagReason: reason, reviewFlaggedAt: now })
+    .where(and(eq(vets.userId, vetId), isNull(vets.reviewFlaggedAt)));
+}
+
+/** Admin cancellation (support): any non-terminal booking, audit-logged by the caller. */
+export async function cancelByAdmin(
+  ctx: AppContext,
+  bookingId: number,
+  adminUserId: string,
+  reason: string,
+): Promise<BookingRow> {
+  const now = ctx.clock();
+  const result = await ctx.db.transaction(async (tx) => {
+    const r = await transition(
+      tx,
+      bookingId,
+      'admin_cancelled',
+      { kind: 'admin', userId: adminUserId },
+      now,
+      { reason },
+    );
+    if (r.changed && depositOutcomeOnCancel(r.from, 'admin_cancelled') === 'credit') {
+      await creditBookingFee(tx, ctx, bookingId, now, 'credit_cancelled');
+    }
+    return r;
+  });
+  await afterCommit(ctx, result, 'admin_cancelled');
+  return result.booking;
+}
+
+// ---- Offers -------------------------------------------------------------------------------
+
+/**
+ * Record an offer to a vet (used by dispatch in M8). One offer per vet per booking; returns
+ * null if this vet was already offered the booking.
+ */
+export async function createOffer(
+  ctx: AppContext,
+  input: {
+    bookingId: number;
+    vetId: string;
+    wave: number;
+    channel: 'push' | 'sms' | 'both';
+    kind?: 'wave' | 'direct';
+  },
+): Promise<number | null> {
+  const [row] = await ctx.db
+    .insert(bookingOffers)
+    .values({ ...input, sentAt: ctx.clock() })
+    .onConflictDoNothing()
+    .returning({ id: bookingOffers.id });
+  return row?.id ?? null;
+}
+
+/**
+ * Accept an offer. First accept wins regardless of channel (§8.5): the transition locks the
+ * booking and is conditional on `pending`, so of two simultaneous accepts exactly one succeeds;
+ * the other gets `offer_taken`. Approval is re-checked inside the transition (invariant 2).
+ * An offer that already timed out may still be accepted while the booking is unclaimed.
+ */
+export async function acceptOffer(
+  ctx: AppContext,
+  input: { offerId: number; bookingId: number; vetId: string; channel: Channel },
+): Promise<BookingRow> {
+  const now = ctx.clock();
+  const accepted = await ctx.db.transaction(async (tx) => {
+    const [offer] = await tx
+      .select()
+      .from(bookingOffers)
+      .where(
+        and(
+          eq(bookingOffers.id, input.offerId),
+          eq(bookingOffers.bookingId, input.bookingId),
+          eq(bookingOffers.vetId, input.vetId),
+        ),
+      )
+      .limit(1);
+    if (!offer) throw new DomainError('not_found');
+    if (offer.response === 'declined') {
+      throw new DomainError('invalid_transition', { event: 'vet_accepted', offer: 'declined' });
+    }
+    // A direct request holds the vet until the booking fee is paid: they need room for it
+    // (in that slot, for a scheduled visit).
+    if (offer.kind === 'direct' && offer.response !== 'accepted') {
+      const [b] = await tx
+        .select({ scheduledFor: bookings.scheduledFor })
+        .from(bookings)
+        .where(eq(bookings.id, input.bookingId));
+      if (!(await vetHasRoom(ctx, input.vetId, b?.scheduledFor ?? null))) {
+        throw new DomainError('at_capacity');
+      }
+    }
+    let result;
+    try {
+      result = await transition(
+        tx,
+        input.bookingId,
+        'vet_accepted',
+        { kind: 'vet', userId: input.vetId, channel: input.channel },
+        now,
+      );
+    } catch (err) {
+      if (err instanceof DomainError && err.code === 'invalid_transition') {
+        throw new DomainError('offer_taken');
+      }
+      throw err;
+    }
+    if (result.changed) {
+      await tx
+        .update(bookingOffers)
+        .set({ response: 'accepted', respondedAt: now })
+        .where(eq(bookingOffers.id, offer.id));
+    }
+    return result;
+  });
+  await afterCommit(ctx, accepted, 'vet_accepted');
+  return accepted.booking;
+}
+
+/** Decline an offer. Idempotent; cannot decline an offer already accepted. */
+export async function declineOffer(
+  ctx: AppContext,
+  input: { offerId: number; bookingId: number; vetId: string; channel?: Channel },
+): Promise<void> {
+  const [offer] = await ctx.db
+    .select()
+    .from(bookingOffers)
+    .where(
+      and(
+        eq(bookingOffers.id, input.offerId),
+        eq(bookingOffers.bookingId, input.bookingId),
+        eq(bookingOffers.vetId, input.vetId),
+      ),
+    )
+    .limit(1);
+  if (!offer) throw new DomainError('not_found');
+  if (offer.response === 'declined') return;
+  if (offer.response === 'accepted') {
+    throw new DomainError('invalid_transition', { event: 'decline', offer: 'accepted' });
+  }
+  if (offer.kind === 'direct') {
+    // The chosen vet says no: the farmer chooses again (§24.6 step 8).
+    const now = ctx.clock();
+    const result = await ctx.db.transaction(async (tx) => {
+      const r = await transition(
+        tx,
+        offer.bookingId,
+        'vet_declined_request',
+        { kind: 'vet', userId: input.vetId, channel: input.channel ?? 'app' },
+        now,
+      );
+      await tx
+        .update(bookingOffers)
+        .set({ response: 'declined', respondedAt: now })
+        .where(eq(bookingOffers.id, offer.id));
+      return r;
+    });
+    await afterCommit(ctx, result, 'vet_declined_request');
+    return;
+  }
+  await ctx.db
+    .update(bookingOffers)
+    .set({ response: 'declined', respondedAt: ctx.clock() })
+    .where(eq(bookingOffers.id, offer.id));
+  // If every vet in this wave has now answered, the next wave goes out at once (§8.5).
+  const [open] = await ctx.db
+    .select({ id: bookingOffers.id })
+    .from(bookingOffers)
+    .where(
+      and(
+        eq(bookingOffers.bookingId, offer.bookingId),
+        eq(bookingOffers.wave, offer.wave),
+        isNull(bookingOffers.response),
+      ),
+    )
+    .limit(1);
+  if (!open) {
+    await ctx.jobs.add(
+      'matching.wave-timeout',
+      { bookingId: offer.bookingId, wave: offer.wave },
+      { jobId: `wave-done-${offer.bookingId}-${offer.wave}` },
+    );
+  }
+}
+
+/** Mark unanswered offers as timed out (the dispatch job in M8 calls this). */
+export async function timeoutOffers(ctx: AppContext, offerIds: number[]): Promise<void> {
+  if (offerIds.length === 0) return;
+  const rows = await ctx.db
+    .select({ id: bookingOffers.id, response: bookingOffers.response })
+    .from(bookingOffers)
+    .where(inArray(bookingOffers.id, offerIds));
+  const open = rows.filter((r) => r.response === null).map((r) => r.id);
+  if (open.length === 0) return;
+  await ctx.db
+    .update(bookingOffers)
+    .set({ response: 'timeout', respondedAt: ctx.clock() })
+    .where(inArray(bookingOffers.id, open));
+}
+
+export type { BookingActor };

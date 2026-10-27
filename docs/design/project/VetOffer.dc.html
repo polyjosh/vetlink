@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vet incoming request</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5F3F}a:hover{color:#14211A}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F2; color: #14211A; font-family: Figtree, system-ui, sans-serif; display: flex; flex-direction: column">
+  <div style="background: #14211A; color: #FFFFFF; padding: 20px 20px 72px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div>
+        <div style="font-size: 14px; color: #A9BBAF">Dr. Wanjiru K.</div>
+        <div style="font-size: 22px; font-weight: 800">Jobs</div>
+      </div>
+      <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 8px 0 14px; border-radius: 999px; background: rgba(255,255,255,0.08); font-size: 14px; font-weight: 700">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #4CC27E"></span>
+        Available
+        <span style="width: 48px; height: 28px; border-radius: 999px; background: #4CC27E; position: relative; display: inline-block"><span style="position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF"></span></span>
+        <input type="checkbox" checked style="position: absolute; opacity: 0; width: 1px; height: 1px">
+      </label>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+      <div><div style="font-size: 22px; font-weight: 800">3</div><div style="font-size: 13px; color: #A9BBAF">Jobs today</div></div>
+      <div><div style="font-size: 22px; font-weight: 800">4.8</div><div style="font-size: 13px; color: #A9BBAF">Rating</div></div>
+      <div><div style="font-size: 22px; font-weight: 800">12 km</div><div style="font-size: 13px; color: #A9BBAF">Service radius</div></div>
+    </div>
+  </div>
+
+  <div style="flex: 1; margin-top: -52px; padding: 0 16px; display: flex; flex-direction: column; gap: 14px">
+    <div style="background: #FFFFFF; border-radius: 20px; box-shadow: 0 2px 4px rgba(20,33,26,0.08), 0 12px 32px rgba(20,33,26,0.12); overflow: hidden">
+      <div style="background: #F2B33D; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center">
+        <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase">New request · Emergency</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 800"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>0:48</span>
+      </div>
+      <div style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div>
+          <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.01em">Cow · difficult birth</div>
+          <div style="font-size: 15px; color: #55625A; margin-top: 2px">Farmer: Joseph M. · 2547****123</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <div style="background: #F5F6F2; border-radius: 12px; padding: 12px"><div style="font-size: 13px; color: #55625A">Distance</div><div style="font-size: 18px; font-weight: 800">4.2 km</div></div>
+          <div style="background: #F5F6F2; border-radius: 12px; padding: 12px"><div style="font-size: 13px; color: #55625A">You earn</div><div style="font-size: 18px; font-weight: 800">KES [FEE]</div></div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; font-size: 15px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#55625A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <span>Kiambaa ward, near the dip</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px">
+          <button style="height: 60px; border: 0; border-radius: 14px; background: #1F5F3F; color: #FFFFFF; font-family: inherit; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Accept job</button>
+          <button style="height: 48px; border: 1.5px solid #DCE2DC; border-radius: 14px; background: #FFFFFF; color: #14211A; font-family: inherit; font-size: 16px; font-weight: 700">Decline</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: #55625A; text-align: center; padding: 0 12px">No data? Reply <b style="color: #14211A">Y</b> or <b style="color: #14211A">N</b> to the SMS. It works the same way.</div>
+  </div>
+
+  <nav aria-label="Main" style="background: #FFFFFF; border-top: 1px solid #DCE2DC; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 10px">
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #1F5F3F; font-size: 12px; font-weight: 800; text-decoration: none"><span style="width: 56px; height: 30px; border-radius: 999px; background: #E4F0E8; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg></span>Jobs</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #55625A; font-size: 12px; font-weight: 600; text-decoration: none"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Schedule</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #55625A; font-size: 12px; font-weight: 600; text-decoration: none"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>Earnings</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #55625A; font-size: 12px; font-weight: 600; text-decoration: none"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type DbHandle } from '../../src/db/client.js';
@@ -20,7 +21,10 @@ const SETUP_TIMEOUT_MS = 60_000;
 const EXPECTED_TABLES = [
   'admin_profiles',
   'animals',
+  'app_config',
   'audit_log',
+  'auth_sessions',
+  'booking_events',
   'booking_offers',
   'bookings',
   'devices',
@@ -33,12 +37,15 @@ const EXPECTED_TABLES = [
   'ratings',
   'refresh_tokens',
   'reminders',
+  'sms_inbound',
   'treatments',
   'users',
   'ussd_sessions',
   'vet_applications',
   'vet_documents',
+  'vet_service_fees',
   'vets',
+  'wallet_entries',
 ];
 
 describe.skipIf(!serverUrl)('database (migrations, seed, constraints)', () => {
@@ -101,7 +108,11 @@ describe.skipIf(!serverUrl)('database (migrations, seed, constraints)', () => {
 
   it('applies every committed migration', async () => {
     const [row] = await h.sql`select count(*)::int n from drizzle.__drizzle_migrations`;
-    expect(row?.n).toBe(2);
+    const journal = JSON.parse(
+      readFileSync(new URL('../../src/db/migrations/meta/_journal.json', import.meta.url), 'utf8'),
+    ) as { entries: unknown[] };
+    expect(journal.entries.length).toBeGreaterThanOrEqual(3);
+    expect(row?.n).toBe(journal.entries.length);
   });
 
   it('stores vet national IDs and the admin TOTP secret encrypted and bound to their row', async () => {
@@ -258,11 +269,23 @@ describe.skipIf(!serverUrl)('database (migrations, seed, constraints)', () => {
       const insertBooking = (key: string, status = 'pending_payment', fee = 500) => h.sql`
         insert into bookings (farmer_id, species, problem_type, source_channel, ward_id,
           fee_quoted, idempotency_key, status)
-        values (${SEED_USERS.farmer.id}, 'cattle', 'not_eating', 'ussd', ${ward?.id as number},
+        values (${SEED_USERS.farmer.id}, 'cattle', 'sick', 'ussd', ${ward?.id as number},
           ${fee}, ${key}, ${status})
         returning id`;
 
       await rejectsWith('bookings_status_check', () => insertBooking('k-bad-status', 'accepted'));
+      await rejectsWith(
+        'bookings_problem_type_check',
+        () => h.sql`
+        insert into bookings (farmer_id, species, problem_type, source_channel, ward_id, fee_quoted)
+        values (${SEED_USERS.farmer.id}, 'cattle', 'not_eating', 'ussd', ${ward?.id as number}, 500)`,
+      );
+      await rejectsWith(
+        'bookings_species_check',
+        () => h.sql`
+        insert into bookings (farmer_id, species, problem_type, source_channel, ward_id, fee_quoted)
+        values (${SEED_USERS.farmer.id}, 'dairy cow', 'sick', 'ussd', ${ward?.id as number}, 500)`,
+      );
       await rejectsWith('bookings_fee_quoted_check', () =>
         insertBooking('k-neg', 'pending_payment', -1),
       );

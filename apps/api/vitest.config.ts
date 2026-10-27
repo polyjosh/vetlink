@@ -2,12 +2,15 @@ import { existsSync, readFileSync } from 'node:fs';
 import { parseEnv } from 'node:util';
 import { defineConfig } from 'vitest/config';
 
-// DB integration tests need TEST_DATABASE_URL (set in CI). Locally, take only that one
-// variable from the repo-root .env so the rest of the file never leaks into tests.
+// DB and Redis integration tests need TEST_DATABASE_URL / TEST_REDIS_URL (set in CI). Locally,
+// take only those variables from the repo-root .env so the rest of the file never leaks into tests.
 const rootEnv = new URL('../../.env', import.meta.url);
-if (!process.env.TEST_DATABASE_URL && existsSync(rootEnv)) {
-  const url = parseEnv(readFileSync(rootEnv, 'utf8')).TEST_DATABASE_URL;
-  if (url) process.env.TEST_DATABASE_URL = url;
+if (existsSync(rootEnv)) {
+  const env = parseEnv(readFileSync(rootEnv, 'utf8'));
+  for (const name of ['TEST_DATABASE_URL', 'TEST_REDIS_URL'] as const) {
+    const value = env[name];
+    if (!process.env[name] && value) process.env[name] = value;
+  }
 }
 
 export default defineConfig({
@@ -16,5 +19,8 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
     environment: 'node',
+    // Every app build loads Swagger and zod schemas, and many tests hit Postgres; under a busy
+    // machine (Docker, parallel files) 5 s is too tight. Real hangs still fail.
+    testTimeout: 30_000,
   },
 });

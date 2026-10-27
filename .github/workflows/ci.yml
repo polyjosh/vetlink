@@ -22,8 +22,14 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U vetlink" --health-interval 5s --health-timeout 5s
           --health-retries 10
+      redis: # rate-limit / lockout counter tests
+        image: redis:7.4.11-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       TEST_DATABASE_URL: postgres://vetlink:ci-only@localhost:5432/vetlink
+      TEST_REDIS_URL: redis://localhost:6379/15
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -33,6 +39,63 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Generated API client is up to date
+        run: pnpm api:generate && git diff --exit-code packages/api-client
+
+  e2e: # web happy path (M11): farmer books and pays, vet accepts and completes, farmer rates
+    runs-on: ubuntu-latest
+    needs: check
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_USER: vetlink
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: vetlink
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U vetlink" --health-interval 5s --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7.4.11-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://vetlink:ci-only@localhost:5432/vetlink
+      TEST_REDIS_URL: redis://localhost:6379/15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
+  mobile-bundle: # the Expo app bundles for Android (Metro + Hermes); device E2E (Maestro) runs elsewhere
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter mobile bundle:android
+        env:
+          CI: 1
+          EXPO_NO_TELEMETRY: 1
 
   image:
     runs-on: ubuntu-latest

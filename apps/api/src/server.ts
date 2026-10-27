@@ -1,14 +1,27 @@
 import closeWithGrace from 'close-with-grace';
+import { pino } from 'pino';
 import { buildApp } from './app.js';
+import { buildRuntime } from './bootstrap.js';
 import { loadConfig } from './config.js';
 import { assertNoDevSeedData, watchForDevSeedData } from './db/dev-seed-guard.js';
 import { postgresDependency, redisDependency } from './lib/deps.js';
+import { loggerOptions } from './lib/logger.js';
 
 const config = loadConfig();
 await assertNoDevSeedData(config.APP_ENV, config.DATABASE_URL);
+const runtime = buildRuntime(config, pino(loggerOptions(config.LOG_LEVEL)));
+const ctx = runtime.ctx;
 const app = buildApp({
   logLevel: config.LOG_LEVEL,
   deps: [postgresDependency(config.DATABASE_URL), redisDependency(config.REDIS_URL)],
+  ctx,
+  trustProxy: config.TRUST_PROXY,
+  minAppVersion: config.MIN_APP_VERSION,
+  webhookSecret: config.WEBHOOK_SECRET,
+  echoSmsReplies: config.SMS_MODE === 'log',
+  // Swagger UI for developers; the API surface is not advertised in production.
+  docs: config.APP_ENV !== 'production',
+  onClose: () => runtime.close(),
 });
 const stopSeedWatch = watchForDevSeedData({
   appEnv: config.APP_ENV,

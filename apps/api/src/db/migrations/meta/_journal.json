@@ -15,6 +15,97 @@
       "when": 1792071328254,
       "tag": "0001_review_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792075124791,
+      "tag": "0002_auth_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792083612999,
+      "tag": "0003_admin_totp_enrolment",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792086899516,
+      "tag": "0004_booking_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792087827414,
+      "tag": "0005_animal_vocabulary",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792089370286,
+      "tag": "0006_payments_reconciliation",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792090753166,
+      "tag": "0007_config_and_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792092211599,
+      "tag": "0008_sms_inbound",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792400442906,
+      "tag": "0009_profiles_photos",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792407299097,
+      "tag": "0010_vet_practice_prices",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792410860888,
+      "tag": "0011_ratings_followups_badges",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792416602988,
+      "tag": "0012_choose_vet",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792427305692,
+      "tag": "0013_wallet",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792429235845,
+      "tag": "0014_scheduling",
+      "breakpoints": true
     }
   ]
 }

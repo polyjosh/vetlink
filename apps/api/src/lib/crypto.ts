@@ -76,3 +76,13 @@ export function fieldCrypto(masterKeyBase64: string): FieldCrypto {
     },
   };
 }
+
+/**
+ * Keyed HMAC-SHA256 for short secrets that are checked but never read back (OTPs, recovery
+ * codes). Each purpose gets its own HKDF-derived key, separate from the field-encryption keys.
+ * Keyed because an unkeyed hash of a 6-digit code is reversed by trying all 10^6 values.
+ */
+export function secretHasher(masterKeyBase64: string, purpose: string): (value: string) => string {
+  const key = deriveKey(parseMasterKey(masterKeyBase64), `vetlink:secret-hash:${purpose}:v1`);
+  return (value) => createHmac('sha256', key).update(value, 'utf8').digest('hex');
+}

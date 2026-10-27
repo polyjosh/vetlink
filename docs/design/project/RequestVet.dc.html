@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Request a vet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5F3F}a:hover{color:#14211A}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F2; color: #14211A; font-family: Figtree, system-ui, sans-serif; display: flex; flex-direction: column">
+  <div style="display: flex; align-items: center; gap: 8px; padding: 12px 12px 8px">
+    <a href="FarmerHome.dc.html" aria-label="Back" style="width: 48px; height: 48px; border-radius: 12px; color: #14211A; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <div style="flex: 1">
+      <div style="font-size: 20px; font-weight: 800">Request a vet</div>
+      <div style="font-size: 13px; color: #55625A">Step 1 of 2 · About the animal</div>
+    </div>
+  </div>
+  <div style="height: 4px; margin: 0 20px; background: #DCE2DC; border-radius: 999px"><div style="width: 50%; height: 4px; background: #1F5F3F; border-radius: 999px"></div></div>
+
+  <div style="flex: 1; overflow: auto; padding: 20px; display: flex; flex-direction: column; gap: 24px">
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Which animal?</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{animals}}" as="a" hint-placeholder-count="6">
+          <button onClick="{{a.pick}}" aria-pressed="{{a.pressed}}" style="height: 72px; border-radius: 14px; border: 2px solid {{a.border}}; background: {{a.bg}}; color: #14211A; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+            <span style="font-size: 16px; font-weight: 800">{{a.en}}</span>
+            <span style="font-size: 12px; color: #55625A; font-weight: 600">{{a.sw}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">What's wrong? <span style="font-size: 14px; color: #55625A; font-weight: 500">Pick all that apply</span></h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{symptoms}}" as="s" hint-placeholder-count="7">
+          <button onClick="{{s.toggle}}" aria-pressed="{{s.pressed}}" style="height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{s.border}}; background: {{s.bg}}; color: {{s.color}}; font-family: inherit; font-size: 15px; font-weight: 600">{{s.label}}</button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">How urgent?</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <button onClick="{{setNormal}}" aria-pressed="{{normalPressed}}" style="min-height: 64px; padding: 10px 14px; text-align: left; border-radius: 14px; border: 2px solid {{normalBorder}}; background: {{normalBg}}; color: #14211A; font-family: inherit">
+          <div style="font-size: 16px; font-weight: 800">Today</div>
+          <div style="font-size: 13px; color: #55625A">Within a few hours</div>
+        </button>
+        <button onClick="{{setUrgent}}" aria-pressed="{{urgentPressed}}" style="min-height: 64px; padding: 10px 14px; text-align: left; border-radius: 14px; border: 2px solid {{urgentBorder}}; background: {{urgentBg}}; color: #14211A; font-family: inherit">
+          <div style="font-size: 16px; font-weight: 800">Emergency</div>
+          <div style="font-size: 13px; color: #55625A">Dharura · right now</div>
+        </button>
+      </div>
+    </section>
+
+    <div style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 16px; padding: 16px; display: flex; gap: 12px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5F3F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      <div style="font-size: 14px; line-height: 20px"><b>You see the fee before you confirm.</b> <span style="color: #55625A">Only verified vets receive your request.</span></div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-top: 1px solid #DCE2DC; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -4px 12px rgba(20,33,26,0.05)">
+    <div style="font-size: 14px; color: #55625A; text-align: center">{{summary}}</div>
+    <button style="height: 56px; border: 0; border-radius: 12px; background: {{ctaBg}}; color: {{ctaColor}}; font-family: inherit; font-size: 17px; font-weight: 800">Continue</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { animal: 'cow', symptoms: ['eat'], urgent: false };
+  }
+  renderVals() {
+    const st = this.state;
+    const animalList = [
+      { id: 'cow', en: 'Cow', sw: "Ng'ombe" },
+      { id: 'goat', en: 'Goat', sw: 'Mbuzi' },
+      { id: 'sheep', en: 'Sheep', sw: 'Kondoo' },
+      { id: 'poultry', en: 'Poultry', sw: 'Kuku' },
+      { id: 'pig', en: 'Pig', sw: 'Nguruwe' },
+      { id: 'dog', en: 'Dog', sw: 'Mbwa' }
+    ];
+    const symptomList = [
+      { id: 'eat', label: 'Not eating' },
+      { id: 'fever', label: 'Fever' },
+      { id: 'diarrhoea', label: 'Diarrhoea' },
+      { id: 'birth', label: 'Difficult birth' },
+      { id: 'injury', label: 'Injury' },
+      { id: 'cough', label: 'Coughing' },
+      { id: 'other', label: 'Something else' }
+    ];
+    const animals = animalList.map((a) => {
+      const on = st.animal === a.id;
+      return { ...a, pressed: on ? 'true' : 'false', bg: on ? '#E4F0E8' : '#FFFFFF', border: on ? '#1F5F3F' : '#DCE2DC', pick: () => this.setState({ animal: a.id }) };
+    });
+    const symptoms = symptomList.map((s) => {
+      const on = st.symptoms.includes(s.id);
+      return {
+        ...s,
+        pressed: on ? 'true' : 'false',
+        bg: on ? '#1F5F3F' : '#FFFFFF',
+        color: on ? '#FFFFFF' : '#14211A',
+        border: on ? '#1F5F3F' : '#DCE2DC',
+        toggle: () => this.setState({ symptoms: on ? st.symptoms.filter((x) => x !== s.id) : st.symptoms.concat(s.id) })
+      };
+    });
+    const animalName = animalList.find((a) => a.id === st.animal).en;
+    const n = st.symptoms.length;
+    const ready = n > 0;
+    return {
+      animals,
+      symptoms,
+      setNormal: () => this.setState({ urgent: false }),
+      setUrgent: () => this.setState({ urgent: true }),
+      normalPressed: st.urgent ? 'false' : 'true',
+      urgentPressed: st.urgent ? 'true' : 'false',
+      normalBg: st.urgent ? '#FFFFFF' : '#E4F0E8',
+      normalBorder: st.urgent ? '#DCE2DC' : '#1F5F3F',
+      urgentBg: st.urgent ? '#FDF1D8' : '#FFFFFF',
+      urgentBorder: st.urgent ? '#8A5A00' : '#DCE2DC',
+      summary: ready ? animalName + ' · ' + n + (n === 1 ? ' problem' : ' problems') + (st.urgent ? ' · Emergency' : ' · Today') : 'Pick at least one problem',
+      ctaBg: ready ? '#1F5F3F' : '#DCE2DC',
+      ctaColor: ready ? '#FFFFFF' : '#55625A'
+    };
+  }
+}
+</script>
+</body>
+</html>

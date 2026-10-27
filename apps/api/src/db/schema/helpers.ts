@@ -1,7 +1,7 @@
 import { sql, type SQL } from 'drizzle-orm';
 import { timestamp, type AnyPgColumn } from 'drizzle-orm/pg-core';
 
-const SAFE_LITERAL = /^[a-z_]+$/;
+const SAFE_LITERAL = /^[a-z0-9_]+$/;
 
 function literalList(values: readonly string[]): SQL {
   // CHECK constraints cannot take bind parameters, so the values are inlined. They come from

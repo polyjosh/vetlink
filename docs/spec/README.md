@@ -19,3 +19,4 @@ The detailed product and technical spec, split by topic so Claude Code can read 
 | `12-security-privacy.md` | §17 security, privacy, compliance | Auth, PII, vet documents, data protection, anything sensitive |
 | `13-store-release.md` | §18 App Store and Play Store release | Store submission and release |
 | `14-roadmap-metrics-open-questions.md` | §19 roadmap, §20 metrics, **§21 open questions** | Planning, or before any decision touching money, verification policy, hosting, or store IDs |
+| `15-change-set-1.md` | §24 Change Set 1: profiles, farmer chooses vet, scheduling, badges, alerts, referrals, UI upgrades (amends §8 to §17) | Any CS1 to CS10 task; anything touching profiles, booking modes, vet list, or the new statuses |

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Farmer home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5F3F}a:hover{color:#14211A}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F2; color: #14211A; font-family: Figtree, system-ui, sans-serif; display: flex; flex-direction: column">
+  <div style="flex: 1; overflow: hidden; padding: 20px 20px 0; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div>
+        <div style="font-size: 14px; color: #55625A; font-weight: 500">Habari,</div>
+        <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.01em">Joseph</div>
+      </div>
+      <button aria-label="Notifications" style="width: 48px; height: 48px; border-radius: 14px; border: 1px solid #DCE2DC; background: #FFFFFF; color: #14211A; display: flex; align-items: center; justify-content: center; position: relative">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg>
+        <span style="position: absolute; top: 10px; right: 11px; width: 9px; height: 9px; border-radius: 50%; background: #B3261E; border: 2px solid #FFFFFF"></span>
+      </button>
+    </div>
+
+    <div style="background: #1F5F3F; color: #FFFFFF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+      <div>
+        <div style="font-size: 22px; line-height: 28px; font-weight: 800">Is an animal sick?</div>
+        <div style="font-size: 15px; line-height: 22px; color: #CFE3D6; margin-top: 4px">A verified vet near you, usually within minutes.</div>
+      </div>
+      <a href="RequestVet.dc.html" style="height: 56px; border-radius: 12px; background: #F2B33D; color: #14211A; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 17px; font-weight: 800">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Request a vet
+      </a>
+    </div>
+
+    <a href="Tracking.dc.html" style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 16px; padding: 16px; display: flex; gap: 14px; align-items: center; color: #14211A; text-decoration: none">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: #E3EDF8; color: #1D5FA8; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"/></svg>
+      </div>
+      <div style="flex: 1; min-width: 0">
+        <span style="display: inline-block; padding: 3px 10px; border-radius: 999px; background: #E3EDF8; color: #1D5FA8; font-size: 12px; font-weight: 700">Vet on the way</span>
+        <div style="font-size: 16px; font-weight: 700; margin-top: 6px">Dr. Wanjiru · Cow, not eating</div>
+        <div style="font-size: 14px; color: #55625A">Arrives in about 25 min</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#55625A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800">Your animals</h2>
+        <a href="#" style="font-size: 14px; font-weight: 700; text-decoration: none">See all</a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+        <div style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 14px; padding: 14px 12px">
+          <div style="font-size: 26px; font-weight: 800">4</div>
+          <div style="font-size: 14px; font-weight: 700">Cows</div>
+          <div style="font-size: 12px; color: #55625A">Ng'ombe</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 14px; padding: 14px 12px">
+          <div style="font-size: 26px; font-weight: 800">7</div>
+          <div style="font-size: 14px; font-weight: 700">Goats</div>
+          <div style="font-size: 12px; color: #55625A">Mbuzi</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 14px; padding: 14px 12px">
+          <div style="font-size: 26px; font-weight: 800">30</div>
+          <div style="font-size: 14px; font-weight: 700">Poultry</div>
+          <div style="font-size: 12px; color: #55625A">Kuku</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Coming up</h2>
+      <div style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 16px; overflow: hidden">
+        <div style="display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #EDEFEC">
+          <div style="width: 44px; text-align: center; flex-shrink: 0"><div style="font-size: 12px; font-weight: 700; color: #8A5A00">NOV</div><div style="font-size: 20px; font-weight: 800">03</div></div>
+          <div style="flex: 1"><div style="font-size: 15px; font-weight: 700">Deworming · goats</div><div style="font-size: 13px; color: #55625A">Reminder by SMS the day before</div></div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; padding: 14px 16px">
+          <div style="width: 44px; text-align: center; flex-shrink: 0"><div style="font-size: 12px; font-weight: 700; color: #8A5A00">NOV</div><div style="font-size: 20px; font-weight: 800">18</div></div>
+          <div style="flex: 1"><div style="font-size: 15px; font-weight: 700">Vaccination · Daisy (cow)</div><div style="font-size: 13px; color: #55625A">Booked with Dr. Otieno</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav aria-label="Main" style="background: #FFFFFF; border-top: 1px solid #DCE2DC; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 10px">
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #1F5F3F; font-size: 12px; font-weight: 800; text-decoration: none"><span style="width: 56px; height: 30px; border-radius: 999px; background: #E4F0E8; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></span>Home</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #55625A; font-size: 12px; font-weight: 600; text-decoration: none"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>Animals</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #55625A; font-size: 12px; font-weight: 600; text-decoration: none"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Bookings</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 60px; color: #55625A; font-size: 12px; font-weight: 600; text-decoration: none"><span style="height: 30px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

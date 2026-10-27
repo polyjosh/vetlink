@@ -1,0 +1,187 @@
+import {
+  PRACTICE_TYPES,
+  SPECIES,
+  VET_SERVICES,
+  VET_TYPES,
+  type VetDocumentKind,
+  type VetType,
+} from './domain.js';
+import { DEFAULT_WORKING_HOURS } from './pricing.js';
+
+/** The vet application wizard (§8.3): the same 7 steps on mobile and web. */
+export const APPLICATION_STEPS = [
+  'professional_type',
+  'personal',
+  'credentials',
+  'practice',
+  'service_area',
+  'payout',
+  'declaration',
+] as const;
+export type ApplicationStep = (typeof APPLICATION_STEPS)[number];
+
+/** Documents required before submitting, by professional type. */
+export const REQUIRED_DOCUMENTS: Record<VetType, readonly VetDocumentKind[]> = {
+  vet: ['profile_photo', 'id_front', 'id_back', 'certificate', 'licence'],
+  paravet: ['profile_photo', 'id_front', 'id_back', 'training_cert'],
+};
+
+export const KVB_CATEGORIES = [
+  'veterinary_surgeon',
+  'veterinary_paraprofessional',
+  'animal_health_assistant',
+] as const;
+export type KvbCategory = (typeof KVB_CATEGORIES)[number];
+
+/** Languages a vet speaks (shown to farmers). */
+export const SPOKEN_LANGUAGES = ['sw', 'en', 'ki', 'luo', 'kam', 'kln', 'other'] as const;
+export type SpokenLanguage = (typeof SPOKEN_LANGUAGES)[number];
+
+/** Reviewer reason templates (bilingual text in i18n `application.reasons`). */
+export const APPLICATION_REASONS = [
+  'id_unclear',
+  'id_mismatch',
+  'photo_unclear',
+  'certificate_unclear',
+  'licence_unclear',
+  'licence_expired',
+  'kvb_unverifiable',
+  'fraudulent_documents',
+  'outside_service_area',
+  'fee_out_of_band',
+  'duplicate_account',
+  'other',
+] as const;
+export type ApplicationReason = (typeof APPLICATION_REASONS)[number];
+
+export const APPLICATION_DECISIONS = ['approve', 'request_changes', 'reject'] as const;
+export type ApplicationDecision = (typeof APPLICATION_DECISIONS)[number];
+
+/** Upload limits for vet documents (§8.3: JPG, PNG, PDF; enforce size). */
+export const DOCUMENT_CONTENT_TYPES = ['image/jpeg', 'image/png', 'application/pdf'] as const;
+export const DOCUMENT_MAX_BYTES = 5 * 1024 * 1024;
+
+/** Target review time shown to applicants (placeholder; Open Question 21.16). */
+export const REVIEW_TARGET_HOURS = 48;
+
+/** How a wizard field is entered (the same on web and mobile). */
+export type ApplicationFieldKind =
+  | 'text'
+  | 'textarea'
+  | 'int'
+  | 'date'
+  | 'enum'
+  | 'multi'
+  | 'bool'
+  | 'ward'
+  | 'tel'
+  | 'email'
+  /** A price per service chosen in the practice step (§24.3). */
+  | 'fees'
+  /** Working hours per weekday (§24.10). */
+  | 'hours';
+
+export interface ApplicationField {
+  name: string;
+  kind: ApplicationFieldKind;
+  options?: readonly string[];
+  /** Only asked of veterinary surgeons (not paravets). */
+  vetOnly?: boolean;
+  /** Only shown when this boolean field of the same step is true. */
+  showIf?: string;
+  /** Shown and saved when the vet has not answered yet (a valid answer, not a placeholder). */
+  defaultValue?: unknown;
+}
+
+/** The wizard's fields per step (§8.3). Names match the API step schemas. */
+export const APPLICATION_FIELDS: Record<ApplicationStep, readonly ApplicationField[]> = {
+  professional_type: [{ name: 'vetType', kind: 'enum', options: VET_TYPES }],
+  personal: [
+    { name: 'fullName', kind: 'text' },
+    { name: 'nationalId', kind: 'text' },
+    { name: 'email', kind: 'email' },
+  ],
+  credentials: [
+    { name: 'kvbRegNo', kind: 'text' },
+    { name: 'kvbCategory', kind: 'enum', options: KVB_CATEGORIES },
+    { name: 'licenceExpiry', kind: 'date', vetOnly: true },
+    { name: 'qualification', kind: 'text' },
+    { name: 'institution', kind: 'text' },
+    { name: 'yearQualified', kind: 'int' },
+    { name: 'supervisingVet', kind: 'text' },
+  ],
+  practice: [
+    { name: 'practiceType', kind: 'enum', options: PRACTICE_TYPES },
+    { name: 'practiceName', kind: 'text' },
+    { name: 'yearsExperience', kind: 'int' },
+    { name: 'species', kind: 'multi', options: SPECIES },
+    { name: 'services', kind: 'multi', options: VET_SERVICES },
+    { name: 'languages', kind: 'multi', options: SPOKEN_LANGUAGES },
+    { name: 'bio', kind: 'textarea' },
+  ],
+  service_area: [
+    { name: 'wardId', kind: 'ward' },
+    { name: 'serviceRadiusKm', kind: 'int' },
+    { name: 'consultationFee', kind: 'int' },
+    { name: 'serviceFees', kind: 'fees' },
+    { name: 'offersCallOuts', kind: 'bool', defaultValue: true },
+    { name: 'baseCallOutFee', kind: 'int', showIf: 'offersCallOuts' },
+    { name: 'emergencyCallouts', kind: 'bool', showIf: 'offersCallOuts', defaultValue: false },
+    { name: 'hasPremises', kind: 'bool', defaultValue: false },
+    { name: 'premisesWardId', kind: 'ward', showIf: 'hasPremises' },
+    { name: 'premisesDirections', kind: 'text', showIf: 'hasPremises' },
+    { name: 'premisesHours', kind: 'text', showIf: 'hasPremises' },
+    { name: 'workingHours', kind: 'hours', defaultValue: DEFAULT_WORKING_HOURS },
+  ],
+  payout: [{ name: 'payoutMpesaPhone', kind: 'tel' }],
+  declaration: [
+    { name: 'acceptTerms', kind: 'bool' },
+    { name: 'consentVerification', kind: 'bool' },
+    { name: 'declaration', kind: 'bool' },
+  ],
+};
+
+export type ChecklistState = 'accepted' | 'flagged' | 'in_review';
+export type ChecklistItem =
+  | { kind: 'step'; step: ApplicationStep; state: ChecklistState }
+  | { kind: 'doc'; doc: VetDocumentKind; state: ChecklistState; note: string | null };
+
+/**
+ * The status screen's checklist (§8.3): each wizard section (the declaration aside) and each
+ * document, flagged when the reviewer named it, accepted once a decision was made, otherwise
+ * still being checked. Presentation only; the review itself is the admin's.
+ */
+export function applicationChecklist(app: {
+  status: string;
+  flaggedFields: readonly string[];
+  documents: readonly {
+    kind: VetDocumentKind;
+    status: 'uploaded' | 'accepted' | 'flagged';
+    flagReason: string | null;
+  }[];
+}): ChecklistItem[] {
+  const decided = app.status === 'changes_requested' || app.status === 'approved';
+  const steps: ChecklistItem[] = APPLICATION_STEPS.filter((s) => s !== 'declaration').map(
+    (step) => ({
+      kind: 'step',
+      step,
+      state: app.flaggedFields.some((f) => f.startsWith(`${step}.`))
+        ? 'flagged'
+        : decided
+          ? 'accepted'
+          : 'in_review',
+    }),
+  );
+  const docs: ChecklistItem[] = app.documents.map((d) => ({
+    kind: 'doc',
+    doc: d.kind,
+    state:
+      d.status === 'flagged' || app.flaggedFields.includes(`doc.${d.kind}`)
+        ? 'flagged'
+        : d.status === 'accepted' || decided
+          ? 'accepted'
+          : 'in_review',
+    note: d.flagReason,
+  }));
+  return [...steps, ...docs];
+}

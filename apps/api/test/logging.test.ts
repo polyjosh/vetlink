@@ -1,8 +1,11 @@
 import { Writable } from 'node:stream';
+import { DrizzleQueryError } from 'drizzle-orm/errors';
 import { pino } from 'pino';
 import { describe, expect, it } from 'vitest';
 import { loggerOptions } from '../src/lib/logger.js';
 import { maskPhone, maskPhonesInText } from '../src/lib/phone.js';
+import { africasTalkingSender, logSmsSender } from '../src/lib/sms.js';
+import type { AppEnv } from '@vetlink/shared';
 
 function capture() {
   const lines: string[] = [];
@@ -46,5 +49,106 @@ describe('logger', () => {
     const out = lines.join('');
     expect(out).not.toContain('phone=');
     expect(out).toContain('"url":"/x"');
+  });
+});
+
+describe('error logging', () => {
+  it('drops query parameters and masks phones in database errors and their causes', () => {
+    const { log, lines } = capture();
+    const pgError = Object.assign(new Error('duplicate key value violates unique constraint'), {
+      detail: 'Key (phone)=(254712345678) already exists.',
+      parameters: ['254712345678', 'otp-hash-abc'],
+    });
+    const err = new DrizzleQueryError(
+      'insert into "users" ("phone") values ($1)',
+      ['254712345678', 'token-hash-xyz'],
+      pgError,
+    );
+    log.error({ err }, 'unhandled error');
+    const out = lines.join('');
+    expect(out).not.toContain('254712345678');
+    expect(out).not.toContain('token-hash-xyz');
+    expect(out).not.toContain('otp-hash-abc');
+    expect(out).toContain('2547****678');
+    expect(out).toContain('insert into'); // the query text (no values) is kept for debugging
+    expect(out).toContain('duplicate key value');
+  });
+});
+
+describe('SMS_MODE=log sender', () => {
+  const sendWith = async (appEnv: AppEnv) => {
+    const { log, lines } = capture();
+    await logSmsSender(log, appEnv).send('254712345678', 'Your VetLink code is 482913.');
+    return lines.join('');
+  };
+
+  it('shows codes in development and test, never the full number', async () => {
+    const out = await sendWith('development');
+    expect(out).toContain('482913');
+    expect(out).not.toContain('254712345678');
+  });
+
+  it('masks codes in staging', async () => {
+    const out = await sendWith('staging');
+    expect(out).not.toContain('482913');
+    expect(out).toContain('Your VetLink code is ****.');
+  });
+});
+
+describe("Africa's Talking sender", () => {
+  const ok = (status = 201, statusCode = 101) =>
+    new Response(
+      JSON.stringify({
+        SMSMessageData: {
+          Recipients: [{ statusCode, status: 'Success', number: '+254700000000' }],
+        },
+      }),
+      { status },
+    );
+
+  it('posts the documented form to the sandbox or live host', async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+    const fetchStub = async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return ok();
+    };
+    await africasTalkingSender({
+      username: 'sandbox',
+      apiKey: 'k',
+      fetch: fetchStub as typeof fetch,
+    }).send('254712345678', 'Hello');
+    await africasTalkingSender({
+      username: 'vetlink',
+      apiKey: 'k',
+      senderId: 'VETLINK',
+      fetch: fetchStub as typeof fetch,
+    }).send('254712345678', 'Hello');
+    expect(calls.map((c) => c.url)).toEqual([
+      'https://api.sandbox.africastalking.com/version1/messaging',
+      'https://api.africastalking.com/version1/messaging',
+    ]);
+    const body = new URLSearchParams(String(calls[1]?.init.body));
+    expect(Object.fromEntries(body)).toMatchObject({
+      username: 'vetlink',
+      to: '+254712345678',
+      message: 'Hello',
+      from: 'VETLINK',
+    });
+    expect((calls[1]?.init.headers as Record<string, string>).apikey).toBe('k');
+  });
+
+  it('throws when the message is not accepted, so the job retries', async () => {
+    const reject = africasTalkingSender({
+      username: 'vetlink',
+      apiKey: 'k',
+      fetch: (async () => ok(201, 403)) as typeof fetch,
+    });
+    await expect(reject.send('254712345678', 'x')).rejects.toThrow(/rejected/);
+    const down = africasTalkingSender({
+      username: 'vetlink',
+      apiKey: 'k',
+      fetch: (async () => new Response('', { status: 500 })) as typeof fetch,
+    });
+    await expect(down.send('254712345678', 'x')).rejects.toThrow(/HTTP 500/);
   });
 });

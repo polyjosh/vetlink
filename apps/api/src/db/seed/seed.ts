@@ -1,5 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import type { AppEnv } from '@vetlink/shared';
+import { DEFAULT_WORKING_HOURS, type AppEnv } from '@vetlink/shared';
 import { fieldContext, type FieldCrypto } from '../../lib/crypto.js';
 import type { Db } from '../client.js';
 import {
@@ -9,6 +9,7 @@ import {
   locations,
   users,
   vetApplications,
+  vetServiceFees,
   vets,
 } from '../schema/index.js';
 import {
@@ -175,6 +176,10 @@ export async function seed(db: Db, crypto: FieldCrypto): Promise<SeedSummary> {
       wardId: githunguri,
       serviceRadiusKm: 20,
       baseCallOutFee: 500,
+      consultationFee: 500,
+      offersCallOuts: true,
+      hasPremises: false,
+      workingHours: DEFAULT_WORKING_HOURS,
       isAvailable: true,
     };
     const pendingVet: typeof vets.$inferInsert = {
@@ -198,10 +203,33 @@ export async function seed(db: Db, crypto: FieldCrypto): Promise<SeedSummary> {
       verifiedAt: null,
       wardId: ikinu,
       baseCallOutFee: 300,
+      consultationFee: 300,
+      hasPremises: true,
+      premisesWardId: ikinu,
+      premisesDirections: 'Demo Agrovet, next to the market',
+      premisesHours: 'Mon-Sat 8:00-18:00',
       isAvailable: false, // unapproved vets can never go online (invariant 2)
     };
     for (const vet of [approvedVet, pendingVet]) {
       await tx.insert(vets).values(vet).onConflictDoUpdate({ target: vets.userId, set: vet });
+    }
+
+    // "From" prices for the services each seed vet offers (§24.3).
+    const fees: (typeof vetServiceFees.$inferInsert)[] = [
+      { vetId: SEED_USERS.approvedVet.id, service: 'treatment', feeFromKes: 300 },
+      { vetId: SEED_USERS.approvedVet.id, service: 'vaccination', feeFromKes: 250 },
+      { vetId: SEED_USERS.approvedVet.id, service: 'artificial_insemination', feeFromKes: 1500 },
+      { vetId: SEED_USERS.pendingVet.id, service: 'treatment', feeFromKes: 200 },
+      { vetId: SEED_USERS.pendingVet.id, service: 'vaccination', feeFromKes: 150 },
+    ];
+    for (const fee of fees) {
+      await tx
+        .insert(vetServiceFees)
+        .values(fee)
+        .onConflictDoUpdate({
+          target: [vetServiceFees.vetId, vetServiceFees.service],
+          set: { feeFromKes: fee.feeFromKes },
+        });
     }
 
     const applications: (typeof vetApplications.$inferInsert)[] = [
