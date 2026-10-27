@@ -33,6 +33,7 @@ test('farmer books and pays, vet accepts and completes, farmer rates (M11 done-w
   await farmer.getByRole('button', { name: sw.ussd.species.cattle, exact: true }).click();
   await farmer.getByRole('button', { name: sw.ussd.problems.sick, exact: true }).click();
   await farmer.getByLabel(sw.web.request.note).fill('Not eating since Monday');
+  await farmer.getByRole('button', { name: sw.web.common.continue }).click();
   // "Fastest available vet": pay first, then the offer goes out in waves (§24.5).
   await farmer.getByRole('button', { name: new RegExp(sw.web.choose.fastest) }).click();
   const pay = farmer.getByRole('button', { name: /Thibitisha na ulipe/ });

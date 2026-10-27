@@ -73,7 +73,7 @@ export default function FarmerHome() {
                 {f.requestVet}
               </LinkButton>
               <Link
-                href="/farmer/request?later=1"
+                href="/farmer/request"
                 className="inline-flex min-h-button-lg items-center rounded-md border-strong border-on-primary/40 px-5 font-bold text-on-primary hover:bg-on-primary/10"
               >
                 {f.routineVisit}

@@ -7,7 +7,7 @@ import { useSession } from '@/lib/session';
 import { PersonAvatar } from './pictures';
 import { PriceLines } from './prices';
 import { BadgeChips } from './ratings';
-import { ChoiceGrid } from './ui';
+import { ChoiceChip, Icon } from './ui';
 
 export type VetSort = 'distance' | 'rating' | 'price';
 type Vet = Schemas['ChoosableVet'];
@@ -30,7 +30,7 @@ function VetCardRow({
   const c = t.web.choose;
   return (
     <li
-      className={`rounded-card border p-3 ${selected ? 'border-brand bg-brand-light' : 'border-line bg-surface'}`}
+      className={`rounded-lg border-2 p-3 ${selected ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}
     >
       <button
         type="button"
@@ -38,26 +38,28 @@ function VetCardRow({
         onClick={onSelect}
         className="flex w-full items-start gap-3 text-left"
       >
-        <PersonAvatar url={vet.photoUrl} name={vet.name} size={56} />
-        <span className="flex-1 space-y-1">
-          <span className="block font-bold">{vet.name ?? '-'}</span>
-          {vet.displayName && <span className="block text-muted">“{vet.displayName}”</span>}
-          <span className="block text-sm">
+        <PersonAvatar url={vet.photoUrl} name={vet.name} size={52} />
+        <span className="min-w-0 flex-1 space-y-1">
+          <span className="block text-button">{vet.name ?? '-'}</span>
+          {vet.displayName && (
+            <span className="block text-small text-ink-muted">“{vet.displayName}”</span>
+          )}
+          <span className="block text-small text-ink-muted">
             {vet.type === 'vet' ? t.web.onboarding.vetTypeVet : t.web.onboarding.vetTypeParavet}
             {' · '}
             {vet.rating === null ? c.newVet : `★ ${vet.rating.toFixed(1)}`}
             {' · '}
             {vet.distanceKm === 0 ? c.underKm : fmt(c.km, { km: vet.distanceKm })}
           </span>
+          <span className="block font-bold text-primary">
+            {fmt(t.web.prices.total, { amount: kes(vet.price.total) })}
+          </span>
           <BadgeChips badges={vet.badges} />
-        </span>
-        <span className="text-right font-bold">
-          {fmt(t.web.prices.total, { amount: kes(vet.price.total) })}
         </span>
       </button>
       <button
         type="button"
-        className="mt-2 text-sm underline"
+        className="mt-1 min-h-touch text-small font-bold text-primary"
         onClick={async () => {
           if (card) return setCard(null);
           const { data } = await api.GET('/v1/vets/{vetId}/card', {
@@ -69,7 +71,7 @@ function VetCardRow({
         {c.viewProfile}
       </button>
       {card && (
-        <div className="mt-2 space-y-2 border-t border-line pt-2 text-sm">
+        <div className="mt-2 space-y-2 border-t border-divider pt-2 text-small">
           {card.bio && <p className="italic">{card.bio}</p>}
           <p>{card.species.map((s) => t.ussd.species[s]).join(', ')}</p>
           {card.yearsExperience !== null && (
@@ -112,22 +114,24 @@ export function VetChooser({
           type="button"
           aria-pressed={value === 'auto'}
           onClick={() => onChange('auto')}
-          className={`w-full rounded-card border p-3 text-left ${value === 'auto' ? 'border-brand bg-brand-light' : 'border-line bg-surface'}`}
+          className={`flex w-full items-start gap-3 rounded-lg border-2 p-3 text-left ${value === 'auto' ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}
         >
-          <span className="block font-bold">⚡ {c.fastest}</span>
-          <span className="block text-sm text-muted">{c.fastestHint}</span>
+          <Icon name="clock" className="mt-0.5 text-primary" />
+          <span>
+            <span className="block font-bold">{c.fastest}</span>
+            <span className="block text-small text-ink-muted">{c.fastestHint}</span>
+          </span>
         </button>
       )}
       <div className="space-y-1">
-        <p className="text-sm font-semibold">{c.sortBy}</p>
-        <ChoiceGrid
-          options={(['distance', 'rating', 'price'] as const).map((s) => ({
-            value: s,
-            label: c.sort[s],
-          }))}
-          value={sort}
-          onChange={onSort}
-        />
+        <p className="text-small font-semibold">{c.sortBy}</p>
+        <div className="flex flex-wrap gap-2">
+          {(['distance', 'rating', 'price'] as const).map((o) => (
+            <ChoiceChip key={o} selected={sort === o} onClick={() => onSort(o)}>
+              {c.sort[o]}
+            </ChoiceChip>
+          ))}
+        </div>
       </div>
       {vets === null ? (
         <p>…</p>

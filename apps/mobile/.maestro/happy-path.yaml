@@ -18,6 +18,7 @@ appId: co.ke.vetlink.dev
 - tapOn: { id: request-vet }
 - tapOn: 'Ng.ombe'
 - tapOn: 'Mgonjwa'
+- tapOn: { id: continue }
 # §24.5: "fastest available vet" pays first and goes out in waves.
 - scrollUntilVisible: { element: { text: '.*Daktari wa haraka zaidi.*' } }
 - tapOn: { text: '.*Daktari wa haraka zaidi.*' }

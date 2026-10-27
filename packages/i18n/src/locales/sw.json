@@ -457,7 +457,20 @@
       "payAgain": "Lipa tena",
       "searching": "Tunatafuta daktari karibu nawe…",
       "emergencyBadge": "DHARURA",
-      "photos": "Picha za mnyama (si lazima, hadi 3)"
+      "photos": "Picha za mnyama (si lazima, hadi 3)",
+      "stepAnimal": "Kuhusu mnyama",
+      "stepVisit": "Mahali, daktari na ada",
+      "howUrgent": "Ni ya haraka kiasi gani?",
+      "today": "Leo",
+      "todayHint": "Ndani ya saa chache",
+      "urgent": "Dharura",
+      "urgentHint": "Sasa hivi: madaktari wote wa karibu wanaarifiwa",
+      "trustNote": "Utaona ada kabla ya kuthibitisha. Ni madaktari waliothibitishwa pekee wanaopokea ombi lako.",
+      "summaryEmpty": "Chagua mnyama na tatizo",
+      "summary": "{animal} · {problem}",
+      "addPhoto": "Ongeza picha",
+      "removePhoto": "Ondoa picha {n}",
+      "photoN": "Picha {n}"
     },
     "tracking": {
       "title": "Ombi {ref}",

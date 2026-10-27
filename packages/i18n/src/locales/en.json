@@ -457,7 +457,20 @@
       "payAgain": "Pay again",
       "searching": "Finding a vet near you…",
       "emergencyBadge": "EMERGENCY",
-      "photos": "Photos of the animal (optional, up to 3)"
+      "photos": "Photos of the animal (optional, up to 3)",
+      "stepAnimal": "About the animal",
+      "stepVisit": "Place, vet and fee",
+      "howUrgent": "How urgent?",
+      "today": "Today",
+      "todayHint": "Within a few hours",
+      "urgent": "Emergency",
+      "urgentHint": "Right now: all nearby vets are alerted",
+      "trustNote": "You see the fee before you confirm. Only verified vets receive your request.",
+      "summaryEmpty": "Choose the animal and the problem",
+      "summary": "{animal} · {problem}",
+      "addPhoto": "Add photo",
+      "removePhoto": "Remove photo {n}",
+      "photoN": "Photo {n}"
     },
     "tracking": {
       "title": "Request {ref}",
