@@ -15,7 +15,9 @@ async function signIn(browser: Browser, phone: string): Promise<Page> {
   await page.goto('/login');
   await page.getByLabel(a.phoneLabel).fill(phone);
   await page.getByRole('button', { name: a.sendCode }).click();
-  await page.getByLabel(a.codeLabel).fill(OTP);
+  // Exact: "Nambari" is also the start of the phone field's label, which is still on screen
+  // until the code step appears.
+  await page.getByLabel(a.codeLabel, { exact: true }).fill(OTP);
   await page.getByRole('button', { name: a.verify }).click();
   return page;
 }
@@ -92,6 +94,7 @@ test('the farmer chooses the vet; the booking fee is paid after the vet accepts'
   await farmer.getByRole('link', { name: sw.web.farmer.requestVet }).click();
   await farmer.getByRole('button', { name: sw.ussd.species.cattle, exact: true }).click();
   await farmer.getByRole('button', { name: sw.ussd.problems.sick, exact: true }).click();
+  await farmer.getByRole('button', { name: sw.web.common.continue }).click();
   await farmer.getByRole('button', { name: /Dr\. Demo Vet/ }).click();
   const send = farmer.getByRole('button', { name: sw.web.choose.sendRequest });
   await expect(send).toBeEnabled();
@@ -112,6 +115,7 @@ test('the farmer books a vet for a later day (§24.10)', async ({ browser }) => 
   await farmer.getByRole('link', { name: sw.web.farmer.requestVet }).click();
   await farmer.getByRole('button', { name: sw.ussd.species.cattle, exact: true }).click();
   await farmer.getByRole('button', { name: sw.ussd.problems.vaccination, exact: true }).click();
+  await farmer.getByRole('button', { name: sw.web.common.continue }).click();
   await farmer.getByRole('button', { name: sw.web.schedule.later }).click();
   // The seed vet works Monday to Saturday: pick the next such day after today (Nairobi).
   const day = new Date(Date.now() + 3 * 3600 * 1000);
