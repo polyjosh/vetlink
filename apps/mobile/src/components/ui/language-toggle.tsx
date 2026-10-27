@@ -33,7 +33,15 @@ export function LanguageToggle({ inverse }: { inverse?: boolean }) {
             <Text
               style={[
                 s.text,
-                { color: on ? color.ink : inverse ? color.onPrimary : color.primary },
+                {
+                  color: on
+                    ? inverse
+                      ? color.primary
+                      : color.ink
+                    : inverse
+                      ? color.onPrimary
+                      : color.primary,
+                },
               ]}
             >
               {o.short}

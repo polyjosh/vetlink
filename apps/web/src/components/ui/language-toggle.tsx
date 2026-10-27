@@ -15,7 +15,7 @@ export function LanguageToggle({ inverse }: { inverse?: boolean }) {
     <div
       role="group"
       aria-label={t.web.common.language}
-      className={`inline-flex rounded-full p-1 ${inverse ? 'bg-primary-pressed' : 'bg-primary-soft'}`}
+      className={`inline-flex rounded-full p-1 ${inverse ? 'bg-on-primary/15' : 'bg-primary-soft'}`}
     >
       {options.map((o) => {
         const on = lang === o.value;
@@ -29,7 +29,7 @@ export function LanguageToggle({ inverse }: { inverse?: boolean }) {
             onClick={() => setLang(o.value)}
             className={`min-h-touch min-w-touch rounded-full px-3 text-small font-bold ${
               on
-                ? 'bg-surface text-ink shadow-raised'
+                ? `bg-surface shadow-raised ${inverse ? 'text-primary' : 'text-ink'}`
                 : inverse
                   ? 'text-on-primary'
                   : 'text-primary'

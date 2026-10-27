@@ -4,7 +4,9 @@ import {
   ICON_VIEWBOX,
   color as palette,
   icons,
+  logoMark,
   size as sizes,
+  space,
   type IconName,
 } from '@vetlink/ui-tokens';
 
@@ -40,6 +42,25 @@ export function Icon({
       {icons[name].map((d) => (
         <Path key={d} d={d} />
       ))}
+    </Svg>
+  );
+}
+
+/** The VetLink mark: a map pin in `accent` with a cross in `crossColor`. */
+export function LogoMark({ crossColor = palette.onPrimary }: { crossColor?: string }) {
+  return (
+    <Svg
+      viewBox={ICON_VIEWBOX}
+      width={sizes.icon + space[1]}
+      height={sizes.icon + space[1]}
+      fill="none"
+      strokeWidth={ICON_STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      accessible={false}
+    >
+      <Path d={logoMark.pin} stroke={palette.accent} />
+      <Path d={logoMark.cross} stroke={crossColor} />
     </Svg>
   );
 }

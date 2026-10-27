@@ -370,7 +370,13 @@
       "verify": "Verify",
       "resend": "Send a new code",
       "wrongNumber": "Use another number",
-      "noAccountNeeded": "New here? Just enter your number: we create your account."
+      "noAccountNeeded": "New here? Just enter your number: we create your account.",
+      "tagline": "A trusted vet for your animals, fast.",
+      "taglineHint": "Verified vets and animal health workers near you.",
+      "codeBySms": "We'll send a 6-digit code by SMS. Your phone number is your account.",
+      "localPlaceholder": "7XX XXX XXX",
+      "ussdTitle": "No smartphone or data?",
+      "ussdDial": "Dial {code} from any phone."
     },
     "onboarding": {
       "chooseLanguage": "Choose your language",

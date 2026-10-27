@@ -370,7 +370,13 @@
       "verify": "Thibitisha",
       "resend": "Tuma nambari mpya",
       "wrongNumber": "Tumia namba nyingine",
-      "noAccountNeeded": "Mgeni? Weka namba yako tu: tutakufungulia akaunti."
+      "noAccountNeeded": "Mgeni? Weka namba yako tu: tutakufungulia akaunti.",
+      "tagline": "Daktari wa mifugo unayemwamini, kwa haraka.",
+      "taglineHint": "Madaktari na wahudumu wa afya ya mifugo waliothibitishwa, karibu nawe.",
+      "codeBySms": "Tutakutumia nambari ya tarakimu 6 kwa SMS. Nambari yako ya simu ndiyo akaunti yako.",
+      "localPlaceholder": "7XX XXX XXX",
+      "ussdTitle": "Huna simu janja au data?",
+      "ussdDial": "Piga {code} kutoka simu yoyote."
     },
     "onboarding": {
       "chooseLanguage": "Chagua lugha yako",

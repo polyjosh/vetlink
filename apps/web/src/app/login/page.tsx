@@ -2,14 +2,26 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
-import { Shell } from '@/components/shell';
-import { Button, ErrorBox, Field, Input } from '@/components/ui';
+import {
+  Button,
+  Card,
+  ErrorBox,
+  Field,
+  Icon,
+  Input,
+  LanguageToggle,
+  Logo,
+  PhoneInput,
+  withCountryCode,
+} from '@/components/ui';
+import { USSD_CODE } from '@/lib/config';
 import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
 
 function LoginForm() {
   const { t, fmt, lang } = useT();
+  const a = t.web.auth;
   const { api, login } = useSession();
   const router = useRouter();
   const next = useSearchParams().get('next');
@@ -18,11 +30,12 @@ function LoginForm() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fullPhone = withCountryCode(phone);
 
   async function sendCode() {
     setBusy(true);
     setError(null);
-    const { error: e } = await api.POST('/v1/auth/otp/request', { body: { phone } });
+    const { error: e } = await api.POST('/v1/auth/otp/request', { body: { phone: fullPhone } });
     setBusy(false);
     if (e) setError(errorText(lang, e));
     else setSent(true);
@@ -31,50 +44,63 @@ function LoginForm() {
   async function verify() {
     setBusy(true);
     setError(null);
-    const res = await login(phone, code);
+    const res = await login(fullPhone, code);
     setBusy(false);
     if (!res.ok) setError(errorText(lang, res.error));
     else router.replace(next && next.startsWith('/') && !next.startsWith('//') ? next : '/');
   }
 
   return (
-    <Shell title={t.web.auth.title}>
-      <div className="space-y-4">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col sm:py-10">
+      <header className="flex flex-col gap-8 rounded-b-sheet bg-primary px-6 pt-7 pb-10 text-on-primary sm:rounded-sheet">
+        <div className="flex items-center justify-between gap-3">
+          <Logo boxed={false} />
+          <LanguageToggle inverse />
+        </div>
+        <div>
+          <h1 className="text-display tracking-tight">{a.tagline}</h1>
+          <p className="mt-3 text-on-primary-muted">{a.taglineHint}</p>
+        </div>
+      </header>
+      <main className="flex flex-1 flex-col gap-5 px-6 pt-8 pb-6">
         {!sent ? (
           <form
-            className="space-y-4"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               void sendCode();
             }}
           >
-            <Field label={t.web.auth.phoneLabel} hint={t.web.auth.noAccountNeeded}>
-              <Input
+            <Field label={a.phoneLabel} hint={a.codeBySms}>
+              <PhoneInput
                 name="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder={t.web.auth.phoneHint}
+                placeholder={a.localPlaceholder}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
               />
             </Field>
             <ErrorBox message={error} />
-            <Button type="submit" disabled={busy || phone.length < 9} className="w-full">
-              {t.web.auth.sendCode}
+            <Button
+              type="submit"
+              size="lg"
+              disabled={busy || phone.replace(/\D/g, '').length < 9}
+              className="w-full"
+            >
+              {a.sendCode}
             </Button>
+            <p className="text-small text-ink-muted">{a.noAccountNeeded}</p>
           </form>
         ) : (
           <form
-            className="space-y-4"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               void verify();
             }}
           >
-            <p>{fmt(t.web.auth.codeSent, { phone })}</p>
-            <Field label={t.web.auth.codeLabel}>
+            <p>{fmt(a.codeSent, { phone: fullPhone })}</p>
+            <Field label={a.codeLabel}>
               <Input
                 name="code"
                 inputMode="numeric"
@@ -84,15 +110,16 @@ function LoginForm() {
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                 required
+                className="min-h-input text-button tracking-widest"
               />
             </Field>
             <ErrorBox message={error} />
-            <Button type="submit" disabled={busy || code.length !== 6} className="w-full">
-              {t.web.auth.verify}
+            <Button type="submit" size="lg" disabled={busy || code.length !== 6} className="w-full">
+              {a.verify}
             </Button>
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <Button type="button" variant="ghost" onClick={() => void sendCode()}>
-                {t.web.auth.resend}
+                {a.resend}
               </Button>
               <Button
                 type="button"
@@ -102,13 +129,24 @@ function LoginForm() {
                   setCode('');
                 }}
               >
-                {t.web.auth.wrongNumber}
+                {a.wrongNumber}
               </Button>
             </div>
           </form>
         )}
-      </div>
-    </Shell>
+        {USSD_CODE && (
+          <Card as="aside" className="mt-auto flex items-center gap-3.5 !p-4">
+            <span className="flex size-chip shrink-0 items-center justify-center rounded-md bg-warning-soft text-warning">
+              <Icon name="phone" />
+            </span>
+            <span className="text-small">
+              <span className="block font-bold">{a.ussdTitle}</span>
+              <span className="block text-ink-muted">{fmt(a.ussdDial, { code: USSD_CODE })}</span>
+            </span>
+          </Card>
+        )}
+      </main>
+    </div>
   );
 }
 

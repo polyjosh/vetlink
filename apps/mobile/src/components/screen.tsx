@@ -9,7 +9,7 @@ import { useSync } from '../offline/sync';
 import { useT } from '../lib/i18n';
 import { ROUTE_PATHS, rememberRole } from '../lib/role';
 import { useSession } from '../lib/session';
-import { Badge, H1, Icon, LanguageToggle, Loading, Text } from './ui';
+import { Badge, H1, Icon, LanguageToggle, Loading, LogoMark, Text } from './ui';
 
 function HeaderLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
@@ -40,11 +40,10 @@ export function AppBar({ role }: { role?: SessionRole | undefined }) {
         paddingVertical: space[1],
       }}
     >
-      <Text
-        style={{ fontSize: type.heading.size, fontWeight: '800', color: color.primary, flex: 1 }}
-      >
-        VetLink
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2], flex: 1 }}>
+        <LogoMark crossColor={color.primary} />
+        <Text style={{ fontSize: type.heading.size, fontWeight: '800' }}>VetLink</Text>
+      </View>
       <LanguageToggle />
       {(me?.roles ?? [])
         .filter((r) => r !== role)
