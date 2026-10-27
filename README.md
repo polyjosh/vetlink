@@ -2,9 +2,6 @@
 
 Connects Kenyan smallholder farmers with nearby verified veterinarians and paravets over USSD, SMS, a mobile app, and the web.
 
-- Project guide, process rules, and progress tracker: [`CLAUDE.md`](CLAUDE.md)
-- Detailed spec: [`docs/spec/`](docs/spec/README.md)
-
 ## Prerequisites
 
 - Node.js 24 LTS and pnpm 12.11.2 (`npm install -g pnpm@12.11.2`)
