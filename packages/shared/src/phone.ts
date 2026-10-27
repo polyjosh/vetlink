@@ -10,3 +10,10 @@ export function normalizePhone(input: string): string | null {
   const match = KENYAN_MOBILE.exec(compact);
   return match ? `254${match[1]}` : null;
 }
+
+/** A phone number for display where the full number is not needed: `2547****123`. */
+export function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 8) return '****';
+  return `${digits.slice(0, 4)}****${digits.slice(-3)}`;
+}

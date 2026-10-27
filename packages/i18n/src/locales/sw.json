@@ -799,7 +799,15 @@
       "clearFlag": "Weka kuwa imekaguliwa",
       "clearNote": "Ulichokagua",
       "twoFactorActive": "Kipindi cha 2FA kiko hai · {role}",
-      "navLabel": "Sehemu za utawala"
+      "navLabel": "Sehemu za utawala",
+      "queueSubtitle": "Madaktari wasioidhinishwa hawapokei maombi ya wakulima.",
+      "tabAll": "Zote",
+      "tabCount": "{label} · {n}",
+      "pickOne": "Chagua ombi la kukagua.",
+      "docsAudited": "Kila kufungua huandikwa kwenye kumbukumbu ya ukaguzi",
+      "noteHint": "Huonyeshwa kwa daktari kwenye programu; SMS humjulisha aiangalie.",
+      "submittedOn": "lilitumwa {date}",
+      "statusTabs": "Chuja kwa hali"
     },
     "mobile": {
       "pendingSync": "{n} vinasubiri kutumwa",

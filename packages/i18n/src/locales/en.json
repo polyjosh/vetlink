@@ -799,7 +799,15 @@
       "clearFlag": "Mark reviewed",
       "clearNote": "What you checked",
       "twoFactorActive": "2FA session active · {role}",
-      "navLabel": "Admin sections"
+      "navLabel": "Admin sections",
+      "queueSubtitle": "Unapproved vets never receive farmer requests.",
+      "tabAll": "All",
+      "tabCount": "{label} · {n}",
+      "pickOne": "Choose an application to review.",
+      "docsAudited": "Every view is written to the audit log",
+      "noteHint": "Shown to the vet in the app; an SMS tells them to check it.",
+      "submittedOn": "submitted {date}",
+      "statusTabs": "Filter by status"
     },
     "mobile": {
       "pendingSync": "{n} waiting to send",
