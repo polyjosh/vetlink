@@ -40,14 +40,18 @@ export function Timeline({
           >
             {s.state === 'done' && <Icon name="check" size={16} />}
           </span>
-          <div className="min-w-0 flex-1 pt-0.5">
+          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 pt-0.5">
             <span className="sr-only">{sr[s.state]}: </span>
             <span
-              className={`font-semibold ${s.state === 'upcoming' ? 'text-ink-muted' : 'text-ink'} ${s.state === 'current' ? 'font-bold' : ''}`}
+              className={
+                s.state === 'current'
+                  ? 'font-bold text-info'
+                  : `font-semibold ${s.state === 'upcoming' ? 'text-ink-muted' : 'text-ink'}`
+              }
             >
               {s.label}
             </span>
-            {s.meta && <span className="ml-2 text-small text-ink-muted">{s.meta}</span>}
+            {s.meta && <span className="ml-auto text-small text-ink-muted">{s.meta}</span>}
           </div>
         </li>
       ))}

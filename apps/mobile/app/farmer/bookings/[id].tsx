@@ -1,7 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Linking, View } from 'react-native';
-import { CANCEL_REASONS, TERMINAL_BOOKING_STATUSES, type CancelReason } from '@vetlink/shared';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { color, layout, radius, size, space, type } from '@vetlink/ui-tokens';
+import {
+  CANCEL_REASONS,
+  TERMINAL_BOOKING_STATUSES,
+  trackingSteps,
+  type CancelReason,
+} from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { Screen } from '../../../src/components/screen';
 import {
@@ -13,8 +20,13 @@ import {
   Field,
   H2,
   Loading,
+  Icon,
   Notice,
   P,
+  PersonRow,
+  StatusChip,
+  Text,
+  Timeline,
   s,
 } from '../../../src/components/ui';
 import { useT } from '../../../src/lib/i18n';
@@ -34,6 +46,7 @@ import { AppointmentLine } from '../../../src/components/when-picker';
 export default function Tracking() {
   const id = Number(useLocalSearchParams<{ id: string }>().id);
   const { t, fmt, err, lang } = useT();
+  const insets = useSafeAreaInsets();
   const q = useApi(
     ['booking', id],
     () => api.GET('/v1/bookings/{id}', { params: { path: { id } } }),
@@ -92,26 +105,77 @@ export default function Tracking() {
       role="farmer"
       onRefresh={() => void q.refetch()}
       refreshing={q.isRefetching}
+      header={
+        <View style={[st.band, { paddingTop: insets.top + space[3] }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t.web.common.back}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/farmer'))}
+            style={st.back}
+          >
+            <Icon name="chevronLeft" />
+          </Pressable>
+          <View style={st.where}>
+            <Icon name="mapPin" size={size.iconSm} color={color.primary} />
+            <Text style={st.whereText}>{fmt(tr.where, { ward: b.ward.ward })}</Text>
+          </View>
+        </View>
+      }
     >
-      {b.isEmergency && <Badge tone="danger">{t.web.request.emergencyBadge}</Badge>}
-      <Card>
-        <H2>{t.ussd.statuses[b.status]}</H2>
-        <P>
-          {t.ussd.species[b.species]}, {t.ussd.problems[b.problemType]} · {b.ward.ward}
-        </P>
+      <View style={st.sheet}>
+        <View style={s.row}>
+          <StatusChip status={b.status} testID="booking-status" />
+          {b.isEmergency && <Badge tone="danger">{t.web.request.emergencyBadge}</Badge>}
+        </View>
+        <Text accessibilityRole="header" style={st.headline}>
+          {b.vet && !TERMINAL_BOOKING_STATUSES.includes(b.status)
+            ? fmt(tr.vetComing, { vet: b.vet.name ?? '' })
+            : t.ussd.statuses[b.status]}
+        </Text>
+        <Text style={st.meta}>
+          {fmt(tr.metaLine, {
+            animal: t.ussd.species[b.species],
+            problem: t.ussd.problems[b.problemType],
+            ref: fmt(tr.title, { ref: b.id }),
+          })}
+        </Text>
+        <AppointmentLine scheduledFor={b.scheduledFor} part={b.scheduledPart} />
+        {b.overdue && <Notice tone="warning">{t.web.schedule.overdue}</Notice>}
+        {b.vet && (
+          <Card style={st.inner}>
+            <PersonRow
+              name={b.vet.name ?? ''}
+              photoUrl={b.vet.photoUrl}
+              verified
+              phone={b.vet.phone}
+              meta={`${b.vet.type === 'vet' ? t.web.onboarding.vetTypeVet : t.web.onboarding.vetTypeParavet}${b.vet.displayName ? ` · “${b.vet.displayName}”` : ''}`}
+            />
+            <BadgeChips badges={b.vet.badges ?? []} />
+          </Card>
+        )}
+        <Card style={st.inner}>
+          <Timeline
+            steps={trackingSteps(b).map((x) => ({
+              key: x.step ?? 'created',
+              label: x.step ? t.ussd.statuses[x.step] : tr.stepRequested,
+              state: x.state,
+              meta: x.at
+                ? new Date(x.at).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })
+                : undefined,
+            }))}
+          />
+        </Card>
         {b.services.length > 0 && (
           <P>{`${t.web.prices.consultation} + ${b.services.map((x) => t.web.application.services[x]).join(', ')}`}</P>
         )}
-        <AppointmentLine scheduledFor={b.scheduledFor} part={b.scheduledPart} />
-        {b.overdue && <Notice tone="warning">{t.web.schedule.overdue}</Notice>}
-        <PhotoStrip urls={b.photos} />
         {b.price ? (
           <PriceLines price={b.price} />
         ) : (
           <PriceRangeLines range={b.priceRange} bookingFee={b.depositKes} />
         )}
         <P testID="deposit-status">{tr.depositStatus[b.deposit.status]}</P>
-      </Card>
+        <PhotoStrip urls={b.photos} />
+      </View>
       {b.status === 'requested' && (
         <Card>
           <View style={s.row}>
@@ -193,33 +257,6 @@ export default function Tracking() {
         </Card>
       )}
       {b.status === 'pending' && <Notice>{t.web.request.searching}</Notice>}
-      {b.vet && (
-        <Card>
-          <View style={s.row}>
-            <PersonAvatar url={b.vet.photoUrl} name={b.vet.name} size={56} />
-            <View style={{ flex: 1 }}>
-              <H2>{fmt(tr.vetComing, { vet: b.vet.name ?? '' })}</H2>
-              {b.vet.displayName && <P muted>{`“${b.vet.displayName}”`}</P>}
-              <BadgeChips badges={b.vet.badges ?? []} />
-            </View>
-          </View>
-          {b.vet.phone && (
-            <Button
-              title={tr.callVet}
-              onPress={() => void Linking.openURL(`tel:+${b.vet?.phone ?? ''}`)}
-            />
-          )}
-        </Card>
-      )}
-      <Card>
-        <H2>{tr.timeline}</H2>
-        <P>{`${tr.created} · ${new Date(b.createdAt).toLocaleString(lang)}`}</P>
-        {b.timeline.map((e) => (
-          <P
-            key={`${e.event}-${e.at}`}
-          >{`${t.ussd.statuses[e.status]} · ${new Date(e.at).toLocaleString(lang)}`}</P>
-        ))}
-      </Card>
       {b.treatment && (
         <Card>
           <H2>{tr.treatment}</H2>
@@ -275,7 +312,12 @@ export default function Tracking() {
       {live && b.actions.includes('farmer_cancelled') && (
         <Card>
           {!cancelling ? (
-            <Button variant="secondary" title={tr.cancel} onPress={() => setCancelling(true)} />
+            <Button
+              variant="danger"
+              size="lg"
+              title={tr.cancel}
+              onPress={() => setCancelling(true)}
+            />
           ) : (
             <>
               <H2>{tr.cancelTitle}</H2>
@@ -306,3 +348,52 @@ export default function Tracking() {
     </Screen>
   );
 }
+
+const st = StyleSheet.create({
+  band: {
+    height: space[16] * 3,
+    backgroundColor: color.primarySoft,
+    paddingHorizontal: layout.mobileGutter,
+    paddingBottom: space[8],
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  back: {
+    width: size.touchMin,
+    height: size.touchMin,
+    borderRadius: radius.md,
+    backgroundColor: color.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  where: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[1],
+    backgroundColor: color.surface,
+    borderRadius: radius.pill,
+    paddingHorizontal: space[3],
+    paddingVertical: space[2],
+  },
+  whereText: { fontSize: type.small.size, fontWeight: '700', color: color.primary },
+  sheet: {
+    marginTop: -(layout.sheetOverlap + space[4]),
+    marginHorizontal: -layout.mobileGutter,
+    paddingHorizontal: layout.mobileGutter,
+    paddingTop: space[5],
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    backgroundColor: color.ground,
+    gap: space[2],
+    marginBottom: space[3],
+  },
+  headline: {
+    fontSize: type.title.size,
+    lineHeight: type.title.line,
+    fontWeight: '800',
+    marginTop: space[1],
+  },
+  meta: { fontSize: type.small.size, color: color.inkMuted },
+  inner: { marginBottom: 0, marginTop: space[2] },
+});

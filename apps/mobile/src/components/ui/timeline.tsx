@@ -45,7 +45,7 @@ export function Timeline({
               style={[
                 s.label,
                 st.state === 'upcoming' && { color: color.inkMuted },
-                st.state === 'current' && { fontWeight: '700' },
+                st.state === 'current' && { fontWeight: '700', color: color.info },
               ]}
             >
               {st.label}
@@ -78,6 +78,7 @@ const s = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: space[2],
     paddingTop: space[1],
     paddingBottom: space[4],

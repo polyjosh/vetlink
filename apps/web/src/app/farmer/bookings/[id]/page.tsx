@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import {
   CANCEL_REASONS,
+  trackingSteps,
   TERMINAL_BOOKING_STATUSES,
   CHOICES_BEFORE_AUTO_HINT,
   ratingTagsFor,
@@ -23,7 +24,11 @@ import {
   Input,
   Notice,
   LinkButton,
+  PersonRow,
   Spinner,
+  StatusChip,
+  Timeline,
+  Icon,
 } from '@/components/ui';
 import { errorText } from '@/lib/errors';
 import { useT } from '@/lib/i18n';
@@ -94,29 +99,83 @@ export default function Tracking() {
   return (
     <Shell title={fmt(t.web.tracking.title, { ref: b.id })} role="farmer" nav={<FarmerNav />}>
       <div className="space-y-4">
-        {b.isEmergency && <Badge tone="danger">{t.web.request.emergencyBadge}</Badge>}
-        <Card className="space-y-2">
-          <p className="text-xl font-bold" data-testid="booking-status">
-            {t.ussd.statuses[b.status]}
-          </p>
-          <p>
-            {t.ussd.species[b.species]}, {t.ussd.problems[b.problemType]} · {b.ward.ward}
-          </p>
-          <AppointmentLine scheduledFor={b.scheduledFor} part={b.scheduledPart} />
-          {b.overdue && <Notice tone="warning">{t.web.schedule.overdue}</Notice>}
-          {b.services.length > 0 && (
-            <p>
-              {t.web.prices.consultation} +{' '}
-              {b.services.map((s) => t.web.application.services[s]).join(', ')}
+        <div
+          aria-hidden
+          className="flex h-36 items-start justify-between rounded-lg bg-primary-soft bg-[radial-gradient(var(--vl-color-border)_1px,transparent_1px)] [background-size:16px_16px] p-4 text-primary"
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-small font-bold shadow-raised">
+            <Icon name="mapPin" size={18} />
+            {fmt(t.web.tracking.where, { ward: b.ward.ward })}
+          </span>
+          {b.isEmergency && <Badge tone="danger">{t.web.request.emergencyBadge}</Badge>}
+        </div>
+        <Card raised className="relative -mt-12 space-y-4 !rounded-sheet">
+          <StatusChip status={b.status} testId="booking-status" />
+          <div>
+            <h2 className="text-title">
+              {b.vet && !TERMINAL_BOOKING_STATUSES.includes(b.status)
+                ? fmt(t.web.tracking.vetComing, { vet: b.vet.name ?? '' })
+                : t.ussd.statuses[b.status]}
+            </h2>
+            <p className="mt-1 text-small text-ink-muted">
+              {fmt(t.web.tracking.metaLine, {
+                animal: t.ussd.species[b.species],
+                problem: t.ussd.problems[b.problemType],
+                ref: fmt(t.web.tracking.title, { ref: b.id }),
+              })}
             </p>
+            <AppointmentLine scheduledFor={b.scheduledFor} part={b.scheduledPart} />
+          </div>
+          {b.overdue && <Notice tone="warning">{t.web.schedule.overdue}</Notice>}
+          {b.vet && (
+            <div className="space-y-2 border-t border-divider pt-4">
+              <PersonRow
+                name={b.vet.name ?? ''}
+                photoUrl={b.vet.photoUrl}
+                verified
+                phone={b.vet.phone}
+                meta={
+                  <>
+                    {b.vet.type === 'vet'
+                      ? t.web.onboarding.vetTypeVet
+                      : t.web.onboarding.vetTypeParavet}
+                    {b.vet.displayName && ` · “${b.vet.displayName}”`}
+                  </>
+                }
+              />
+              <BadgeChips badges={b.vet.badges} />
+            </div>
           )}
-          {b.price ? (
-            <PriceLines price={b.price} />
-          ) : (
-            <PriceRangeLines range={b.priceRange} bookingFee={b.depositKes} />
-          )}
+          <div className="border-t border-divider pt-4">
+            <h3 className="sr-only">{t.web.tracking.timeline}</h3>
+            <Timeline
+              steps={trackingSteps(b).map((x) => ({
+                key: x.step ?? 'created',
+                label: x.step ? t.ussd.statuses[x.step] : t.web.tracking.stepRequested,
+                state: x.state,
+                meta: x.at
+                  ? new Date(x.at).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })
+                  : undefined,
+              }))}
+            />
+          </div>
+          <div className="space-y-2 border-t border-divider pt-4">
+            {b.services.length > 0 && (
+              <p>
+                {t.web.prices.consultation} +{' '}
+                {b.services.map((s) => t.web.application.services[s]).join(', ')}
+              </p>
+            )}
+            {b.price ? (
+              <PriceLines price={b.price} />
+            ) : (
+              <PriceRangeLines range={b.priceRange} bookingFee={b.depositKes} />
+            )}
+            <p className="text-small font-semibold" data-testid="deposit-status">
+              {t.web.tracking.depositStatus[b.deposit.status]}
+            </p>
+          </div>
           <PhotoStrip urls={b.photos} />
-          <p data-testid="deposit-status">{t.web.tracking.depositStatus[b.deposit.status]}</p>
         </Card>
 
         {b.status === 'requested' && (
@@ -210,43 +269,6 @@ export default function Tracking() {
         )}
         {b.status === 'pending' && <Notice>{t.web.request.searching}</Notice>}
 
-        {b.vet && (
-          <Card className="space-y-2">
-            <div className="flex items-center gap-3">
-              <PersonAvatar url={b.vet.photoUrl} name={b.vet.name} size={56} />
-              <div>
-                <p className="font-bold">
-                  {fmt(t.web.tracking.vetComing, { vet: b.vet.name ?? '' })}
-                </p>
-                {b.vet.displayName && <p className="text-muted">“{b.vet.displayName}”</p>}
-                <BadgeChips badges={b.vet.badges} />
-              </div>
-            </div>
-            {b.vet.phone && (
-              <a
-                href={`tel:+${b.vet.phone}`}
-                className="inline-flex min-h-touch items-center rounded-control bg-brand px-4 font-semibold text-white"
-              >
-                {t.web.tracking.callVet}
-              </a>
-            )}
-          </Card>
-        )}
-
-        <Card>
-          <h2 className="mb-2 font-bold">{t.web.tracking.timeline}</h2>
-          <ol className="space-y-1">
-            <li>
-              {t.web.tracking.created} · {new Date(b.createdAt).toLocaleString(lang)}
-            </li>
-            {b.timeline.map((e) => (
-              <li key={`${e.event}-${e.at}`}>
-                {t.ussd.statuses[e.status]} · {new Date(e.at).toLocaleString(lang)}
-              </li>
-            ))}
-          </ol>
-        </Card>
-
         {b.treatment && (
           <Card className="space-y-1">
             <h2 className="font-bold">{t.web.tracking.treatment}</h2>
@@ -319,13 +341,18 @@ export default function Tracking() {
         {b.rating && <Notice tone="success">{t.web.tracking.rated}</Notice>}
 
         {b.actions.includes('farmer_cancelled') && (
-          <Card className="space-y-3">
+          <div className="space-y-3">
             {!cancelling ? (
-              <Button variant="secondary" onClick={() => setCancelling(true)}>
+              <Button
+                variant="danger"
+                size="lg"
+                className="w-full"
+                onClick={() => setCancelling(true)}
+              >
                 {t.web.tracking.cancel}
               </Button>
             ) : (
-              <>
+              <Card className="space-y-3">
                 <h2 className="font-bold">{t.web.tracking.cancelTitle}</h2>
                 <ChoiceGrid
                   options={CANCEL_REASONS.map((r) => ({
@@ -335,9 +362,10 @@ export default function Tracking() {
                   value={reason}
                   onChange={setReason}
                 />
-                <p className="text-sm text-muted">{t.web.tracking.cancelPolicy}</p>
+                <p className="text-small text-ink-muted">{t.web.tracking.cancelPolicy}</p>
                 <Button
                   variant="danger"
+                  className="w-full"
                   disabled={!reason || busy}
                   onClick={() =>
                     void act(() =>
@@ -350,9 +378,9 @@ export default function Tracking() {
                 >
                   {t.web.tracking.cancelConfirm}
                 </Button>
-              </>
+              </Card>
             )}
-          </Card>
+          </div>
         )}
         <ErrorBox message={error} />
       </div>

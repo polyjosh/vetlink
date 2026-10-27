@@ -507,7 +507,10 @@
         "found_other_help": "Nimepata msaada mwingine",
         "animal_recovered": "Mnyama amepona",
         "other": "Sababu nyingine"
-      }
+      },
+      "stepRequested": "Ombi limetumwa",
+      "metaLine": "{animal} · {problem} · {ref}",
+      "where": "Ziara {ward}"
     },
     "animals": {
       "title": "Mifugo yangu",

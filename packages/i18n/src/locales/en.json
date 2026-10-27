@@ -507,7 +507,10 @@
         "found_other_help": "I found other help",
         "animal_recovered": "The animal got better",
         "other": "Other reason"
-      }
+      },
+      "stepRequested": "Request sent",
+      "metaLine": "{animal} · {problem} · {ref}",
+      "where": "Visit at {ward}"
     },
     "animals": {
       "title": "My animals",

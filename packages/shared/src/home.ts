@@ -90,3 +90,37 @@ export function dayBox(at: string, locale: string): { month: string; day: string
 function dateOf(at: string): string {
   return at.length === 10 ? at : eatDateOf(new Date(at));
 }
+
+/** The tracking timeline's steps, in order; `null` is the request being made. */
+export const TRACKING_STEPS = [null, 'matched', 'en_route', 'in_service', 'done'] as const;
+export type TrackingStep = (typeof TRACKING_STEPS)[number];
+
+const REACHED: Partial<Record<BookingStatus, number>> = {
+  matched: 1,
+  en_route: 2,
+  in_service: 3,
+  done: 4,
+};
+
+/**
+ * Each step with its state and when it was reached. The booking's current step is `current`,
+ * except a finished visit (all done) and an ended request (cancelled or expired: no current step).
+ */
+export function trackingSteps(b: {
+  status: BookingStatus;
+  createdAt: string;
+  timeline: readonly { status: BookingStatus; at: string }[];
+}): { step: TrackingStep; state: 'done' | 'current' | 'upcoming'; at: string | null }[] {
+  const reached = REACHED[b.status] ?? 0;
+  const ended = b.status === 'cancelled' || b.status === 'expired';
+  return TRACKING_STEPS.map((step, i) => ({
+    step,
+    state:
+      i < reached || b.status === 'done'
+        ? 'done'
+        : i === reached && !ended
+          ? 'current'
+          : 'upcoming',
+    at: step === null ? b.createdAt : (b.timeline.find((e) => e.status === step)?.at ?? null),
+  }));
+}

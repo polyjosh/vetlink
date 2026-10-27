@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { comingUp, dayBox, speciesCounts } from '@vetlink/shared';
+import { comingUp, dayBox, speciesCounts, trackingSteps } from '@vetlink/shared';
 
 const base = {
   species: 'cattle',
@@ -59,5 +59,44 @@ describe('farmer home views', () => {
     // 22:30 UTC on 2 Nov is 01:30 on 3 Nov in Nairobi.
     expect(dayBox('2026-11-02T22:30:00Z', 'en')).toEqual({ month: 'NOV', day: '03' });
     expect(dayBox('2026-11-18', 'en')).toEqual({ month: 'NOV', day: '18' });
+  });
+});
+
+describe('tracking steps', () => {
+  const at = '2026-10-27T09:00:00Z';
+  const states = (status: Parameters<typeof trackingSteps>[0]['status']) =>
+    trackingSteps({ status, createdAt: at, timeline: [{ status: 'matched', at }] }).map(
+      (s) => s.state,
+    );
+
+  it('marks the step the booking is on', () => {
+    expect(states('requested')).toEqual([
+      'current',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ]);
+    expect(states('en_route')).toEqual(['done', 'done', 'current', 'upcoming', 'upcoming']);
+    expect(states('done')).toEqual(['done', 'done', 'done', 'done', 'done']);
+  });
+
+  it('has no current step once a request ended', () => {
+    expect(states('cancelled')).toEqual([
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ]);
+  });
+
+  it('dates each reached step from the timeline', () => {
+    const steps = trackingSteps({
+      status: 'matched',
+      createdAt: at,
+      timeline: [{ status: 'matched', at }],
+    });
+    expect(steps.map((s) => s.at)).toEqual([at, at, null, null, null]);
   });
 });
