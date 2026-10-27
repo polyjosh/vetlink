@@ -17,6 +17,9 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json"
   },
+  "dependencies": {
+    "@vetlink/shared": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "24.19.2",
     "typescript": "6.0.3"

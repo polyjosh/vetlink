@@ -28,7 +28,7 @@ export const ILLUSTRATION_VIEWBOX = '0 0 96 96';
 export type IllustrationTheme = 'light' | 'dark';
 
 const SLOTS: Record<IllustrationTheme, Record<'bg' | 'brand', string>> = {
-  light: { bg: '#E6F4EC', brand: '#1F7A4D' },
+  light: { bg: '#E4F0E8', brand: '#1F5F3F' }, // color.primarySoft, color.primary
   dark: { bg: '#1D3528', brand: '#6CC79A' },
 };
 
