@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { comingUp, dayBox, speciesCounts, trackingSteps } from '@vetlink/shared';
+import {
+  applicationChecklist,
+  comingUp,
+  dayBox,
+  speciesCounts,
+  trackingSteps,
+} from '@vetlink/shared';
 
 const base = {
   species: 'cattle',
@@ -98,5 +104,34 @@ describe('tracking steps', () => {
       timeline: [{ status: 'matched', at }],
     });
     expect(steps.map((s) => s.at)).toEqual([at, at, null, null, null]);
+  });
+});
+
+describe('application checklist', () => {
+  it('flags what the reviewer named and accepts the rest once decided', () => {
+    const items = applicationChecklist({
+      status: 'changes_requested',
+      flaggedFields: ['personal.fullName', 'doc.id_front'],
+      documents: [
+        { kind: 'id_front', status: 'uploaded', flagReason: 'Blurry' },
+        { kind: 'licence', status: 'accepted', flagReason: null },
+      ],
+    });
+    const state = (k: string) =>
+      items.find((i) => (i.kind === 'step' ? i.step : i.doc) === k)?.state;
+    expect(state('personal')).toBe('flagged');
+    expect(state('credentials')).toBe('accepted');
+    expect(state('id_front')).toBe('flagged');
+    expect(state('licence')).toBe('accepted');
+    expect(items.some((i) => i.kind === 'step' && i.step === 'declaration')).toBe(false);
+  });
+
+  it('shows everything as being checked before a decision', () => {
+    const items = applicationChecklist({
+      status: 'under_review',
+      flaggedFields: [],
+      documents: [{ kind: 'licence', status: 'uploaded', flagReason: null }],
+    });
+    expect(new Set(items.map((i) => i.state))).toEqual(new Set(['in_review']));
   });
 });

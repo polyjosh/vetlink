@@ -698,7 +698,16 @@
       "continue": "Endelea",
       "lockedField": "Imefungwa",
       "reasons": "Sababu",
-      "noteFromReviewer": "Maelezo kutoka kwa mkaguzi"
+      "noteFromReviewer": "Maelezo kutoka kwa mkaguzi",
+      "checklistTitle": "Ombi lako",
+      "itemAccepted": "Imekubaliwa",
+      "itemFlagged": "Inahitaji kurekebishwa",
+      "itemInReview": "Inakaguliwa",
+      "fixItem": "Rekebisha hili",
+      "itemsToFix": "Vitu vya kurekebisha: {n}",
+      "noRequestsUntil": "Hutapokea maombi ya wakulima hadi msimamizi aidhinishe ombi lako. Tutakutumia SMS hilo likitokea.",
+      "privacyLine": "Kitambulisho na leseni yako huonwa na timu ya uthibitishaji ya VetLink pekee.",
+      "fixAndResubmit": "Rekebisha na utume tena"
     },
     "admin": {
       "title": "Msimamizi",

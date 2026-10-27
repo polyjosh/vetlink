@@ -63,8 +63,8 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  icon?: IconName;
-  trailingIcon?: IconName;
+  icon?: IconName | undefined;
+  trailingIcon?: IconName | undefined;
 }) {
   return (
     <button {...props} className={buttonClass(variant, size, className)}>
@@ -87,8 +87,8 @@ export function LinkButton({
   href: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  icon?: IconName;
-  trailingIcon?: IconName;
+  icon?: IconName | undefined;
+  trailingIcon?: IconName | undefined;
   children: ReactNode;
   className?: string;
 }) {

@@ -698,7 +698,16 @@
       "continue": "Continue",
       "lockedField": "Locked",
       "reasons": "Reasons",
-      "noteFromReviewer": "Note from the reviewer"
+      "noteFromReviewer": "Note from the reviewer",
+      "checklistTitle": "Your application",
+      "itemAccepted": "Accepted",
+      "itemFlagged": "Needs fixing",
+      "itemInReview": "Being checked",
+      "fixItem": "Fix this",
+      "itemsToFix": "Items to fix: {n}",
+      "noRequestsUntil": "You won't get farmer requests until an admin approves your application. We'll SMS you when that happens.",
+      "privacyLine": "Your ID and licence are only seen by the VetLink verification team.",
+      "fixAndResubmit": "Fix and resubmit"
     },
     "admin": {
       "title": "Admin",

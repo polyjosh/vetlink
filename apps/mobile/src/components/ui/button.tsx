@@ -48,8 +48,8 @@ export function Button({
   /** Pre-v1 name for `size="lg"`. */
   big?: boolean;
   disabled?: boolean | undefined;
-  icon?: IconName;
-  trailingIcon?: IconName;
+  icon?: IconName | undefined;
+  trailingIcon?: IconName | undefined;
   testID?: string;
   accessibilityLabel?: string;
 }) {

@@ -140,3 +140,48 @@ export const APPLICATION_FIELDS: Record<ApplicationStep, readonly ApplicationFie
     { name: 'declaration', kind: 'bool' },
   ],
 };
+
+export type ChecklistState = 'accepted' | 'flagged' | 'in_review';
+export type ChecklistItem =
+  | { kind: 'step'; step: ApplicationStep; state: ChecklistState }
+  | { kind: 'doc'; doc: VetDocumentKind; state: ChecklistState; note: string | null };
+
+/**
+ * The status screen's checklist (§8.3): each wizard section (the declaration aside) and each
+ * document, flagged when the reviewer named it, accepted once a decision was made, otherwise
+ * still being checked. Presentation only; the review itself is the admin's.
+ */
+export function applicationChecklist(app: {
+  status: string;
+  flaggedFields: readonly string[];
+  documents: readonly {
+    kind: VetDocumentKind;
+    status: 'uploaded' | 'accepted' | 'flagged';
+    flagReason: string | null;
+  }[];
+}): ChecklistItem[] {
+  const decided = app.status === 'changes_requested' || app.status === 'approved';
+  const steps: ChecklistItem[] = APPLICATION_STEPS.filter((s) => s !== 'declaration').map(
+    (step) => ({
+      kind: 'step',
+      step,
+      state: app.flaggedFields.some((f) => f.startsWith(`${step}.`))
+        ? 'flagged'
+        : decided
+          ? 'accepted'
+          : 'in_review',
+    }),
+  );
+  const docs: ChecklistItem[] = app.documents.map((d) => ({
+    kind: 'doc',
+    doc: d.kind,
+    state:
+      d.status === 'flagged' || app.flaggedFields.includes(`doc.${d.kind}`)
+        ? 'flagged'
+        : d.status === 'accepted' || decided
+          ? 'accepted'
+          : 'in_review',
+    note: d.flagReason,
+  }));
+  return [...steps, ...docs];
+}
