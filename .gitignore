@@ -13,8 +13,8 @@ coverage/
 .env.*
 !.env.example
 
-# Claude Code personal overrides and the local-only project guide
-.claude/settings.local.json
+# Claude Code config and the project guide (local only, not on GitHub)
+/.claude/
 /CLAUDE.md
 
 # Logs
