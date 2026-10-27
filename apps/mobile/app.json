@@ -6,8 +6,8 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F5F7F6",
-    "primaryColor": "#1F7A4D",
+    "backgroundColor": "#F5F6F2",
+    "primaryColor": "#1F5F3F",
     "locales": {
       "sw": "./locales/sw.json",
       "en": "./locales/en.json"
@@ -38,7 +38,7 @@
       "expo-router",
       "expo-secure-store",
       "expo-sqlite",
-      ["expo-notifications", { "color": "#1F7A4D", "defaultChannel": "offers" }],
+      ["expo-notifications", { "color": "#1F5F3F", "defaultChannel": "offers" }],
       [
         "expo-location",
         {

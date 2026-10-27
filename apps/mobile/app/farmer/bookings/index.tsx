@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { FlatList, Pressable, Text } from 'react-native';
+import { FlatList, Pressable } from 'react-native';
 import type { Schemas } from '@vetlink/api-client';
 import { space } from '@vetlink/ui-tokens';
 import { Screen } from '../../../src/components/screen';
-import { Loading, s } from '../../../src/components/ui';
+import { Loading, s, Text } from '../../../src/components/ui';
 import { useT } from '../../../src/lib/i18n';
 import { useApi } from '../../../src/lib/query';
 import { api } from '../../../src/lib/session';

@@ -1,11 +1,21 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { ANIMAL_SEXES, SPECIES, type AnimalSex, type Species } from '@vetlink/shared';
 import { space } from '@vetlink/ui-tokens';
 import { AnimalPicture, EmptyState } from '../../../src/components/pictures';
 import { Screen } from '../../../src/components/screen';
-import { Button, Card, Choices, ErrorText, Field, H2, P, s } from '../../../src/components/ui';
+import {
+  Button,
+  Card,
+  Choices,
+  ErrorText,
+  Field,
+  H2,
+  P,
+  s,
+  Text,
+} from '../../../src/components/ui';
 import { useT } from '../../../src/lib/i18n';
 import { pickPhoto, uploadPhoto, type PhotoSource } from '../../../src/lib/photo';
 import { useApi } from '../../../src/lib/query';

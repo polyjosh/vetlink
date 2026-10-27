@@ -1,8 +1,8 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { ratingTagsFor, type RatingTag, type VetBadge } from '@vetlink/shared';
 import { colors, fontSize, radius, space } from '@vetlink/ui-tokens';
 import { useT } from '../lib/i18n';
-import { Choices, P } from './ui';
+import { Choices, P, Text } from './ui';
 
 /** Tap-to-pick rating chips (§24.7), chosen by the stars given. */
 export function TagChips({

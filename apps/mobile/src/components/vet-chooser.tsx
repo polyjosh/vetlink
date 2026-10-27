@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import type { Schemas } from '@vetlink/api-client';
 import { colors, fontSize, radius, space } from '@vetlink/ui-tokens';
 import { useT } from '../lib/i18n';
@@ -8,7 +8,7 @@ import { api } from '../lib/session';
 import { PersonAvatar } from './pictures';
 import { PriceLines } from './prices';
 import { BadgeChips } from './ratings';
-import { Button, Choices, H2, P } from './ui';
+import { Button, Choices, H2, P, Text } from './ui';
 
 export type VetSort = 'distance' | 'rating' | 'price';
 type Vet = Schemas['ChoosableVet'];

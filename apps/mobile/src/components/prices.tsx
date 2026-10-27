@@ -1,4 +1,4 @@
-import { Switch, Text, TextInput, View, type TextStyle } from 'react-native';
+import { Switch, TextInput, View, type TextStyle } from 'react-native';
 import {
   WEEKDAYS,
   type PriceBreakdown,
@@ -8,7 +8,7 @@ import {
 } from '@vetlink/shared';
 import { colors, fontSize, radius, space, touchTarget } from '@vetlink/ui-tokens';
 import { useT } from '../lib/i18n';
-import { P, s } from './ui';
+import { P, s, Text } from './ui';
 
 type Band = { min: number; max: number };
 const kes = (n: number) => n.toLocaleString('en-KE');

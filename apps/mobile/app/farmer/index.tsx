@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { TERMINAL_BOOKING_STATUSES } from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { colors, space } from '@vetlink/ui-tokens';
 import { Screen } from '../../src/components/screen';
-import { Button, Card, H2, P, s } from '../../src/components/ui';
+import { Button, Card, H2, P, s, Text } from '../../src/components/ui';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';

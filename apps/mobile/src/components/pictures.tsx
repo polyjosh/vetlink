@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Image, Text, View } from 'react-native';
+import { Image, View } from 'react-native';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import type { Species } from '@vetlink/shared';
 import {
@@ -12,7 +12,8 @@ import {
   type Illustration,
 } from '@vetlink/ui-tokens';
 import { useT } from '../lib/i18n';
-import { P } from './ui';
+import { P } from './ui/feedback';
+import { Text } from './ui/text';
 
 /** A flat illustration from @vetlink/ui-tokens (§24.2), the same one the web draws. */
 export function IllustrationView({

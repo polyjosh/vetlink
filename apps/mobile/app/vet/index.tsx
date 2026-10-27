@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { TERMINAL_BOOKING_STATUSES } from '@vetlink/shared';
 import type { Schemas } from '@vetlink/api-client';
 import { colors, space } from '@vetlink/ui-tokens';
 import { Screen } from '../../src/components/screen';
 import { SyncFailures } from '../../src/components/sync-failures';
-import { Badge, Button, Card, ErrorText, H2, Notice, P, s } from '../../src/components/ui';
+import { Badge, Button, Card, ErrorText, H2, Notice, P, s, Text } from '../../src/components/ui';
 import { enablePush } from '../../src/lib/push';
 import { kv } from '../../src/lib/storage';
 import { useT } from '../../src/lib/i18n';

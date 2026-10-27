@@ -1,8 +1,8 @@
 import { Redirect, router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { space } from '@vetlink/ui-tokens';
 import { Screen } from '../../src/components/screen';
-import { Badge, P, s } from '../../src/components/ui';
+import { Badge, P, s, Text } from '../../src/components/ui';
 import { useT } from '../../src/lib/i18n';
 import { useApi } from '../../src/lib/query';
 import { api, useSession } from '../../src/lib/session';
