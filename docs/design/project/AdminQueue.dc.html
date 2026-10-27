@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin verification queue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5F3F}a:hover{color:#14211A}
+</style>
+</helmet>
+<div style="min-height: 1080px; background: #F5F6F2; color: #14211A; font-family: Figtree, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <aside style="flex: 1 1 240px; max-width: 100%; background: #14211A; color: #FFFFFF; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F2B33D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><path d="M12 7v6M9 10h6" stroke="#FFFFFF"/></svg>
+      <span style="font-size: 18px; font-weight: 800">VetLink Admin</span>
+    </div>
+    <nav aria-label="Admin" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; color: #CFE3D6; font-size: 15px; font-weight: 600; text-decoration: none">Overview</a>
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.1); color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; display: flex; justify-content: space-between">Vet verification <span style="padding: 0 8px; border-radius: 999px; background: #F2B33D; color: #14211A; font-size: 13px; font-weight: 800">12</span></a>
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; color: #CFE3D6; font-size: 15px; font-weight: 600; text-decoration: none">Bookings</a>
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; color: #CFE3D6; font-size: 15px; font-weight: 600; text-decoration: none">Payments</a>
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; color: #CFE3D6; font-size: 15px; font-weight: 600; text-decoration: none">Outbreak map</a>
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; color: #CFE3D6; font-size: 15px; font-weight: 600; text-decoration: none">Audit log</a>
+    </nav>
+    <div style="margin-top: auto; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); font-size: 13px; color: #CFE3D6; display: flex; gap: 8px; align-items: center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CC27E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>
+      2FA session active · Verifier
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 640px; min-width: 0; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+      <div>
+        <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.01em">Vet verification</h1>
+        <p style="margin: 4px 0 0; font-size: 15px; color: #55625A">Unapproved vets never receive farmer requests.</p>
+      </div>
+      <label style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1px solid #DCE2DC; border-radius: 12px; background: #FFFFFF; min-width: 260px; font-size: 15px; color: #55625A">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input placeholder="Search name or licence no." aria-label="Search applicants" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: inherit; font-size: 15px; color: #14211A">
+      </label>
+    </div>
+
+    <div role="tablist" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <button role="tab" aria-selected="true" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 0; background: #14211A; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700">Pending · 12</button>
+      <button role="tab" aria-selected="false" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #DCE2DC; background: #FFFFFF; color: #14211A; font-family: inherit; font-size: 14px; font-weight: 600">Changes requested · 3</button>
+      <button role="tab" aria-selected="false" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #DCE2DC; background: #FFFFFF; color: #14211A; font-family: inherit; font-size: 14px; font-weight: 600">Approved</button>
+      <button role="tab" aria-selected="false" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #DCE2DC; background: #FFFFFF; color: #14211A; font-family: inherit; font-size: 14px; font-weight: 600">Rejected</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 16px; overflow: hidden">
+        <a href="#" style="display: flex; gap: 12px; align-items: center; padding: 16px 18px; background: #E4F0E8; border-left: 0; color: #14211A; text-decoration: none; border-bottom: 1px solid #DCE2DC">
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: #1F5F3F; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0">GN</span>
+          <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 800">Grace N.</span><span style="display: block; font-size: 13px; color: #55625A">Veterinary surgeon · Kiambu</span></span>
+          <span style="font-size: 13px; color: #55625A">2 h</span>
+        </a>
+        <a href="#" style="display: flex; gap: 12px; align-items: center; padding: 16px 18px; color: #14211A; text-decoration: none; border-bottom: 1px solid #EDEFEC">
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: #E4F0E8; color: #1F5F3F; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0">PO</span>
+          <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 700">Peter O.</span><span style="display: block; font-size: 13px; color: #55625A">Animal health worker · Kisumu</span></span>
+          <span style="font-size: 13px; color: #55625A">5 h</span>
+        </a>
+        <a href="#" style="display: flex; gap: 12px; align-items: center; padding: 16px 18px; color: #14211A; text-decoration: none; border-bottom: 1px solid #EDEFEC">
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: #E4F0E8; color: #1F5F3F; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0">AK</span>
+          <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 700">Amina K.</span><span style="display: block; font-size: 13px; color: #55625A">Veterinary surgeon · Nakuru</span></span>
+          <span style="font-size: 13px; color: #55625A">1 d</span>
+        </a>
+        <a href="#" style="display: flex; gap: 12px; align-items: center; padding: 16px 18px; color: #14211A; text-decoration: none">
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: #E4F0E8; color: #1F5F3F; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0">DM</span>
+          <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 700">David M.</span><span style="display: block; font-size: 13px; color: #55625A">Animal health worker · Meru</span></span>
+          <span style="font-size: 13px; color: #8A5A00; font-weight: 700">2 d</span>
+        </a>
+      </section>
+
+      <section style="flex: 2 1 460px; min-width: 0; background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px">
+          <div>
+            <h2 style="margin: 0; font-size: 22px; font-weight: 800">Grace N.</h2>
+            <div style="font-size: 14px; color: #55625A; margin-top: 2px">Veterinary surgeon · 2547****481 · submitted 27 Oct, 08:15</div>
+          </div>
+          <span style="align-self: flex-start; padding: 4px 12px; border-radius: 999px; background: #FDF1D8; color: #8A5A00; font-size: 13px; font-weight: 700">Pending review</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; font-size: 15px">
+          <div><div style="font-size: 13px; color: #55625A">Licence no.</div><div style="font-weight: 700">[LICENCE NO.]</div></div>
+          <div><div style="font-size: 13px; color: #55625A">Service area</div><div style="font-weight: 700">Kiambaa, Karuri · 12 km</div></div>
+          <div><div style="font-size: 13px; color: #55625A">Animals</div><div style="font-weight: 700">Cattle, goats, sheep</div></div>
+          <div><div style="font-size: 13px; color: #55625A">Languages</div><div style="font-weight: 700">English, Kiswahili, Gikuyu</div></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline"><h3 style="margin: 0; font-size: 15px; font-weight: 800">Documents</h3><span style="font-size: 13px; color: #55625A">Every view is written to the audit log</span></div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+            <button style="height: 110px; border-radius: 12px; border: 1px dashed #B8C4BB; background: #F5F6F2; color: #14211A; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#55625A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg><span style="font-size: 14px; font-weight: 700">Practising licence</span><span style="font-size: 12px; color: #55625A">PDF · view</span></button>
+            <button style="height: 110px; border-radius: 12px; border: 1px dashed #B8C4BB; background: #F5F6F2; color: #14211A; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#55625A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 14h4"/></svg><span style="font-size: 14px; font-weight: 700">National ID · front</span><span style="font-size: 12px; color: #55625A">Photo · view</span></button>
+            <button style="height: 110px; border-radius: 12px; border: 1px dashed #B8C4BB; background: #F5F6F2; color: #14211A; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#55625A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span style="font-size: 14px; font-weight: 700">Selfie</span><span style="font-size: 12px; color: #55625A">Photo · view</span></button>
+          </div>
+        </div>
+
+        <label style="display: flex; flex-direction: column; gap: 8px; font-size: 15px; font-weight: 800">Note to applicant <span style="font-weight: 500; color: #55625A; font-size: 13px">Sent by SMS and shown in the app if you request changes</span>
+          <textarea rows="3" placeholder="e.g. The ID photo is blurry. Please retake it in good light." style="border: 1px solid #DCE2DC; border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 15px; color: #14211A; resize: vertical"></textarea>
+        </label>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 4px; border-top: 1px solid #EDEFEC">
+          <button style="height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #1F5F3F; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 800; margin-top: 16px">Approve</button>
+          <button style="height: 48px; padding: 0 22px; border: 1.5px solid #1F5F3F; border-radius: 12px; background: #FFFFFF; color: #1F5F3F; font-family: inherit; font-size: 15px; font-weight: 700; margin-top: 16px">Request changes</button>
+          <button style="height: 48px; padding: 0 22px; border: 1.5px solid #B3261E; border-radius: 12px; background: #FFFFFF; color: #B3261E; font-family: inherit; font-size: 15px; font-weight: 700; margin-top: 16px; margin-left: auto">Reject</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

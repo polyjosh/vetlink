@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Farmer dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5F3F}a:hover{color:#14211A}
+</style>
+</helmet>
+<div style="min-height: 1080px; background: #F5F6F2; color: #14211A; font-family: Figtree, system-ui, sans-serif">
+  <header style="background: #FFFFFF; border-bottom: 1px solid #DCE2DC">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px">
+      <a href="#" style="display: flex; align-items: center; gap: 10px; color: #14211A; text-decoration: none">
+        <span style="width: 40px; height: 40px; border-radius: 12px; background: #1F5F3F; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F2B33D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><path d="M12 7v6M9 10h6" stroke="#FFFFFF"/></svg></span>
+        <span style="font-size: 20px; font-weight: 800">VetLink</span>
+      </a>
+      <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1">
+        <a href="#" style="padding: 10px 14px; border-radius: 10px; background: #E4F0E8; color: #1F5F3F; font-size: 15px; font-weight: 700; text-decoration: none">Home</a>
+        <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #55625A; font-size: 15px; font-weight: 600; text-decoration: none">Animals</a>
+        <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #55625A; font-size: 15px; font-weight: 600; text-decoration: none">Bookings</a>
+        <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #55625A; font-size: 15px; font-weight: 600; text-decoration: none">Health records</a>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="display: flex; padding: 3px; background: #E4F0E8; border-radius: 999px">
+          <button style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #FFFFFF; color: #14211A; font-family: inherit; font-size: 13px; font-weight: 700">EN</button>
+          <button style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: #1F5F3F; font-family: inherit; font-size: 13px; font-weight: 700">SW</button>
+        </div>
+        <button aria-label="Account" style="width: 40px; height: 40px; border-radius: 50%; border: 0; background: #14211A; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 800">JM</button>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 24px">
+    <div>
+      <h1 style="margin: 0; font-size: 32px; line-height: 40px; font-weight: 800; letter-spacing: -0.01em">Habari, Joseph</h1>
+      <p style="margin: 4px 0 0; font-size: 16px; color: #55625A">Kiambaa ward · 41 animals on record</p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px">
+      <section style="flex: 1 1 420px; min-width: 0; background: #1F5F3F; color: #FFFFFF; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+        <div>
+          <h2 style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 800">Is an animal sick?</h2>
+          <p style="margin: 8px 0 0; font-size: 16px; line-height: 24px; color: #CFE3D6; max-width: 460px">Tell us what's wrong. We'll send it to verified vets near you and show the fee before you confirm.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <a href="#" style="height: 56px; padding: 0 24px; border-radius: 12px; background: #F2B33D; color: #14211A; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Request a vet</a>
+          <a href="#" style="height: 56px; padding: 0 20px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.4); color: #FFFFFF; text-decoration: none; display: flex; align-items: center; font-size: 16px; font-weight: 700">Book a routine visit</a>
+        </div>
+      </section>
+
+      <section style="flex: 1 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 800">Active booking</h2>
+          <span style="padding: 4px 12px; border-radius: 999px; background: #E3EDF8; color: #1D5FA8; font-size: 13px; font-weight: 700">Vet on the way</span>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: center">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: #E4F0E8; color: #1F5F3F; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 17px; font-weight: 800">WK</div>
+          <div style="flex: 1; min-width: 0">
+            <div style="font-size: 17px; font-weight: 800">Dr. Wanjiru K.</div>
+            <div style="font-size: 14px; color: #55625A">Cow, not eating · arrives in about 25 min</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: auto">
+          <a href="#" style="flex: 1; height: 48px; border-radius: 12px; background: #1F5F3F; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">Track</a>
+          <a href="#" style="flex: 1; height: 48px; border-radius: 12px; border: 1.5px solid #DCE2DC; color: #14211A; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">Call vet</a>
+        </div>
+      </section>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <section style="flex: 999 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 20px; overflow: hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; gap: 12px; flex-wrap: wrap">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 800">Recent visits</h2>
+          <a href="#" style="font-size: 14px; font-weight: 700; text-decoration: none">All bookings</a>
+        </div>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; min-width: 560px; border-collapse: collapse; font-size: 15px">
+            <thead>
+              <tr style="background: #F5F6F2; text-align: left">
+                <th style="padding: 12px 24px; font-size: 13px; font-weight: 700; color: #55625A">Date</th>
+                <th style="padding: 12px 12px; font-size: 13px; font-weight: 700; color: #55625A">Animal</th>
+                <th style="padding: 12px 12px; font-size: 13px; font-weight: 700; color: #55625A">Reason</th>
+                <th style="padding: 12px 12px; font-size: 13px; font-weight: 700; color: #55625A">Vet</th>
+                <th style="padding: 12px 24px; font-size: 13px; font-weight: 700; color: #55625A">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-top: 1px solid #EDEFEC"><td style="padding: 16px 24px">27 Oct</td><td style="padding: 16px 12px; font-weight: 700">Daisy · cow</td><td style="padding: 16px 12px">Not eating</td><td style="padding: 16px 12px">Dr. Wanjiru K.</td><td style="padding: 16px 24px"><span style="padding: 4px 10px; border-radius: 999px; background: #E3EDF8; color: #1D5FA8; font-size: 13px; font-weight: 700">On the way</span></td></tr>
+              <tr style="border-top: 1px solid #EDEFEC"><td style="padding: 16px 24px">14 Oct</td><td style="padding: 16px 12px; font-weight: 700">Goats (7)</td><td style="padding: 16px 12px">Deworming</td><td style="padding: 16px 12px">Peter O. · AHW</td><td style="padding: 16px 24px"><span style="padding: 4px 10px; border-radius: 999px; background: #E4F0E8; color: #1E7A46; font-size: 13px; font-weight: 700">Completed</span></td></tr>
+              <tr style="border-top: 1px solid #EDEFEC"><td style="padding: 16px 24px">02 Oct</td><td style="padding: 16px 12px; font-weight: 700">Bella · cow</td><td style="padding: 16px 12px">Difficult birth</td><td style="padding: 16px 12px">Dr. Otieno A.</td><td style="padding: 16px 24px"><span style="padding: 4px 10px; border-radius: 999px; background: #E4F0E8; color: #1E7A46; font-size: 13px; font-weight: 700">Completed</span></td></tr>
+              <tr style="border-top: 1px solid #EDEFEC"><td style="padding: 16px 24px">21 Sep</td><td style="padding: 16px 12px; font-weight: 700">Poultry</td><td style="padding: 16px 12px">Vaccination</td><td style="padding: 16px 12px">Peter O. · AHW</td><td style="padding: 16px 24px"><span style="padding: 4px 10px; border-radius: 999px; background: #FDF1D8; color: #8A5A00; font-size: 13px; font-weight: 700">Payment pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 800">Your animals</h2>
+          <div style="display: flex; justify-content: space-between; font-size: 16px"><span>Cows <span style="color: #55625A">· Ng'ombe</span></span><b>4</b></div>
+          <div style="display: flex; justify-content: space-between; font-size: 16px"><span>Goats <span style="color: #55625A">· Mbuzi</span></span><b>7</b></div>
+          <div style="display: flex; justify-content: space-between; font-size: 16px"><span>Poultry <span style="color: #55625A">· Kuku</span></span><b>30</b></div>
+          <a href="#" style="height: 44px; border-radius: 12px; border: 1.5px solid #1F5F3F; color: #1F5F3F; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">Add an animal</a>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #DCE2DC; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 800">Coming up</h2>
+          <div style="display: flex; gap: 14px; align-items: center"><div style="width: 44px; text-align: center"><div style="font-size: 12px; font-weight: 700; color: #8A5A00">NOV</div><div style="font-size: 20px; font-weight: 800">03</div></div><div><div style="font-size: 15px; font-weight: 700">Deworming · goats</div><div style="font-size: 13px; color: #55625A">SMS reminder the day before</div></div></div>
+          <div style="display: flex; gap: 14px; align-items: center"><div style="width: 44px; text-align: center"><div style="font-size: 12px; font-weight: 700; color: #8A5A00">NOV</div><div style="font-size: 20px; font-weight: 800">18</div></div><div><div style="font-size: 15px; font-weight: 700">Vaccination · Daisy</div><div style="font-size: 13px; color: #55625A">Booked with Dr. Otieno</div></div></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-27T09:00:00Z"},
+  "title": "VetLink Redesign",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1760, "title": "Design system · ui-tokens"},
+    "Login.dc.html": {"x": 0, "y": 2150, "w": 390, "h": 844, "title": "Login · OTP"},
+    "FarmerHome.dc.html": {"x": 470, "y": 2150, "w": 390, "h": 844, "title": "Farmer · Home"},
+    "RequestVet.dc.html": {"x": 940, "y": 2150, "w": 390, "h": 844, "title": "Farmer · Request a vet", "is_interactive": true},
+    "Tracking.dc.html": {"x": 1410, "y": 2150, "w": 390, "h": 844, "title": "Farmer · Booking tracking"},
+    "VetOffer.dc.html": {"x": 1880, "y": 2150, "w": 390, "h": 844, "title": "Vet · Incoming request"},
+    "VetStatus.dc.html": {"x": 2350, "y": 2150, "w": 390, "h": 844, "title": "Vet · Application status"},
+    "WebFarmer.dc.html": {"x": 0, "y": 3360, "w": 1440, "h": 1080, "title": "Web · Farmer dashboard", "expand": "fill"},
+    "AdminQueue.dc.html": {"x": 1520, "y": 3360, "w": 1440, "h": 1080, "title": "Web · Admin verification queue", "expand": "fill"}
+  },
+  "order": ["Main.dc.html", "Login.dc.html", "FarmerHome.dc.html", "RequestVet.dc.html", "Tracking.dc.html", "VetOffer.dc.html", "VetStatus.dc.html", "WebFarmer.dc.html", "AdminQueue.dc.html"],
+  "notes": {
+    "found": {"x": 0, "y": -300, "text": "Foundations", "kind": "title1", "maxW": 1440},
+    "mobile": {"x": 0, "y": 1900, "text": "Mobile app · Expo", "kind": "title1", "maxW": 2740},
+    "web": {"x": 0, "y": 3110, "text": "Web · Next.js", "kind": "title1", "maxW": 2960}
+  },
+  "designSystems": []
+}
